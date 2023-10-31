@@ -17,6 +17,7 @@ extern SoundManager* soundManager;
 
 extern Battle battle;
 
+// 플레이어의 타입에 따라서 플레이어 데이터를 설정하고 이미지도 로드한다. 탄막과 서브 탄막도 생성한다.
 Player::Player(Type type, Type subType)
 {
 	constexpr int damagePerSec = (1000 / ELAPSE_BATTLE_ANIMATION);
@@ -108,7 +109,7 @@ Player::Player(Type type, Type subType)
 		break;
 	}
 
-	GameObject::Init(img_pokemon, { 250,500 });
+	GameObject::Init(img_pokemon, { 250, 500 });
 	bullets = new PlayerBullet(bulletImage);
 	subBullets = new PlayerBullet(subBulletImage);
 }
@@ -118,16 +119,21 @@ Player::~Player()
 	delete subBullets;
 	delete skillManager;
 }
+
+// 스킬 매니저 생성
 void Player::Init()
 {
 	skillManager = new SkillManager();
 }
 
+// 플레이어 렌더링
 void Player::Paint(HDC hdc)
 {
+	// 탄막 렌더링
 	bullets->Paint(hdc);
 	subBullets->Paint(hdc);
 
+	// 죽은 상태라면 즉시 리턴
 	if (playerData.isDeath == true)
 	{
 		return;
@@ -162,6 +168,8 @@ void Player::Paint(HDC hdc)
 
 	img_subPokemon.Paint(rectDest, hdc);
 }
+
+// 스킬 매니저를 통해서 스킬 렌더링
 void Player::PaintSkill(HDC hdc)
 {
 	if (playerData.isDeath == true)
@@ -172,7 +180,7 @@ void Player::PaintSkill(HDC hdc)
 	skillManager->Paint(hdc);
 }
 
-
+// 플레이어가 죽었을 경우 저 멀리 보내고 사운드 처리
 void Player::Death()
 {
 	GameObject::SetPos({ WINDOWSIZE_X / 2, 10000 });
@@ -183,6 +191,8 @@ void Player::Death()
 	soundManager->PlayEffectSound(EffectSound::Loss);
 	soundManager->StopBGMSound();
 }
+
+// [IControllable의 가상함수] 플레이어 데이터의 속도에 따라서 이동해야할 위치를 설정(바로 이동하지 않는다.)
 void Player::SetPosDest()
 {
 	const int movementAmount = playerData.speed * 2;
@@ -223,6 +233,7 @@ void Player::SetPosDest()
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
 }
 
+// 인자에 따라서 플레이어의 방향을 설정한다.
 void Player::SetDirection(Dir inputDir)
 {
 	if (direction == inputDir || direction == Dir::Empty)
@@ -255,6 +266,7 @@ void Player::SetDirection(Dir inputDir)
 	StopMove();
 }
 
+// [IControllable의 가상함수] 플레이어가 죽지 않았고 alpha 값이 0이라면 플레이어를 업데이트한다.
 void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc)
 {
 	if (playerData.isDeath == true)
@@ -279,14 +291,22 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 	StartMove();
 }
 
-void Player::Move(const HWND& hWnd, int timerID)
+// 실제 플레이어의 이동을 수행한다.
+void Player::Update(const HWND& hWnd, int timerID)
 {
 	Vector2 posCenter = GetPosCenter();
+
+	// 선형 보간을 통해 부드럽게 다음 이동할 위치의 좌표를 얻는다.
 	Vector2 posNext = Vector2::Lerp(posCenter, posDest, alpha);
 
+	// 윈도우 화면을 다음 이동할 위치의 좌표가 넘는지 검사한다.
 	CheckCollideWindow(posNext);
+
+	// 넘지 않았다면 다음 좌표로 플레이어의 중심 좌표를 이동한다
 	SetPos(posNext);
 	posCenter = GetPosCenter();
+	
+	// 벡터의 뺄셈 계산을 통해서 현재 어느 방향으로 가는지를 구할 수 있다.
 	vectorMove = posDest - posCenter;
 
 	alpha += 0.1f;
@@ -298,7 +318,7 @@ void Player::Move(const HWND& hWnd, int timerID)
 
 			alpha = 0.5f;
 		}
-		else if (alpha > 1)
+		else if (alpha > 1) // 어떠한 키도 누르지 않았을 경우 멈춘다. 업데이트 타이머도 삭제한다.
 		{
 			vectorMove = { 0.0f, };
 			StopMove();
@@ -308,6 +328,7 @@ void Player::Move(const HWND& hWnd, int timerID)
 	}
 }
 
+// 이전 키와 같을 경우만 정지한다. 반대 방향키를 눌렀을 때 멈추지 않기 위함이다.
 void Player::Stop(Dir inputDir)
 {
 	switch (direction)
@@ -339,9 +360,12 @@ void Player::Stop(Dir inputDir)
 	default:
 		break;
 	}
+
+	// 여기까지 온거면 어차피 이전 키와 같은 경우니까 결국 direction = 0(EMPTY)가 된다.
 	direction = direction - inputDir;
 }
 
+// 플레이어가 윈도우를 넘어갔는지 검사한다.
 void Player::CheckCollideWindow(Vector2& pos) const
 {
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
@@ -365,16 +389,20 @@ void Player::CheckCollideWindow(Vector2& pos) const
 		corrValue.y = rectDisplay.bottom - rectBody.bottom;
 	}
 
+	// 넘어갔다면 다음 이동할 위치 좌표에 나간 만큼 +를 하여 다시 돌아가게 만든다.
 	pos.x += corrValue.x;
 	pos.y += corrValue.y;
 }
 
+// 플레이어의 애니메이션 함수이다.
 void Player::Animate(const HWND& hWnd)
 {
+	// 플레이어가 죽었다면
 	if (playerData.isDeath == true)
 	{
 		if (--deathFrame == 0)
 		{
+			// 씬 매니저를 통해 다음 씬으로 이동(현재 씬이 배틀이므로 페이즈로 넘어간다.)
 			sceneManager->StartLoading(hWnd);
 		}
 		return;
@@ -388,6 +416,7 @@ void Player::Animate(const HWND& hWnd)
 		++frame;
 	}
 
+	// 현재 액션 값을 받아와서 애니메이션 한다.
 	switch (GetAction())
 	{
 	case Action::Idle:
@@ -407,16 +436,21 @@ void Player::Animate(const HWND& hWnd)
 		break;
 	}
 
+	// 스킬 매니저도 애니메이션한다.
 	skillManager->Animate();
 }
+
+// 탄막 발사 함수
 void Player::Shot()
 {
+	// 탄막의 데미지는 플레이어의 데이터에 따라서 달라진다.
 	const RECT rectBody = GetRectBody();
 	BulletData bulletData;
 	bulletData.bulletType = playerData.type;
 	bulletData.damage = playerData.damage;
 	bulletData.speed = playerData.bulletSpeed;
 
+	// 메인 포켓몬의 탄막을 생성하여 BulletController에 추가한다.
 	POINT bulletPos = { 0, };
 	bulletPos.y = rectBody.top;
 	bulletPos.x = rectBody.left - 10;
@@ -424,13 +458,17 @@ void Player::Shot()
 	bulletPos.x = rectBody.right + 10;
 	bullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
+	// 서브 포켓몬의 탄막을 생성하여 BulletController에 추가한다.
 	bulletData.bulletType = playerData.subType;
 	bulletData.damage = playerData.subDamage;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
 	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
+	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
 	skillManager->UseSkill();
 }
+
+// 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 void Player::CheckShot()
 {
 	if (playerData.isDeath == true)
@@ -438,6 +476,7 @@ void Player::CheckShot()
 		return;
 	}
 
+	// 타이머를 통해서 crntShotDelay 값을 줄이며 만약 0보다 작아지면 그 때 탄막을 발사하도록 하고 다시 리셋한다.
 	playerData.crntShotDelay -= ELAPSE_BATTLE_INVALIDATE;
 	if (IsClearShotDelay() == true)
 	{
@@ -445,39 +484,42 @@ void Player::CheckShot()
 		ResetShotDelay();
 	}
 }
+
+// 서브 포켓몬의 탄막 생성 함수
 void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet)
 {
 	subBullets->CreateBullet(center, data, unitVector, isRotateImg, isSkillBullet);
 }
 
+// 플레이어 피격 함수로 이펙트는 생성되어야 한다면 이펙트 매니저의 자료구조에 해당 이펙트를 추가한다.
 void Player::Hit(float damage, Type hitType, POINT effectPoint)
 {
 	if (playerData.isDeath == true)
 	{
 		return;
 	}
-	else if (effectPoint.x == -1)
+	else if (effectPoint.x == -1) // 만약 총알을 맞은 부분이 -1이라면 랜덤한 곳에서 이펙트 생성
 	{
 		effectPoint = GetPosCenter();
 		GetRandEffectPoint(effectPoint);
 	}
-	effects->CreateHitEffect(effectPoint, hitType);
-	gui->DisplayHurtFrame(hitType);
+	effects->CreateHitEffect(effectPoint, hitType); // 피격 효과를 이펙트 매니저에 추가한다.
+	gui->DisplayHurtFrame(hitType); // 피격시 화면에 생성되는 프레임
 
 	if (playerData.isInvincible == true)
 	{
 		return;
 	}
 
-	battle.ShakeMap();
-	damage = CalculateDamage(damage, playerData.type, hitType);
-	if ((playerData.hp -= damage) <= 0)
+	battle.ShakeMap(); // 맵 흔들기
+	damage = CalculateDamage(damage, playerData.type, hitType); // 데미지 계산
+	if ((playerData.hp -= damage) <= 0) // 계산된 데미를 통해서 플레이어 hp 감소시 0보다 작다면 폭발 효과 이펙트 매니저에 추가하고 플레이어 사망 함수 호출
 	{
 		effects->CreateExplosionEffect(GetPosCenter(), playerData.type);
 		Player::Death();
 	}
 
-	switch (hitType)
+	switch (hitType) // 맞은 탄막의 속성에 따라 사운드 재생
 	{
 	case Type::Elec:
 		soundManager->PlayHitSound(HitSound::Elec);
@@ -494,6 +536,7 @@ void Player::Hit(float damage, Type hitType, POINT effectPoint)
 	}
 }
 
+// 플레이어가 살아 있다면 스킬 재생
 void Player::ActiveSkill(Skill skill)
 {
 	if (playerData.isDeath == true)
@@ -503,11 +546,15 @@ void Player::ActiveSkill(Skill skill)
 
 	skillManager->ActiveSkill(skill);
 }
+
+// 플레이어의 총알 업데이트
 void Player::MoveBullets()
 {
-	bullets->Move();
-	subBullets->Move();
+	bullets->Update();
+	subBullets->Update();
 }
+
+// 스킬 사용시 어떤 스킬을 사용했는지 변수 설정
 bool Player::IsUsingSkill() const
 {
 	return skillManager->IsUsingSkill();

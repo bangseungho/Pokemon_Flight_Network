@@ -30,7 +30,7 @@ extern SoundManager* soundManager;
 
 extern Town town;
 extern Stage stage;
-extern Phase phase;
+extern PhaseManager phase;
 
 void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 {
@@ -42,7 +42,7 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			stage._allHide = !stage._allHide;
 		}
 	}
-	else if (sceneManager->GetScene() == Scene::Phase)
+	else if (sceneManager->GetScene() == Scene::PhaseManager)
 	{
 		if (sceneManager->IsLoading() == false && wParam == VK_BACK)
 		{

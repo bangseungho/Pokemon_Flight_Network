@@ -89,7 +89,7 @@ private:
 		SkillData skillData;
 		DarkSkillData darkSkillData;
 
-		bool Move();
+		bool Update();
 	public:
 		Effect(const EffectImage& imgSkill, const FRECT rectDraw, const SkillData& skillData = {});
 		Effect(const EffectImage& imgSkill, const Vector2& pos, const SkillData& skillData = {});

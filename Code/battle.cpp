@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "battle.h"
 
+// 배틀 화면에 필요한 이미지 모두 로드
 Battle::Battle()
 {
 	_water.Load(L"images\\battle\\Water_spstage.bmp");
@@ -19,6 +20,7 @@ void Battle::Init()
 	_mapSpeed = 5;
 }
 
+// 배틀 화면 렌더링 두 개의 이미지를 세로로 이어 붙여 하나의 이미지가 종 스크롤을 통해 모두 스크롤되면 다시 다른 이미지 위로 올라감
 void Battle::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index)
 {
 	switch (_select_index)
@@ -52,6 +54,7 @@ void Battle::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index)
 		_rectDraw2.bottom = 10;
 	}
 
+	// 화면 흔들기
 	if (isShake == true)
 	{
 		constexpr int shakeAmount = 5;

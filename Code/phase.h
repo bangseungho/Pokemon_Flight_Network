@@ -2,7 +2,7 @@
 
 extern bool finishScene;
 
-class TotalStage
+class Phase
 {
 public:
 	CImage _background;
@@ -17,33 +17,15 @@ public:
 	RECT rectDraw_boss_mask = { 0, };
 };
 
-class Water_stage : public TotalStage
-{
-public:
-};
-
-class Fire_stage : public TotalStage
-{
-public:
-};
-
-class Elec_stage : public TotalStage
-{
-public:
-};
-
-class Dark_stage : public TotalStage
-{
-public:
-};
-
-class Phase
+// rectImage : rectSrc
+// rectDraw : rectDest
+class PhaseManager
 {
 private:
-	Water_stage* _water;
-	Fire_stage* _fire;
-	Elec_stage* _elec;
-	Dark_stage* _dark;
+	Phase* _water;
+	Phase* _fire;
+	Phase* _elec;
+	Phase* _dark;
 
 	RECT boss_rectImage = { 0, };
 	RECT rectImage = { 0, };
@@ -57,7 +39,7 @@ private:
 	int phaseDark = 0;
 
 public:
-	Phase();
+	PhaseManager();
 	void Init();
 	void Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index);
 	void fingerController(const HWND& hWnd);

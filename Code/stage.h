@@ -17,7 +17,7 @@ private:
 		StageElement _select_index;
 	};
 
-	StageElement _phase = StageElement::Water;
+	StageElement _clearStage = StageElement::Water;
 
 	RECT _rectDraw = { 0, };
 	RECT _rectImage = { 0, };
@@ -29,8 +29,8 @@ private:
 	CImage _dialog_bar;
 	CImage _glowing_black;
 	Target* target;
-	bool _dialogflag = false;
-	bool _select_pokemon = false;
+	bool _dialogflag = false; // 해금되지 않은 스테이지를 선택한 경우 true
+	bool _select_pokemon = false; // 포켓몬 선택창이 열린 경우 true
 	bool _ready_Air_pokemon = false;
 	bool _ready_Land_pokemon = false;
 	bool _enter_select = false;
@@ -68,7 +68,7 @@ public:
 	void Init(const RECT& rectWindow);
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow, Menu menu);
-	void Move(const HWND& hWnd, const RECT& rectWindow);
+	void Update(const HWND& hWnd, const RECT& rectWindow);
 	void fingerController(const HWND& hWnd);
 	inline constexpr StageElement GetStage()
 	{

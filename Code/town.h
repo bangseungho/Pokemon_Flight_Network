@@ -46,7 +46,7 @@ public:
 	Town();
 	void Init(const RECT& rectWindow);
 	void Paint(HDC hdc, const RECT& rectWindow);
-	void Move(const RECT& rectWindow);
+	void Update(const RECT& rectWindow);
 	void StopPlayer();
 	int GetCamSizeX();
 	int GetCamSizeY();

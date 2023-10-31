@@ -51,13 +51,14 @@ inline float GetRadius(float x, float y)
 	return sqrtf((x * x) + (y * y));
 }
 
+// 직접 플레이어가 조종할 수 있는 추상화 클래스로 이 클래스를 상속받은 객체는 직접 조종할 수 있다.
 class IControllable abstract {
 private:
 	virtual void SetPosDest() abstract;
 	bool isMove = false;
 public:
 	virtual void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) abstract;
-	virtual void Move(const HWND& hWnd, int timerID) abstract;
+	virtual void Update(const HWND& hWnd, int timerID) abstract;
 	virtual void Stop(Dir dir) abstract;
 
 	inline void StartMove()
@@ -74,12 +75,13 @@ public:
 	}
 };
 
+// 자동으로 움직이는 추상화 클래스로 이 클래스를 상속받은 객체는 AI에 따라서 조종된다.
 class IMovable abstract {
 private:
 	virtual void SetPosDest() abstract;
 	bool isMove = false;
 public:
-	virtual void Move() abstract;
+	virtual void Update() abstract;
 
 	inline void StartMove()
 	{

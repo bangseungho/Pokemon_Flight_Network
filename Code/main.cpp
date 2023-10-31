@@ -76,7 +76,7 @@ Intro intro;
 Loading loading;
 Town town;
 Stage stage;
-Phase phase;
+PhaseManager phase;
 Battle battle;
 
 Cloud cloud[4];

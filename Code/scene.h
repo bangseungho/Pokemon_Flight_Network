@@ -7,7 +7,6 @@ private:
 
 	RECT rectWindow = { 0, };
 	RECT rectDisplay = { 0, };
-	CImage bkground{};
 
 	bool isEnding = false;
 	bool isLoading = false;

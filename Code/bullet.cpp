@@ -48,7 +48,7 @@ void BulletController::Bullet::Paint(const HDC& hdc, const ObjectImage& bulletIm
 		bulletImage.PaintRotation(hdc, vPoints);
 	}
 }
-bool BulletController::Bullet::Move()
+bool BulletController::Bullet::Update()
 {
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
 	float moveX = 0;
@@ -206,7 +206,7 @@ void BulletController::CreateBullet(const POINT& center, const BulletData& data,
 	bullets.emplace_back(bullet);
 }
 
-void PlayerBullet::Move()
+void PlayerBullet::Update()
 {
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
@@ -223,13 +223,13 @@ void PlayerBullet::Move()
 			}
 			BulletController::Pop(i);
 		}
-		else if(bullets.at(i)->Move() == false)
+		else if(bullets.at(i)->Update() == false)
 		{
 			BulletController::Pop(i);
 		}
 	}
 }
-void EnemyBullet::Move()
+void EnemyBullet::Update()
 {
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
@@ -238,7 +238,7 @@ void EnemyBullet::Move()
 			player->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
 			BulletController::Pop(i);
 		}
-		else if (bullets.at(i)->Move() == false)
+		else if (bullets.at(i)->Update() == false)
 		{
 			BulletController::Pop(i);
 		}

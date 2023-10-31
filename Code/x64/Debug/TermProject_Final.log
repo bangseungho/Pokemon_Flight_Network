@@ -1,0 +1,87 @@
+﻿  interface.cpp
+C:\Github\Pokemon_Flight_Network\Code\interface.cpp(126,10): error C2664: 'void Player::SetMove(const HWND &,int,int,const TIMERPROC &)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'const TIMERPROC &'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\interface.cpp(126,81): message : 원인: 'overloaded-function'에서 'const TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\interface.cpp(126,81): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\player.h(64,7): message : 'Player::SetMove' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\interface.cpp(126,10): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+  intro.cpp
+  scene.cpp
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(126,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(126,47): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(126,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(127,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(127,45): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(127,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(128,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(128,55): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(128,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(129,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(129,65): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(129,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(138,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(138,59): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(138,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(139,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(139,67): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(139,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(140,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(140,55): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(140,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(156,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(156,57): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(156,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(157,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(157,71): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(157,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(158,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(158,65): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(158,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(174,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(174,55): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(174,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(202,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(202,63): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(202,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(203,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(203,71): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(203,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(204,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(204,69): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(204,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(205,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(205,63): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(205,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(206,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(206,57): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(206,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(207,3): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(207,79): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(207,3): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(295,2): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(295,50): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(295,2): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(296,2): error C2664: 'UINT_PTR SetTimer(HWND,UINT_PTR,UINT,TIMERPROC)': 인수 4을(를) 'void (__cdecl *)(HWND,UINT,UINT,DWORD)'에서 'TIMERPROC'(으)로 변환할 수 없습니다.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(296,56): message : 대상 형식과 일치하는 범위에 이름이 같은 함수가 없습니다.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winuser.h(7037,1): message : 'SetTimer' 선언을 참조하십시오.
+C:\Github\Pokemon_Flight_Network\Code\scene.cpp(296,2): message : 인수 목록 '(const HWND, int, int, overloaded-function)'을(를) 일치시키는 동안
+  skill.cpp
+  town.cpp
+  코드를 생성하고 있습니다...

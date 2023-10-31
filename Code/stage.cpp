@@ -21,6 +21,7 @@
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
 
+// 스테이지에 필요한 이미지 모두 로드
 Stage::Stage()
 {
 	target = new Target();
@@ -54,9 +55,10 @@ Stage::Stage()
 	_ready_Articuno[0].Load(L"images\\stage\\Articuno_1.png");
 	_ready_Articuno[1].Load(L"images\\stage\\Articuno_2.png");
 
-	_phase = StageElement::Water;
+	_clearStage = StageElement::Water;
 }
 
+// 각 스테이지 충돌 박스 크기 및 위치 설정
 void Stage::Init(const RECT& rectWindow)
 {
 	target->_rectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
@@ -69,6 +71,7 @@ void Stage::Init(const RECT& rectWindow)
 	rectStage[4] = { 150, 200, 250, 260 };
 }
 
+// 선택 초기화
 void Stage::SelectPokemonInit()
 {
 	_select_pokemon = false;
@@ -78,9 +81,11 @@ void Stage::SelectPokemonInit()
 	_finger = 0;
 }
 
+// 스테이지 렌더링
 void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 {
-	switch (_phase)
+	// 현재 해금된 스테이지에 따라서 스테이지 렌더링
+	switch (_clearStage)
 	{
 	case StageElement::Water:
 		_water.Draw(hdc, 0, 0, 800, 1200, moveX, 0, 800, 1200);
@@ -96,6 +101,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		break;
 	}
 
+	// 충돌 박스 렌더링
 	if (_allHide == true)
 	{
 		for (int i = 0; i < STAGE_NUM; i++)
@@ -113,6 +119,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 
 	}
 
+	// 타겟이 해당 스테이지 충돌 박스와 충돌시 빨간색 타겟 이미지로 변경
 	if (target->_select == false)
 	{
 		target->_img.Draw(hdc, target->_rectDraw, target->_rectImage);
@@ -122,7 +129,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		target->_select_img.Draw(hdc, target->_rectDraw, target->_rectImage);
 	}
 
-	// 경고 문구
+	// 아직 해금되지 않은 스테이지 선택시 경고 문구
 	if (_dialogflag == true)
 	{
 		HFONT hFont = CreateFont(35, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
@@ -135,6 +142,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		DeleteObject(hFont);
 	}
 
+	// 스테이지를 선택하여 포켓몬 선택창이 열린 경우 포켓몬 선택창을 렌더링
 	if (_select_pokemon)
 	{
 		_glowing_black.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
@@ -243,7 +251,8 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 
 }
 
-void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
+// 스테이지에서의 Update 함수
+void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 {
 	RECT rect;
 	target->_cam = { target->_rectDraw.left - CAMSIZE_X, rectWindow.top, target->_rectDraw.right + CAMSIZE_X, rectWindow.bottom };
@@ -261,6 +270,7 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 		}
 	}
 
+	// 타겟 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left && !_select_pokemon)
 	{
 		target->_rectDraw.left -= MAPSCROLL_SPEED;
@@ -278,6 +288,7 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 			}
 		}
 	}
+	// 타겟 이동
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
 	{
 		target->_rectDraw.left += MAPSCROLL_SPEED;
@@ -296,12 +307,14 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 		}
 
 	}
+	// 타겟 이동
 	if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
 	{
 		target->_rectDraw.top -= MAPSCROLL_SPEED * 2;
 		target->_rectDraw.bottom -= MAPSCROLL_SPEED * 2;
 		_dialogflag = false;
 	}
+	// 타겟 이동
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
 	{
 		target->_rectDraw.top += MAPSCROLL_SPEED * 2;
@@ -309,6 +322,7 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 		_dialogflag = false;
 	}
 
+	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
 	if (GetAsyncKeyState(VK_RETURN) & 0x0001 && target->_select == true)
 	{
 		_enter_select = true;
@@ -320,7 +334,7 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 			return;
 		}
 
-		switch (_phase)
+		switch (_clearStage)
 		{
 		case StageElement::Water:
 		{
@@ -398,6 +412,7 @@ void Stage::Move(const HWND& hWnd, const RECT& rectWindow)
 
 }
 
+// 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러
 void Stage::fingerController(const HWND& hWnd)
 {
 	if (_select_pokemon && sceneManager->IsLoading() == false)
@@ -488,20 +503,21 @@ void Stage::fingerController(const HWND& hWnd)
 	}
 }
 
+// 스테이지를 클리한 경우 클리어 스테이지 기록 업데이트
 void Stage::ClearStage()
 {
-	switch (_phase)
+	switch (_clearStage)
 	{
 	case StageElement::Water:
-		_phase = StageElement::Fire;
+		_clearStage = StageElement::Fire;
 		break;
 	case StageElement::Fire:
-		_phase = StageElement::Elec;
+		_clearStage = StageElement::Elec;
 		break;
 	case StageElement::Elec:
-		_phase = StageElement::Dark;
+		_clearStage = StageElement::Dark;
 		break;
-	case StageElement::Dark:
+	case StageElement::Dark: // 최종 스테이지까지 클리어했을 경우 isEnding 변수를 true로 설정
 		sceneManager->GameClear();
 		break;
 	}

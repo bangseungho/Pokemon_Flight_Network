@@ -6,12 +6,13 @@
 extern SceneManager* sceneManager;
 extern Stage stage;
 
-Phase::Phase()
+// 페이즈 화면에서 필요한 페이즈들 생성과 필요한 이미지 모두 로드
+PhaseManager::PhaseManager()
 {
-	_water = new Water_stage();
-	_fire = new Fire_stage();
-	_elec = new Elec_stage();
-	_dark = new Dark_stage();
+	_water = new Phase();
+	_fire = new Phase();
+	_elec = new Phase();
+	_dark = new Phase();
 
 	_water->_background.Load(L"images\\stage\\Water_stage.bmp");
 	_fire->_background.Load(L"images\\stage\\Fire_stage.bmp");
@@ -43,7 +44,7 @@ Phase::Phase()
 	_dark->_boss_mask.Load(L"images\\stage\\Weezing_mask.png");
 }
 
-void Phase::Init()
+void PhaseManager::Init()
 {
 	rectImage = { 0, 0, 150, 150 };
 	boss_rectImage = { 0, 0, 250, 250 };
@@ -53,7 +54,8 @@ void Phase::Init()
 	rectDraw_boss = { 180, 20, 430, 270 };
 }
 
-void Phase::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index)
+// 페이즈 클리어 횟수에 따라서 페이즈에 표시해야 할 이미지들 렌더링
+void PhaseManager::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index)
 {
 	switch (_select_index)
 	{
@@ -167,7 +169,8 @@ void Phase::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index)
 	DeleteObject(hFont2);
 }
 
-void Phase::fingerController(const HWND& hWnd)
+// 페이즈에서는 핑거 컨트롤러는 단지 엔터키를 누르면 다음 씬으로 넘어가는 역할
+void PhaseManager::fingerController(const HWND& hWnd)
 {
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000)
 	{
@@ -175,9 +178,8 @@ void Phase::fingerController(const HWND& hWnd)
 	}
 }
 
-
-
-void Phase::ClearPhase()
+// 페이즈를 클리어하였을 경우 현재 페이즈 값 증가 1스테이지당 총 3페이즈까지 존재
+void PhaseManager::ClearPhase()
 {
 	int* crntPhase = nullptr;
 	switch (stage.GetStage())
@@ -210,7 +212,7 @@ void Phase::ClearPhase()
 	}
 }
 
-int Phase::GetPhase()
+int PhaseManager::GetPhase()
 {
 	switch (stage.GetStage())
 	{

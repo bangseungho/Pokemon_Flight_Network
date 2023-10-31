@@ -20,6 +20,7 @@
 
 extern SceneManager* sceneManager;
 
+// 타운 화면에 필요한 이미지 모두 로드
 Town::Town()
 {
 	player = new Player();
@@ -32,9 +33,11 @@ Town::Town()
 	_exits.Load(L"images\\dialog\\Exit.bmp");
 	_glowing_black.Load(L"images\\loading\\Loading_Black_background.bmp");
 }
+
+// 타운에서 필요한 초기화 작업
 void Town::Init(const RECT& rectWindow)
 {
-	// 왼쪽 상단부터
+	// 타운에 존재하는 건물들의 충돌 처리를 위한 충돌 박스 위치 설정
 	_object[0] = { 0, 0, 125, 190 };
 	_object[1] = { 156, 0, 300, 100 };
 	_object[2] = { 337, 0, 750, 175 };
@@ -63,11 +66,13 @@ void Town::Init(const RECT& rectWindow)
 
 	_rectImage = rectWindow;
 
+	// 타운 플레이어 생성
 	if (player == nullptr)
 		player = new Player();
 
 	player->_rectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
-
+	
+	// 이전 씬에 따라서 플레이어 방향과 위치 설정
 	if (sceneManager->GetPrevScene() == Scene::Intro)
 	{
 		player->_Pos.x = 60;
@@ -87,21 +92,21 @@ void Town::Init(const RECT& rectWindow)
 	player->aboutMapPos = { player->_Pos.x, player->_Pos.y };
 }
 
+// 타운 화면 렌더링
 void Town::Paint(HDC hdc, const RECT& rectWindow)
 {
+	// 타운 배경화면 렌더링
 	_backTown.Draw(hdc, _rectDraw, _rectImage);
 
+	// NPC 및 플레이어 렌더링
 	_npc2.Draw(hdc, _npc2Rect.left, _npc2Rect.top, 40, 40, _npc2Move.x, _npc2Move.y, 64, 64);
-
 	_npc3.TransparentBlt(hdc, _npc3Rect.left, _npc3Rect.top, 24, 30, 0, 0, 38, 48, RGB(255, 255, 255));
-
 	_npc4.TransparentBlt(hdc, _npc4Rect.left, _npc4Rect.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
-
 	player->img.Draw(hdc, player->_Pos.x - 20, player->_Pos.y - 20, 40, 40,
 		player->_rectImage.left, player->_rectImage.top, player->_rectImage.right, player->_rectImage.bottom);
-
 	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
+	// 타운 건물 렌더링
 	if (_allHide == true)
 	{
 		// 건물 오브젝트1 박스
@@ -131,6 +136,7 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		DeleteObject(hBrush);
 	}
 
+	// 종료 변수가 true라면 종료 여부 화면 렌더링
 	if (_exit == true)
 	{
 		_glowing_black.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
@@ -149,7 +155,7 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 
 }
 
-void Town::Move(const RECT& rectWindow)
+void Town::Update(const RECT& rectWindow)
 {
 	RECT temp;
 
@@ -186,11 +192,13 @@ void Town::Move(const RECT& rectWindow)
 		}
 	}
 
+	// _exit 변수가 true일 경우 엔터키를 누르면 게임 종료
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit == true)
 	{
 		PostQuitMessage(0);
 	}
 
+	// 플레이어의 위치 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
 		player->_keepGoing = true;
@@ -198,6 +206,7 @@ void Town::Move(const RECT& rectWindow)
 		player->aboutMapPos.x -= TPLAYER_SPEED;
 		_exit = false;
 
+		// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
 		if (player->_cam.left < rectWindow.left && _rectImage.left > 0)
 		{
 			_rectImage.right -= TPLAYER_SPEED;

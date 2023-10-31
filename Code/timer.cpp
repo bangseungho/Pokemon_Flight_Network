@@ -26,8 +26,8 @@ void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTi
 
 	player->MoveBullets();
 	enemies->MoveBullets();
-	enemies->Move();
-	boss->Move();
+	enemies->Update();
+	boss->Update();
 }
 
 void CALLBACK T_Battle_Animate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -44,7 +44,7 @@ void CALLBACK T_Battle_AnimateBoss(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwT
 
 void CALLBACK T_Battle_MovePlayer(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	player->Move(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
+	player->Update(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
 }
 
 void CALLBACK T_Battle_Effect(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -76,7 +76,7 @@ extern Intro intro;
 extern Loading loading;
 extern Town town;
 extern Stage stage;
-extern Phase phase;
+extern PhaseManager phase;
 extern Battle battle;
 
 extern Cloud cloud[4];
@@ -89,10 +89,10 @@ void CALLBACK T_MoveCloud(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	const RECT rectWindow = sceneManager->GetRectDisplay();
 
 	// 구름마다 속도 다르게 제어
-	cloud[0].Move(4, 0, rectWindow);
-	cloud[1].Move(2, 0, rectWindow);
-	cloud[2].Move(1, 0, rectWindow);
-	cloud[3].Move(4, 0, rectWindow);
+	cloud[0].Update(4, 0, rectWindow);
+	cloud[1].Update(2, 0, rectWindow);
+	cloud[2].Update(1, 0, rectWindow);
+	cloud[3].Update(4, 0, rectWindow);
 }
 
 // POKEMON FLIGHT의 흔들거리는 움직임
@@ -117,7 +117,7 @@ void CALLBACK T_Animation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	const Scene scene = sceneManager->GetScene();
 	if (scene == Scene::Intro && sceneManager->IsLoading() == false)
 		menu.fingerController(hWnd);
-	else if (scene == Scene::Phase && sceneManager->IsLoading() == false)
+	else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
 	{
 		battle.Init();
 		phase.fingerController(hWnd);
@@ -135,6 +135,7 @@ void CALLBACK T_TwinkleEmotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 #define LOADING_POKEMON_MAX_X 2100
 #define LOADING_POKEMON_MAX_Y 121
 
+// sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
 void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	const RECT rectWindow = sceneManager->GetRectWindow();
@@ -173,17 +174,17 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 			if (stage.GetStage() == StageElement::Town) // 타운 오브젝트 타겟
 				sceneManager->MoveScene(hWnd, Scene::Town);
 			else
-				sceneManager->MoveScene(hWnd, Scene::Phase);
+				sceneManager->MoveScene(hWnd, Scene::PhaseManager);
 
 		}
-		else if (scene == Scene::Phase)
+		else if (scene == Scene::PhaseManager)
 		{
 			sceneManager->MoveScene(hWnd, Scene::Battle);
 		}
 
 		else if (scene == Scene::Battle) // 게임 배틀 끝나고 스테이지 넘어가기
 		{
-			sceneManager->MoveScene(hWnd, Scene::Phase);
+			sceneManager->MoveScene(hWnd, Scene::PhaseManager);
 		}
 
 		sceneManager->StopLoading(hWnd);
@@ -214,7 +215,7 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	// 게임 플로우가 현재 타운일때와 장면이 끝남을 확인하는 변수가 참이 아닐 때 움직일 수 있도록 설정
 	if (scene == Scene::Town && sceneManager->IsLoading() == false)
 	{
-		town.Move(rectWindow);
+		town.Update(rectWindow);
 		InvalidateRect(hWnd, NULL, false);
 	}
 
@@ -332,7 +333,7 @@ void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	stage.fingerController(hWnd);
 	if (sceneManager->IsLoading() == false)
 	{
-		stage.Move(hWnd, rectWindow);
+		stage.Update(hWnd, rectWindow);
 		InvalidateRect(hWnd, NULL, false);
 	}
 }

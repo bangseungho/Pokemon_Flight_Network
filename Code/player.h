@@ -16,8 +16,8 @@ typedef struct PlayerData {
 	float speed = 0;
 
 	float bulletSpeed = 0;
-	float shotDelay = 0;
-	float crntShotDelay = 0;
+	float shotDelay = 0; // 플레이어 탄막의 쿨타임
+	float crntShotDelay = 0; // 플레이어 탄막의 현재 쿨타임
 	float damage = 0;
 	float subDamage = 0;
 	float damage_Q = 0; // per sec
@@ -29,11 +29,11 @@ typedef struct PlayerData {
 class Player : public GameObject, public IControllable, public IAnimatable {
 private:
 	PlayerData playerData;
-	PlayerBullet* bullets = nullptr;
-	PlayerBullet* subBullets = nullptr;
-	Vector2 posDest = { 0, };
-	Vector2 vectorMove = { 0, };
-	float alpha = 0;
+	PlayerBullet* bullets = nullptr; // 메인 포켓몬의 탄막 컨트롤러(비행 포켓몬)
+	PlayerBullet* subBullets = nullptr; // 서브 포켓몬의 탄막 컨트롤러(대지 포켓몬)
+	Vector2 posDest = { 0, }; // 목적지 좌표(바로 이동하지 않고 선형보간을 통해 조금씩 이동한다)
+	Vector2 vectorMove = { 0, }; 
+	float alpha = 0; // 선형보간 움직임을 위한 알파값이다. 1이면 posDest이고 0이면 현재 좌표이다.
 
 	SkillManager* skillManager = nullptr;
 	int skillCount = 0;
@@ -45,11 +45,11 @@ private:
 
 	void Death();
 	void SetPosDest() override;
-	inline bool IsClearShotDelay() const
+	inline bool IsClearShotDelay() const // 쿨타임이 완료되었는지 확인
 	{
 		return (playerData.crntShotDelay <= 0);
 	}
-	inline void ResetShotDelay()
+	inline void ResetShotDelay() // 쿨타임 완료시 탄막 장전
 	{
 		playerData.crntShotDelay = playerData.shotDelay;
 	}
@@ -62,7 +62,7 @@ public:
 
 	void SetDirection(Dir dir);
 	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
-	void Move(const HWND& hWnd, int timerID) override;
+	void Update(const HWND& hWnd, int timerID) override;
 	void Stop(Dir dir) override;
 	void CheckCollideWindow(Vector2& pos) const;
 

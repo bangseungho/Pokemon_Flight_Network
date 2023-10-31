@@ -18,7 +18,7 @@ extern EnemyController* enemies;
 extern SoundManager* soundManager;
 extern GUIManager* gui;
 
-extern Phase phase;
+extern PhaseManager phase;
 
 Enemy::Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data) : GameObject(image, pos)
 {
@@ -129,7 +129,7 @@ void Range::Paint(const HDC& hdc)
 	Enemy::Paint(hdc, spriteRow);
 }
 
-void Enemy::Move()
+void Enemy::Update()
 {
 	if (IsMove() == false)
 	{
@@ -139,7 +139,7 @@ void Enemy::Move()
 	SetPosDest();
 	SetPos(posDest);
 }
-void Melee::Move()
+void Melee::Update()
 {
 	if (IsMove() == false)
 	{
@@ -155,7 +155,7 @@ void Melee::Move()
 	SetPosDest();
 	SetPos(posDest);
 }
-void Range::Move()
+void Range::Update()
 {
 	if (IsMove() == false)
 	{
@@ -579,11 +579,11 @@ void EnemyController::Paint(HDC hdc)
 	}
 	bullets->Paint(hdc);
 }
-void EnemyController::Move()
+void EnemyController::Update()
 {
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Move();
+		enemy->Update();
 	}
 }
 void EnemyController::Animate()
@@ -639,7 +639,7 @@ void EnemyController::CreateBullet(const POINT& center, const BulletData& data, 
 }
 void EnemyController::MoveBullets()
 {
-	bullets->Move();
+	bullets->Update();
 }
 void EnemyController::DestroyCollideBullet(const RECT& rect)
 {

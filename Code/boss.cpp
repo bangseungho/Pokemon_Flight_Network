@@ -17,7 +17,7 @@ extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
 
-extern Phase phase;
+extern PhaseManager phase;
 
 void Boss::SetMove(const Vector2& unitVector)
 {
@@ -281,14 +281,14 @@ void Boss::Paint(HDC hdc)
 	skill->Paint(hdc);
 }
 
-void Boss::Move()
+void Boss::Update()
 {
 	if (bossData.isCreated == false)
 	{
 		return;
 	}
 
-	bullets->Move();
+	bullets->Update();
 
 	if (bossData.isDeath == true)
 	{

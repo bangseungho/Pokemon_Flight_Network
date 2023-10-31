@@ -19,8 +19,10 @@
 
 extern SceneManager* sceneManager;
 
+// 인트로 상태
 enum MI_Menu { start = 0, producer, finish };
 
+// 인트로 화면에 필요한 이미지를 로드
 void MainIntro::Init(const wchar_t* imgfile, int _PosX, int _PosY)
 {
 	_img.Load(imgfile);
@@ -36,6 +38,7 @@ void MainIntro::Init(const wchar_t* imgfile, int _PosX, int _PosY)
 	_rectImage = { 0, 0, _Size.x, _Size.y };
 }
 
+// 인트로 화면 렌더링
 void MainIntro::Paint(HDC hdc, const RECT& rectWindow)
 {
 	// 사이즈에 따른 위치 렉트값
@@ -45,8 +48,8 @@ void MainIntro::Paint(HDC hdc, const RECT& rectWindow)
 	_img.TransparentBlt(hdc, _rectDraw, _rectImage, RGB(254, 254, 254));
 }
 
-// 메인 화면 구름 움직임
-void Cloud::Move(int MoveX, int MoveY, const RECT& rectWindow)
+// 인트로 화면에 필요한 구름 이동, 렌더링은 씬 매니저에서 따로 Paint 함수 호출
+void Cloud::Update(int MoveX, int MoveY, const RECT& rectWindow)
 {
 	_Pos.x += MoveX;
 	_Pos.y += MoveY;
@@ -56,6 +59,7 @@ void Cloud::Move(int MoveX, int MoveY, const RECT& rectWindow)
 		_Pos.x = -188;
 }
 
+// 인트로 화면에 필요한 로고 렌더링
 void Logo::Paint(HDC hdc)
 {
 	// 폰트 설정
@@ -108,6 +112,7 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	TextOut(hdc, 174, 575, L"PRODUCER", 8);
 	TextOut(hdc, 192, 625, L"FINISH", 6);
 
+	// 이 변수가 켜져 있으면 개발자 이름을 화면 위에 렌더링한다.
 	if (_producer)
 	{
 		_glowing_black.AlphaBlend(hdc, 0, 0, 800, 1200, 0, 0, 800, 1200, ALPHA);
@@ -144,6 +149,7 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	DeleteObject(hFont);
 }
 
+// 현재 인트로 화면의 상태를 가리키는 화살표이다. 화살표를 가리킨 상태에서 엔터키를 누르면 그에 맞는 함수 호출
 void Menu::fingerController(const HWND& hWnd)
 {
 	if (GetAsyncKeyState(VK_UP) & 0x0001 && _finger > 0)

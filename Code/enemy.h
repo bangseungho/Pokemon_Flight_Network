@@ -45,7 +45,7 @@ protected:
 public:
 	Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data);
 	virtual void Paint(const HDC& hdc) abstract;
-	virtual void Move() override;
+	virtual void Update() override;
 	virtual void CheckAttackDelay() abstract;
 
 	int GetSpriteRow();
@@ -65,7 +65,7 @@ private:
 public:
 	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data) : Enemy(image, pos, data) {};
 	void Paint(const HDC& hdc) override;
-	void Move() override;
+	void Update() override;
 	void CheckAttackDelay() override;
 };
 
@@ -78,7 +78,7 @@ private:
 public:
 	Range(ObjectImage& image, const Vector2& pos, const EnemyData& data) : Enemy(image, pos, data) {};
 	void Paint(const HDC& hdc) override;
-	void Move() override;
+	void Update() override;
 	void CheckAttackDelay() override;
 };
 
@@ -108,7 +108,7 @@ public:
 	void CreateCheckMelee();
 	void CreateCheckRange();
 	void Paint(HDC hdc);
-	void Move();
+	void Update();
 	void Animate();
 	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
