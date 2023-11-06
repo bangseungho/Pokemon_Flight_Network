@@ -11,12 +11,12 @@ class BulletController abstract : public ISprite {
 protected:
 	class Bullet {
 	private:
-		BulletData data;
-		bool isSkillBullet = false;
-		bool isRotateImg = false;
+		BulletData data; // 탄막 데이터
+		bool isSkillBullet = false; // 스킬 탄막인지
+		bool isRotateImg = false; // 회전 이미지인지
 
-		Dir dir = Dir::Empty;
-		Vector2 unitVector;
+		Dir dir = Dir::Empty; // 총알 방향
+		Vector2 unitVector; // 해당 탄막을 발사한 유닛의 위치
 
 		FRECT rectBody = { 0, };
 		FRECT rectRotBody = { 0, };

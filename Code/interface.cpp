@@ -32,6 +32,9 @@ extern Town town;
 extern Stage stage;
 extern PhaseManager phase;
 
+// 인터페이스 부분은 잘 안봐도 됨
+
+// 키 다운 인풋 함수
 void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 {
 	if (sceneManager->GetScene() == Scene::Town || sceneManager->GetScene() == Scene::Stage)
@@ -127,6 +130,8 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 		}
 	}
 }
+
+// 키 업 인풋 함수
 void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 {
 	if (sceneManager->GetScene() == Scene::Town)
@@ -175,6 +180,7 @@ void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 	}
 }
 
+// GUI 생성자
 GUIManager::GUIManager(const RECT& rectWindow)
 {
 	const int crntPhase = phase.GetPhase();
@@ -425,9 +431,6 @@ void GUIManager::DisplayHurtFrame(Type type)
 		break;
 	}
 }
-
-
-
 
 void GUIManager::HurtGUI::ReduceAlpha()
 {

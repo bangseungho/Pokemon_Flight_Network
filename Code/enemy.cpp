@@ -17,41 +17,42 @@ extern EffectManager* effects;
 extern EnemyController* enemies;
 extern SoundManager* soundManager;
 extern GUIManager* gui;
-
 extern PhaseManager phase;
 
+// 적 생성자 타입을 받아서 업데이트한다.
 Enemy::Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data) : GameObject(image, pos)
 {
 	StartMove();
 	this->data = data;
 }
 
+// 플레이어의 방향 벡터를 기준으로 적의 현재 방향을 구함
 Dir Enemy::GetDir() const
 {
-	const float theta = atan2(unitVector.y, unitVector.x);
-	const float crntDegree = RADIAN_TO_DEGREE(theta);
+	const float theta = atan2(unitVector.y, unitVector.x); // 플레이어를 향하는 방향 벡터의 라디안 값을 구한다.
+	const float crntDegree = RADIAN_TO_DEGREE(theta); // 현재 라디안 값을 각도로 변환
 
 	constexpr int unitDegree = 45;
 	float degree = (float)unitDegree / 2;
 	if (crntDegree > 0)
 	{
-		if (crntDegree < degree)
+		if (crntDegree < degree) // 0 ~ 22.5
 		{
 			return Dir::Left;
 		}
-		else if (crntDegree < (degree += unitDegree))
+		else if (crntDegree < (degree += unitDegree)) // 22.5 ~ 67.5
 		{
 			return Dir::LU;
 		}
-		else if (crntDegree < (degree += unitDegree))
+		else if (crntDegree < (degree += unitDegree)) // 67.5 ~ 112.5
 		{
 			return Dir::Up;
 		}
-		else if (crntDegree < (degree += unitDegree))
+		else if (crntDegree < (degree += unitDegree)) // 112.5 ~ 157.5
 		{
 			return Dir::RU;
 		}
-		else
+		else // 157.5 ~ 180
 		{
 			return Dir::Right;
 		}
@@ -82,6 +83,7 @@ Dir Enemy::GetDir() const
 	}
 }
 
+// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 플레이어쪽으로 이동하도록 한다.
 void Melee::SetPosDest()
 {
 	if (IsMove() == false)
@@ -98,6 +100,8 @@ void Melee::SetPosDest()
 
 	posDest = posCenter - (unitVector * data.speed);
 }
+
+// 원거리 적 몬스터의 이동으로 랜덤한 y축을 기준으로 아래로 내려가다 멈춘다.
 void Range::SetPosDest()
 {
 	if (IsMove() == false)
@@ -120,16 +124,17 @@ void Enemy::Paint(const HDC& hdc, int spriteRow)
 }
 void Melee::Paint(const HDC& hdc)
 {
-	const int spriteRow = GetSpriteRow();
+	const int spriteRow = GetSpriteRow(); // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
 	Enemy::Paint(hdc, spriteRow);
 }
 void Range::Paint(const HDC& hdc)
 {
-	constexpr int spriteRow = 0;
+	constexpr int spriteRow = 0; // 원거리는 이미지를 방향에 따라 변경할 필요가 없다.
 	Enemy::Paint(hdc, spriteRow);
 }
 
-void Enemy::Update()
+// 최종적으로 위치를 이동
+void Enemy::Update()  
 {
 	if (IsMove() == false)
 	{
@@ -139,6 +144,8 @@ void Enemy::Update()
 	SetPosDest();
 	SetPos(posDest);
 }
+
+// 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
 	if (IsMove() == false)
@@ -155,6 +162,8 @@ void Melee::Update()
 	SetPosDest();
 	SetPos(posDest);
 }
+
+// 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
 void Range::Update()
 {
 	if (IsMove() == false)
@@ -166,6 +175,7 @@ void Range::Update()
 	SetPos(posDest);
 }
 
+// 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
 int Enemy::GetSpriteRow()
 {
 	int spriteRow = 0;
@@ -204,9 +214,10 @@ int Enemy::GetSpriteRow()
 	return spriteRow;
 }
 
+// 적 몬스터의 현재 상태에 따라서 스프라이트 이미지를 업데이트 한다.
 void Enemy::Animate()
 {
-	if (isRevFrame == true)
+	if (isRevFrame == true) // 스프라이트 이미지를 뒤에서부터 업데이트
 	{
 		--frame;
 	}
@@ -215,7 +226,7 @@ void Enemy::Animate()
 		++frame;
 	}
 
-	switch (GetAction())
+	switch (GetAction()) // 상태에 따라서 프레임 변경
 	{
 	case Action::Idle:
 		if (frame > data.frameNum_IdleMax)
@@ -247,6 +258,7 @@ void Enemy::Animate()
 	}
 }
 
+// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
 bool Melee::CheckCollidePlayer()
 {
 	const RECT rectBody = GetRectBody();
@@ -261,6 +273,8 @@ bool Melee::CheckCollidePlayer()
 
 	return false;
 }
+
+// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
 bool Enemy::Hit(float damage)
 {
 	if ((data.hp -= damage) <= 0)
@@ -271,12 +285,13 @@ bool Enemy::Hit(float damage)
 	return false;
 }
 
+// 적이 공격을 하고 나서 딜레이를 주는 함수
 void Melee::CheckAttackDelay()
 {
 	if (IsMove() == false)
 	{
 		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
-		if (IsClearAttackDelay() == true)
+		if (IsClearAttackDelay() == true) // 공격 딜레이가 끝났다면 움직이기 시작
 		{
 			StartMove();
 		}
@@ -290,11 +305,12 @@ void Range::CheckAttackDelay()
 		if (IsClearAttackDelay() == true)
 		{
 			Fire();
-			ResetAttackDelay();
+			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
 		}
 	}
 }
 
+// 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
 	SetAction(Action::Attack, data.frameNum_Atk);
@@ -312,6 +328,7 @@ void Range::Fire()
 	Vector2 unitVector = Vector2::Down();
 	int randDegree = (rand() % 10) - 5;
 
+	// 3 방향으로 탄막 발사
 	unitVector = Rotate(unitVector, randDegree);
 	enemies->CreateBullet(bulletPos, bulletData, unitVector);
 	unitVector = Rotate(unitVector, 20);
@@ -320,11 +337,7 @@ void Range::Fire()
 	enemies->CreateBullet(bulletPos, bulletData, unitVector);
 }
 
-
-
-
-
-
+// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
 void EnemyController::Pop(size_t& index)
 {
 	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
@@ -332,6 +345,8 @@ void EnemyController::Pop(size_t& index)
 	enemies[index--] = enemies.back();
 	enemies.pop_back();
 }
+
+// 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
 EnemyController::EnemyController()
 {
 	ObjectImage imgRangeBullet;
@@ -492,10 +507,10 @@ EnemyController::EnemyController()
 		break;
 	}
 
-	if (phase.GetPhase() > 0)
+	if (phase.GetPhase() > 0) 
 	{
-		++createAmount_Melee;
-		++createAmount_Range;
+		++createAmount_Melee; // 배틀 타이머당 생성되는 근거리 적 몬스터의 개수
+		++createAmount_Range; // 배틀 타이머당 생성되는 원거리 적 몬스터의 개수
 	}
 
 	const float randHP_Melee = (float)(rand() % 6) / 10;
@@ -514,9 +529,10 @@ EnemyController::~EnemyController()
 	delete bullets;
 }
 
-
+// 배틀 타이머당 생성되는 근거리 적 생성 함수
 void EnemyController::CreateCheckMelee()
 {
+	// 보스가 나왔거나 게임이 끝났다면 적 생성을 그만한다.
 	if (boss->IsCreated() == true)
 	{
 		return;
@@ -526,13 +542,15 @@ void EnemyController::CreateCheckMelee()
 		return;
 	}
 
-	delay_Melee += ELAPSE_BATTLE_INVALIDATE;
+	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
+	delay_Melee += ELAPSE_BATTLE_INVALIDATE; 
 	if (delay_Melee < createDelay_Melee)
 	{
 		return;
 	}
 	delay_Melee = 0;
 
+	// 최대 생성 적 개수에 따라서 적 객체를 생성하여 객체 자료구조에 넣는다.
 	for (int i = 0; i < createAmount_Melee; ++i)
 	{
 		float xPos = rand() % WINDOWSIZE_X;
@@ -542,6 +560,8 @@ void EnemyController::CreateCheckMelee()
 		enemies.emplace_back(enemy);
 	}
 }
+
+// 배틀 타이머당 생성되는 원거리 적 생성 함수
 void EnemyController::CreateCheckRange()
 {
 	if (boss->IsCreated() == true)
@@ -571,6 +591,7 @@ void EnemyController::CreateCheckRange()
 	}
 }
 
+// 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
 	for (Enemy* enemy : enemies)
@@ -593,6 +614,8 @@ void EnemyController::Animate()
 		enemy->Animate();
 	}
 }
+
+// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 {
 	for (size_t i = 0;i<enemies.size();++i)
@@ -611,6 +634,8 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 
 	return false;
 }
+
+// 플레이어 스킬과 적의 충돌 함수이다. 이펙트 위치를 랜덤으로 지정하여 죽었을 경우 자료구조에서 제거한다.
 void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitType)
 {
 	for (size_t i = 0; i < enemies.size(); ++i)
@@ -629,6 +654,7 @@ void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitTyp
 	}
 }
 
+// 적 탄막 생성함수 및 이동 함수 및 삭제 함수
 void EnemyController::CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector)
 {
 	bullets->CreateBullet(center, data, unitVector);

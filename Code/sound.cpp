@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "sound.h"
 
-
+// 결과가 성공이 아니면 에러메시지
 inline constexpr void CheckResult(const FMOD_RESULT& result)
 {
 	if (result != FMOD_OK)
@@ -9,10 +9,12 @@ inline constexpr void CheckResult(const FMOD_RESULT& result)
 		assert(0);
 	}
 }
+
+// 씬 및 각종 오브젝트에 따라서 사운드들을 포인터 배열에 넣어준다.
 SoundManager::SoundManager()
 {
-	FMOD_System_Create(&soundSystem, FMOD_VERSION);
-	FMOD_System_Init(soundSystem, 32, FMOD_INIT_NORMAL, NULL);
+	FMOD_System_Create(&soundSystem, FMOD_VERSION); // 사운드 시스템 생성
+	FMOD_System_Init(soundSystem, 32, FMOD_INIT_NORMAL, NULL); // 사운드 시스템 초기화
 
 	FMOD_RESULT result = FMOD_OK;
 
@@ -105,6 +107,7 @@ void SoundManager::PlayEffectSound(const EffectSound& effectSound, const float& 
 		FMOD_System_PlaySound(soundSystem, effectSoundList[static_cast<int>(effectSound)], 0, false, NULL);
 	}
 }
+
 void SoundManager::StopEffectSound()
 {
 	FMOD_Channel_Stop(soundChannel[static_cast<int>(SoundChannel::Effect)]);
@@ -119,6 +122,7 @@ void SoundManager::PlayBGMSound(const BGMSound& bgmSound, const float& volume, b
 		FMOD_Channel_SetVolume(soundChannel[static_cast<int>(SoundChannel::Bgm)], volume);
 	}
 }
+
 void SoundManager::StopBGMSound()
 {
 	FMOD_Channel_Stop(soundChannel[static_cast<int>(SoundChannel::Bgm)]);

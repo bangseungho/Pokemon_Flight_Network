@@ -18,8 +18,11 @@ extern EnemyController* enemies;
 extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
-
 extern Battle battle;
+
+// void BossSkillManager::Animate() 각 스킬 알고리즘보다 그냥 이 부분만 보면 됨
+// 플레이어의 스킬은 Q뿐이이고 W와 E는 탄막이기 때문에 스킬 매니저에서 관리하지 않고 불릿 매니저에서 관리한다.
+// 스킬 초기화 및 렌더링 함수
 
 SkillManager::Effect::Effect(const EffectImage& imgSkill, Type type)
 {
@@ -39,10 +42,13 @@ void SkillManager::Effect::Paint(const HDC& hdc, const RECT& rectBody) const
 	}
 	imgSkill->Paint(hdc, rectBody, &rectImage);
 }
+
+// 스킬 애니메이션 함수
 bool SkillManager::Effect::Animate()
 {
 	static int frameLoopCount = 4;
 
+	// 프레임이 최대 프레임을 벗어난 경우 0으로 초기화 후 애니메이션 종료
 	if (++frame >= imgSkill->GetMaxFrame())
 	{
 		frame = 0;
@@ -98,6 +104,7 @@ SkillManager::SkillManager()
 	}
 }
 
+// 플레이어의 타입에 따라서 스킬의 범위 지정
 RECT SkillManager::GetRectBody() const
 {
 	RECT rectBody = { 0, };
@@ -135,6 +142,7 @@ RECT SkillManager::GetRectBody() const
 	return rectBody;
 }
 
+// W, E 일반 스킬 사용 함수
 void SkillManager::UseSkill()
 {
 	if (IsUsingSkill() == false)
@@ -155,6 +163,7 @@ void SkillManager::UseSkill()
 		break;
 	}
 
+	// 스킬이 모두 종료되었다면 현재 상태를 Empty로 변경
 	if (--skillCount <= 0)
 	{
 		skillCount = 0;
@@ -162,9 +171,10 @@ void SkillManager::UseSkill()
 	}
 }
 
+// 궁극기 사용시 스킬 렌더링
 void SkillManager::Paint(const HDC& hdc) const
 {
-	if (isIdentity == false)
+	if (isIdentity == false) 
 	{
 		return;
 	}
@@ -173,6 +183,7 @@ void SkillManager::Paint(const HDC& hdc) const
 	skillEffect->Paint(hdc, rectBody);
 }
 
+// 스킬 애니메이션 진행
 void SkillManager::Animate()
 {
 	if (isIdentity == false)
@@ -189,7 +200,7 @@ void SkillManager::Animate()
 	RECT rectBody = GetRectBody();
 	rectBody.top += 20;
 	const Type playerType = player->GetType();
-	if (playerType == Type::Fire)
+	if (playerType == Type::Fire) // 플레이어 타입이 fire인 경우 프레임 업데이트
 	{
 		if (skillEffect->GetFrame() < 17)
 		{
@@ -203,32 +214,35 @@ void SkillManager::Animate()
 	}
 
 	const float damage = player->GetDamage_Q();
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 5; ++i) // 스킬은 보스를 5번씩 히트한다.
 	{
 		if (boss->CheckHit(rectBody, damage, playerType) == false)
 		{
 			break;
 		}
 	}
-	enemies->CheckHitAll(rectBody, damage, playerType);
-	if (playerType == Type::Fire ||
+	enemies->CheckHitAll(rectBody, damage, playerType); // 스킬은 보스를 5번씩 히트하고 적 센터 기준 양옆으로 어느정도 랜덤한 위치에서 이펙트 실행
+	if (playerType == Type::Fire || // Fire나 Elec은 적의 총알을 제거가능하다.
 		playerType == Type::Elec)
 	{
 		enemies->DestroyCollideBullet(rectBody);
 	}
 }
 
+// 스킬 사용 함수 플래그가 켜져 있다면 현재 스킬 상태를 업데이트
 void SkillManager::ActiveSkill(Skill skill)
 {
-	if (skill == Skill::Identity && isIdentity == true)
+	if (skill == Skill::Identity && isIdentity == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
 	{
 		return;
 	}
-	else if (skill != Skill::Identity && IsUsingSkill() == true)
+	else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
 	{
 		return;
 	}
 
+	// 스킬에 따라서 상태 업데이트
+	// MP가 적다면 바로 리턴
 	switch (skill)
 	{
 	case Skill::Sector:
@@ -252,7 +266,7 @@ void SkillManager::ActiveSkill(Skill skill)
 		{
 			return;
 		}
-
+		// 궁극기 사용시 맵을 흔든다.
 		switch (player->GetType())
 		{
 		case Type::Elec:
@@ -272,7 +286,7 @@ void SkillManager::ActiveSkill(Skill skill)
 			break;
 		}
 
-		isIdentity = true;
+		isIdentity = true; // 현재 궁극기 사용중임을 나타내는 플래그
 		break;
 	default:
 		assert(0);
@@ -280,6 +294,7 @@ void SkillManager::ActiveSkill(Skill skill)
 	}
 }
 
+// 반원 형태로 탄막을 발사함
 void SkillManager::ShotBySector()
 {
 	constexpr int bulletCount = 12;
@@ -307,6 +322,8 @@ void SkillManager::ShotBySector()
 
 	soundManager->PlayEffectSound(EffectSound::Shot_nLoop);
 }
+
+// 원 형태로 탄막을 발사함
 void SkillManager::ShotByCircle()
 {
 	constexpr int bulletCount = 18;
@@ -331,14 +348,7 @@ void SkillManager::ShotByCircle()
 	soundManager->PlayEffectSound(EffectSound::Shot_nLoop);
 }
 
-
-
-
-
-
-
-
-
+// 보스 스킬 초기화 
 RECT BossSkillManager::Effect::GetRectBody() const
 {
 	const POINT size = imgSkill.GetDrawSize();
@@ -541,13 +551,7 @@ bool BossSkillManager::Effect::RotateToPlayer(float t)
 	return true;
 }
 
-
-
-
-
-
-
-
+// 이 부분은 굳이 보지 않아도 되는 부분 스킬 알고리즘임
 BossSkillManager::BossSkillManager()
 {
 	switch (boss->GetType())
@@ -1227,14 +1231,7 @@ void BossSkillManager::Skill2_Dark()
 	}
 }
 
-
-
-
-
-
-
-
-
+// 보스 타입에 따라서 각 스킬 사용(여기만 보면 됨)
 void BossSkillManager::Animate()
 {
 	switch (boss->GetType())

@@ -37,7 +37,7 @@ enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
 #define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
 #define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
 
-enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU };
+enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU }; // 총 방향은 8개이다.
 
 // Direction 연산자 오버로딩
 // ex) Left - LD = LD - Left = Down

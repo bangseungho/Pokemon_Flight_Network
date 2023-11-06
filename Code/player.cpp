@@ -513,7 +513,7 @@ void Player::Hit(float damage, Type hitType, POINT effectPoint)
 
 	battle.ShakeMap(); // 맵 흔들기
 	damage = CalculateDamage(damage, playerData.type, hitType); // 데미지 계산
-	if ((playerData.hp -= damage) <= 0) // 계산된 데미를 통해서 플레이어 hp 감소시 0보다 작다면 폭발 효과 이펙트 매니저에 추가하고 플레이어 사망 함수 호출
+	if ((playerData.hp -= damage) <= 0) // 계산된 데미지를 통해서 플레이어 hp 감소시 0보다 작다면 폭발 효과 이펙트 매니저에 추가하고 플레이어 사망 함수 호출
 	{
 		effects->CreateExplosionEffect(GetPosCenter(), playerData.type);
 		Player::Death();

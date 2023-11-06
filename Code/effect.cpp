@@ -5,6 +5,8 @@
 
 extern SoundManager* soundManager;
 
+// 이펙트 매니저는 게임에서 생성되는 모든 이펙트를 벡터에 담아서 관리한다.
+// 이펙트를 실행했다면 당연히 해당 벡터에서 제거한다.
 EffectManager::EffectManager()
 {
 	explode_fire.Load(_T("images\\battle\\explode_fire.png"), { 56, 56 }, 8);
@@ -29,6 +31,7 @@ EffectManager::Effect::Effect(const EffectImage& effectImage, const POINT& pos)
 	this->pos = pos;
 }
 
+// 이펙트 렌더링
 void EffectManager::Paint(HDC hdc) const
 {
 	for (const Effect& effect : effects)
@@ -37,6 +40,7 @@ void EffectManager::Paint(HDC hdc) const
 	}
 }
 
+// 적 또는 플레이어가 충돌했을 경우 플레이어의 타입에 따라서 해당하는 충돌 이펙트를 추가한다.
 void EffectManager::CreateHitEffect(const POINT& pos, Type type)
 {
 	switch (type)
@@ -58,6 +62,8 @@ void EffectManager::CreateHitEffect(const POINT& pos, Type type)
 		break;
 	}
 }
+
+// 적 또는 플레이어가 사망했을 경우 플레이어의 타입에 따라서 해당하는 사망 이펙트를 추가한다.
 void EffectManager::CreateExplosionEffect(const POINT& pos, Type type)
 {
 	switch (type)
@@ -80,6 +86,7 @@ void EffectManager::CreateExplosionEffect(const POINT& pos, Type type)
 	}
 }
 
+// 게임 중에 생긴 모든 이펙트를 실행시키고 삭제한다.
 void EffectManager::Animate()
 {
 	for (size_t i = 0; i < effects.size(); ++i)
@@ -92,13 +99,12 @@ void EffectManager::Animate()
 	}
 }
 
-
+// 이펙트를 애니메이션하고 렌더링하는 함수들
 void EffectManager::Effect::Paint(HDC hdc) const
 {
 	const RECT rectImage = ISprite::GetRectImage(*effectImage, frame);
 	effectImage->Paint(hdc, pos, &rectImage);
 }
-
 bool EffectManager::Effect::Animate()
 {
 	if (++frame >= effectImage->GetMaxFrame())
@@ -109,13 +115,15 @@ bool EffectManager::Effect::Animate()
 	return true;
 }
 
-
+// 랜덤한 위치를 반환받는다.
 void GetRandEffectPoint(POINT& effectPoint)
 {
 	constexpr int range = 20;
 	effectPoint.x += (rand() % range) - (range / 2);
 	effectPoint.y += (rand() % range) - (range / 2);
 }
+
+// 보스 사망 이펙트로 처음에 작은 폭발이 일어나다가 CreateBossExplosionEffect 함수에서 큰 폭발이 한 번 일어나고 끝난다.
 void EffectManager::CreateBossDeathEffect(const Boss& boss)
 {
 	const EffectImage* effectImage = nullptr;

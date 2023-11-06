@@ -14,46 +14,47 @@ extern EffectManager* effects;
 extern GUIManager* gui;
 extern SceneManager* sceneManager;
 
+// 배틀화면에서 필요한 타이머
 void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	InvalidateRect(hWnd, NULL, FALSE);
-	player->CheckShot();
-	enemies->CreateCheckMelee();
-	enemies->CreateCheckRange();
-	enemies->CheckAttackDelay();
-	boss->CheckActDelay();
-	boss->CheckAttackDelay();
+	player->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
+	enemies->CreateCheckMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
+	enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
+	enemies->CheckAttackDelay(); // 적이 공격을 하고 나서 딜레이를 주는 함수
+	boss->CheckActDelay(); // 보스의 움직임에 딜레이를 주는 함수
+	boss->CheckAttackDelay(); // 보스의 공격에 딜레이를 주는 함수
 
-	player->MoveBullets();
-	enemies->MoveBullets();
-	enemies->Update();
-	boss->Update();
+	player->MoveBullets(); // 플레이어 탄막 이동 함수
+	enemies->MoveBullets(); // 적 탄막 이동 함수
+	enemies->Update(); // 적 이동 및 충돌 검사 함수
+	boss->Update(); // 보스 이동 및 충돌 검사 함수
 }
 
 void CALLBACK T_Battle_Animate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	player->Animate(hWnd);
-	enemies->Animate();
-	boss->AnimateSkill();
+	player->Animate(hWnd); // 플레이어 스프라이트 이미지 애니메이션 함수
+	enemies->Animate(); // 적 스프라이트 이미지 애니메이션 함수
+	boss->AnimateSkill(); // 보스 스킬 스프라이트 이미지 애니메이션 함수
 }
 
 void CALLBACK T_Battle_AnimateBoss(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	boss->Animate(hWnd);
+	boss->Animate(hWnd); // 보스 스프라이트 이미지 애니메이션 함수
 }
 
 void CALLBACK T_Battle_MovePlayer(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	player->Update(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
+	player->Update(hWnd, TIMERID_BATTLE_MOVE_PLAYER); // 실제 플레이어의 이동을 수행하는 함수
 }
 
 void CALLBACK T_Battle_Effect(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	effects->Animate();
+	effects->Animate(); // 게임 중에 생긴 모든 이펙트를 실행시키고 삭제하는 함쑤
 }
 void CALLBACK T_Battle_GUI(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	gui->Update(hWnd);
+	gui->Update(hWnd); // GUI 업데이트 함수
 }
 
 #include "intro.h"
@@ -84,6 +85,7 @@ extern Logo logo;
 extern Menu menu;
 extern CImage glowing_black;
 
+// 인트로에서 구름 움직이는 타이머
 void CALLBACK T_MoveCloud(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	const RECT rectWindow = sceneManager->GetRectDisplay();
@@ -112,6 +114,7 @@ void CALLBACK T_MoveLogo(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 		logo._logoMovingCnt++;
 }
 
+// 씬 정보를 받아와서 인트로이거나 페이즈일 경우 핑거 컨트롤러를 애니메이션 하는 함수
 void CALLBACK T_Animation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	const Scene scene = sceneManager->GetScene();
@@ -125,6 +128,7 @@ void CALLBACK T_Animation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	InvalidateRect(hWnd, NULL, false);
 }
 
+// 화살표가 반짝일 수 있도록 하는 함수
 void CALLBACK T_TwinkleEmotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	menu._finger_twinkle_cnt++;
@@ -200,6 +204,7 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	InvalidateRect(hWnd, NULL, false);
 }
 
+// 로딩 화면 업데이트 함수
 void CALLBACK T_Loadingbar(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	loading.Load(hWnd);
@@ -325,6 +330,7 @@ void CALLBACK T_NpcMotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 
 }
 
+// 스테이지에서 타겟을 움직이는 함수
 void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	const RECT rectWindow = sceneManager->GetRectWindow();
@@ -338,6 +344,7 @@ void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	}
 }
 
+// 배틀화면에서 종 스크롤 함수
 void CALLBACK T_Battle_MapMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	battle._rectDraw.top += battle._mapSpeed;
@@ -346,6 +353,7 @@ void CALLBACK T_Battle_MapMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	battle._rectDraw2.bottom += battle._mapSpeed;
 }
 
+// 플레이어 포켓몬 선택 함수
 void CALLBACK T_SelectPokemonMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	stage._select_pokemon_move++;

@@ -16,14 +16,16 @@ extern Player* player;
 extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
-
 extern PhaseManager phase;
 
+// 플레이어부터 보스로 향하는 방향 벡터를 업데이트하고 움직임을 true로 업데이트
 void Boss::SetMove(const Vector2& unitVector)
 {
 	this->unitVector = unitVector;
 	StartMove();
 }
+
+// 보스가 죽었을 경우 플레이어를 무적으로 
 void Boss::Death()
 {
 	bossData.hp = 0;
@@ -33,6 +35,8 @@ void Boss::Death()
 	soundManager->StopEffectSound();
 	soundManager->StopBossSound();
 }
+
+// 보스 액션에 따른 공격 설정 함수
 void Boss::StartAttack()
 {
 	if (bossData.type != Type::Dark)
@@ -40,11 +44,11 @@ void Boss::StartAttack()
 		SetAction(Action::Attack, bossData.frameNum_Atk);
 	}
 
-	if (++normalSkillCount < 3)
+	if (++normalSkillCount < 3) // 일반 공격은 연속으로 3번 랜덤하게 5개 일반 공격 중 하나로 진행
 	{
 		act = static_cast<BossAct>(rand() % 5);
 	}
-	else
+	else // 스킬은 2개 중 하나로 진행
 	{
 		normalSkillCount = 0;
 		act = static_cast<BossAct>((rand() % 2) + 5);
@@ -56,7 +60,7 @@ void Boss::StartAttack()
 	case BossAct::Skill2:
 		skill->UseSkill();
 		return;
-	case BossAct::Line:
+	case BossAct::Line: // 양 옆으로 왔다갔다 함
 	{
 		int random = rand() % 2;
 		if (random != 0)
@@ -70,8 +74,12 @@ void Boss::StartAttack()
 	}
 	break;
 	}
+
+	// 현재 공격에 따라서 최대 공격 개수를 받아온다.
 	skillCount = maxSkillCount[static_cast<int>(act)];
 }
+
+// 보스 액션에 따라서 공격 함수 호출
 void Boss::Shot()
 {
 	switch (act)
@@ -95,12 +103,15 @@ void Boss::Shot()
 		return;
 	}
 
+	// 스킬 모두 사용시 액션을 Idle로 지정
 	if (--skillCount <= 0)
 	{
 		skillCount = 0;
 		act = BossAct::Idle;
 	}
 }
+
+// 현재 액션에 따른 총알 정보 Get함수
 BulletData Boss::GetBulletData()
 {
 	BulletData bulletData;
@@ -117,6 +128,8 @@ BulletData Boss::GetBulletData()
 
 	return bulletData;
 }
+
+// 공격을 한 뒤 딜레이를 위해 쿨타임을 다시 설정하는 함수
 void Boss::ResetAttackDelay()
 {
 	const int index = static_cast<int>(act);
@@ -127,7 +140,7 @@ void Boss::ResetAttackDelay()
 	bossData.crntAttackDelay = bossData.attackDelay[index];
 }
 
-
+// 게임 스테이지에 따라서 이미지 로드
 Boss::Boss()
 {
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
@@ -166,6 +179,7 @@ Boss::Boss()
 		break;
 	}
 
+	// 탄막 생성 및 최대 스킬 개수 지정
 	bullets = new EnemyBullet(imgBullet);
 	maxSkillCount[static_cast<unsigned int>(BossAct::Line)] = INT_MAX;
 	maxSkillCount[static_cast<unsigned int>(BossAct::Circle)] = 10;
@@ -183,6 +197,7 @@ Boss::~Boss()
 	delete bullets;
 }
 
+// 보스 생성 및 초기화 함수
 void Boss::Create()
 {
 	bossData = GetBossData();
@@ -196,6 +211,8 @@ void Boss::Create()
 	soundManager->StopBGMSound();
 	soundManager->PlayBGMSound(BGMSound::Battle_Boss, 1.0f, true);
 }
+
+// 보스 움직임을 설정하는 함수
 void Boss::SetPosDest()
 {
 	if (IsMove() == false)
@@ -206,7 +223,7 @@ void Boss::SetPosDest()
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
 
 	posDest = Vector2::GetDest(GetPosCenter(), unitVector, bossData.speed);
-	if (act == BossAct::Idle)
+	if (act == BossAct::Idle) // Idle시 maxYPos 위치까지 이동 후 정지
 	{
 		const RECT rectBody = GetRectBody();
 		const int maxYPos = (rectBody.bottom - rectBody.top) / 2;
@@ -219,7 +236,7 @@ void Boss::SetPosDest()
 			bossData.speed = 5;
 		}
 	}
-	else if (act == BossAct::Line)
+	else if (act == BossAct::Line) // Line시 좌우측으로 이동하다가 어느정도 움직이면 다시 가운데에서 정지
 	{
 		constexpr int moveCount = 6;
 		static int crntMoveCount = moveCount;
@@ -262,6 +279,7 @@ void Boss::SetPosDest()
 	}
 }
 
+// 보스를 렌더링하는 함수
 void Boss::Paint(HDC hdc)
 {
 	constexpr int disappearFrame = -3;
@@ -281,6 +299,7 @@ void Boss::Paint(HDC hdc)
 	skill->Paint(hdc);
 }
 
+// 보스를 업데이트 하는 함수 충돌 처리와 이동 함수를 호출한다.
 void Boss::Update()
 {
 	if (bossData.isCreated == false)
@@ -288,6 +307,7 @@ void Boss::Update()
 		return;
 	}
 
+	// 탄막 업데이트
 	bullets->Update();
 
 	if (bossData.isDeath == true)
@@ -309,6 +329,8 @@ void Boss::Update()
 	SetPosDest();
 	SetPos(posDest);
 }
+
+// 보스 일반 공격 쿨타임을 체크하는 함수 
 void Boss::CheckAttackDelay()
 {
 	if (bossData.isCreated == false)
@@ -321,6 +343,7 @@ void Boss::CheckAttackDelay()
 	}
 	else if (act != BossAct::Idle)
 	{
+		// 쿨타임이 끝났다면 공격을 실행하고 다시 쿨타임을 리셋
 		bossData.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
 		if (IsClearAttackDelay() == true)
 		{
@@ -329,6 +352,8 @@ void Boss::CheckAttackDelay()
 		}
 	}
 }
+
+// 보스 전체 움직임 쿨타임을 체크하는 함수 
 void Boss::CheckActDelay()
 {
 	if (bossData.isCreated == false)
@@ -350,6 +375,7 @@ void Boss::CheckActDelay()
 	}
 }
 
+// 보스 충돌 검사 함수
 bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effectPoint)
 {
 	if (bossData.isCreated == false)
@@ -363,13 +389,13 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 
 	const RECT rectBody = GameObject::GetRectBody();
 	RECT rectInter = { 0, };
-	if (rectSrc.top > rectBody.bottom)
+	if (rectSrc.top > rectBody.bottom) // 만약 탄막의 top이 보스의 bottom보다 크다면 충돌 처리 할 일이 없으니깐 리턴
 	{
 		return false;
 	}
-	else if (GameObject::IsCollide(rectSrc, &rectInter) == true)
+	else if (GameObject::IsCollide(rectSrc, &rectInter) == true) // 충돌 처리를 통해서 rectInter을 받아온다.
 	{
-		if (effectPoint.x == -1)
+		if (effectPoint.x == -1) // effecPoint.x 값이 -1이라면 플레이어의 스킬 공격을 맞은 경우임
 		{
 			const int interWidth = rectInter.right - rectInter.left;
 			const int interHeight = rectInter.bottom - rectInter.top;
@@ -378,7 +404,7 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 
 			effectPoint = { randX, randY };
 		}
-		else
+		else // -1이 아니라면 플레이어의 탄막을 맞은 경우임
 		{
 			const int maxYPos = rectBody.top + 30;
 			if (maxYPos < rectSrc.top)
@@ -391,6 +417,7 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 			}
 		}
 
+		// 충돌 검사를 통과했을 경우 이펙트를 생성하고 보스의 hp를 감소시킴
 		effects->CreateHitEffect(effectPoint, hitType);
 		const float calDamage = CalculateDamage(damage, GetType(), hitType);
 		if ((bossData.hp -= calDamage) <= 0)
@@ -403,6 +430,7 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 	return false;
 }
 
+// 보스 애니메이션 함수
 void Boss::Animate(const HWND& hWnd)
 {
 	constexpr int loadingFrame = -40;
@@ -411,20 +439,20 @@ void Boss::Animate(const HWND& hWnd)
 	{
 		return;
 	}
-	else if (bossData.isDeath == true)
+	else if (bossData.isDeath == true) // 만약 보스가 죽은 경우
 	{
-		if (--deathFrame > 0)
+		if (--deathFrame > 0) // deathFrame을 하나씩 줄이면서 DeathEffect를 실행(작은 폭발)
 		{
 			effects->CreateBossDeathEffect(*this);
 		}
-		else if(deathFrame == -1)
+		else if(deathFrame == -1) // deathFrame이 -1이 되었다면 ExplosionEffect를 실행(큰 폭발)
 		{
 			soundManager->PlayEffectSound(EffectSound::Win);
 			soundManager->StopBGMSound();
 
 			effects->CreateBossExplosionEffect(*this);
 		}
-		else if (deathFrame == loadingFrame)
+		else if (deathFrame == loadingFrame) // ExplosionEffect가 끝난 경우 로딩 화면을 시작하며 페이즈를 실행
 		{
 			phase.ClearPhase();
 			sceneManager->StartLoading(hWnd);
@@ -440,7 +468,7 @@ void Boss::Animate(const HWND& hWnd)
 		++frame;
 	}
 
-	switch (GetAction())
+	switch (GetAction()) // 보스가 죽지 않은 경우 상태에 맞는 애니메이션 진행
 	{
 	case Action::Idle:
 		if (frame > bossData.frameNum_IdleMax)
@@ -481,6 +509,8 @@ void Boss::Animate(const HWND& hWnd)
 		break;
 	}
 }
+
+// 스킬 애니메이션 실행 함수
 void Boss::AnimateSkill()
 {
 	if (IsCreated() == false)
@@ -495,7 +525,7 @@ void Boss::AnimateSkill()
 	skill->Animate();
 }
 
-
+// 7개의 탄막이 1열로 y축 방향으로 나아감
 void Boss::ShotByLine()
 {
 	constexpr int bulletCount = 7;
@@ -512,10 +542,12 @@ void Boss::ShotByLine()
 	const Vector2 unitVector = Vector2::Down();
 	for (int i = 0; i < bulletCount; ++i)
 	{
-		bullets->CreateBullet(bulletPos, bulletData, unitVector);
+		bullets->CreateBullet(bulletPos, bulletData, unitVector); // createBullet을 실행하면 unitVector에 따라서 Update함
 		bulletPos.x -= bulletMoveAmount;
 	}
 }
+
+// 중심에서 36개의 탄막이 원의 형태로 나아감
 void Boss::ShotByCircle()
 {
 	constexpr int bulletCount = 36;
@@ -532,6 +564,8 @@ void Boss::ShotByCircle()
 		unitVector = Rotate(unitVector, 360 / bulletCount);
 	}
 }
+
+// 중심에서 1개의 탄막이 원을 그리며 나아감(동글뱅이)
 void Boss::ShotBySpiral()
 {
 	const BulletData bulletData = GetBulletData();
@@ -554,6 +588,8 @@ void Boss::ShotBySpiral()
 	unitVector = Rotate(unitVector, rotation);
 	bullets->CreateBullet(bulletPos, bulletData, unitVector);
 }
+
+// 13개의 탄막이 반원 형태로 중심에서 나아감
 void Boss::ShotBySector()
 {
 	constexpr int bulletCount = 12;
@@ -575,6 +611,8 @@ void Boss::ShotBySector()
 		unitVector = Rotate(unitVector, rotationDegree);
 	}
 }
+
+// 1개의 탄막이 랜덤한 방향으로 나아감
 void Boss::ShotBySpread()
 {
 	const BulletData bulletData = GetBulletData();
@@ -596,6 +634,7 @@ BossData Boss::GetBossData()
 
 	bossData.speed = 1;
 
+	// 탄막(일반 공격)의 속도와 쿨타임을 설정
 	bossData.bulletSpeed[static_cast<int>(BossAct::Line)] = 6;
 	bossData.bulletSpeed[static_cast<int>(BossAct::Sector)] = 3;
 	bossData.bulletSpeed[static_cast<int>(BossAct::Circle)] = 4;
@@ -609,6 +648,8 @@ BossData Boss::GetBossData()
 	bossData.attackDelay[static_cast<int>(BossAct::Spread)] = 10;
 
 	bossData.frameNum_Idle = 0;
+
+	// 보스의 타입에 따라서 초기화
 	switch (gameData.stage)
 	{
 	case StageElement::Elec:
@@ -670,6 +711,7 @@ BossData Boss::GetBossData()
 	}
 	bossData.crntActDelay = bossData.actDelay;
 
+	// 3페이즈(또도가스)인 경우 hp을 더 높게 설정
 	if (phase.GetPhase() == 3)
 	{
 		bossData.hp += 1000;

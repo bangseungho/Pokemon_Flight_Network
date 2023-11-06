@@ -4,6 +4,7 @@
 
 extern GameData gameData;
 
+// 이미지 로드 함수
 void Image::Load(const WCHAR* fileName, const POINT& imgSize, BYTE alpha)
 {
 	Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(fileName, false);
@@ -22,6 +23,8 @@ void Image::Load(const WCHAR* fileName, const POINT& imgSize, BYTE alpha)
 
 	this->rectImage = { 0, 0, imgSize.x, imgSize.y };
 }
+
+// 렌더링 함수
 void Image::Paint(const HDC&hdc, const RECT& rectDraw, const RECT& rectImage) const
 {
 	const HDC memDC = CreateCompatibleDC(hdc);
@@ -38,6 +41,8 @@ void Image::Paint(const HDC&hdc, const RECT& rectDraw, const RECT& rectImage) co
 		PaintHitbox(hdc, rectDraw);
 	}
 }
+
+// 회전된 이미지 렌더링
 void Image::PaintRotation(const HDC& hdc, Vector2 vPoints[4], const RECT* rectImage) const
 {
 	if (rectImage == nullptr)
@@ -81,13 +86,14 @@ void Image::PaintRotation(const HDC& hdc, Vector2 vPoints[4], const RECT* rectIm
 		PaintHitbox(hdc, rectDraw);
 	}
 }
+
+// 알파값 조정 함수로 알파값 낮추면 점점 투명해짐
 void Image::SetAlpha(BYTE alpha)
 {
 	bFunction.SourceConstantAlpha = alpha;
 }
 
-
-
+// 오브젝트 이미지 로드 함수
 void ObjectImage::Load(const WCHAR* fileName, const POINT& imgSize, const POINT& bodyDrawPoint, const POINT& bodySize)
 {
 	Image::Load(fileName, imgSize);
@@ -106,6 +112,7 @@ void ObjectImage::Load(const WCHAR* fileName, const POINT& imgSize, const POINT&
 	}
 }
 
+// 오브젝트 렌더링 함수
 void ObjectImage::Paint(const HDC& hdc, const RECT& rectBody, const RECT* rectImage) const
 {
 	if (rectImage == nullptr)
@@ -131,6 +138,7 @@ void ObjectImage::Paint(const RECT& rectDest, const HDC& hdc) const
 	Image::Paint(hdc, rectDest, this->rectImage);
 }
 
+// 이미지 스케일 함수
 void ObjectImage::ScaleImage(float scaleX, float scaleY)
 {
 	if (isScaled == true)
@@ -150,10 +158,12 @@ void ObjectImage::ScaleImage(float scaleX, float scaleY)
 	this->scaleY = scaleY;
 }
 
-
+// 이펙트 이미지 로드 함수
 void EffectImage::Load(const WCHAR* fileName, const POINT& imgSize, int maxFrame, BYTE alpha)
 {
 	Image::Load(fileName, imgSize, alpha);
+
+	// 스프라이트 애니메이션을 위해서 값을 증가시킨다.
 	++rectImage.left;
 	++rectImage.top;
 	++rectImage.right;
@@ -161,6 +171,8 @@ void EffectImage::Load(const WCHAR* fileName, const POINT& imgSize, int maxFrame
 	this->maxFrame = maxFrame;
 	this->drawSize = imgSize;
 }
+
+// 이펙트 이미지 렌더링 함수
 void EffectImage::Paint(const HDC& hdc, const POINT& drawPoint, const RECT* rectImage) const
 {
 	if (rectImage == nullptr)
@@ -185,17 +197,15 @@ void EffectImage::Paint(const HDC& hdc, const RECT& rectDest, const RECT* rectIm
 
 	Image::Paint(hdc, rectDest, *rectImage);
 }
+
+// 이펙트 이미지 스케일 함수
 void EffectImage::ScaleImage(float scaleX, float scaleY)
 {
 	drawSize.x = (LONG)((float)drawSize.x * scaleX);
 	drawSize.y = (LONG)((float)drawSize.y * scaleY);
 }
 
-
-
-
-
-
+// GUI 이미지 로드 함수
 void GUIImage::Load(const WCHAR* fileName, const POINT& imgSize, BYTE alpha)
 {
 	Image::Load(fileName, imgSize, alpha);
@@ -245,11 +255,7 @@ void GUIImage::PaintGauge(const HDC& hdc, const RECT& rectDest, float current, f
 	DeleteObject(hBitmap);
 }
 
-
-
-
-
-
+// 스프라이트 애니메이션을 위해서 프레임수만큼 렉트 이미지에 더해준다.
 RECT ISprite::GetRectImage(const Image& image, int frame, int spriteRow) const
 {
 	const POINT drawSize = image.GetDrawSize();

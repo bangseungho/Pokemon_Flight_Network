@@ -26,9 +26,9 @@ typedef struct EnemyData {
 
 class Enemy abstract : public GameObject, public IAnimatable, public IMovable {
 protected:
-	EnemyData data;
-	Vector2 posDest = { 0, };
-	Vector2 unitVector = { 0, };
+	EnemyData data; // 적 데이터로 생성자에서 초기화
+	Vector2 posDest = { 0, }; // 포지션 위치 벡터
+	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
 
 	void Paint(const HDC& hdc, int spriteRow);
 	Dir GetDir() const;

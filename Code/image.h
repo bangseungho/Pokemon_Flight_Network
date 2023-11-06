@@ -6,7 +6,7 @@ const HBRUSH transBrush = CreateSolidBrush(transRGB);
 class Image abstract {
 private:
 	HBITMAP hBitmap{};
-	BLENDFUNCTION bFunction{};
+	BLENDFUNCTION bFunction{}; // wingdi 관련 블렌딩 변수
 
 protected:
 	RECT rectImage = { 0, };
