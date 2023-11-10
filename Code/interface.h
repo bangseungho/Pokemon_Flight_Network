@@ -21,7 +21,7 @@ private:
 	}HurtGUI;
 
 	const RECT* rectWindow = nullptr;
-	float iconMoveMaxY = 0;
+	float iconMoveMaxY = 0; 
 	float iconMoveMinY = 0;
 	float iconMoveAmount = 0;
 	bool isIconStop = false;
