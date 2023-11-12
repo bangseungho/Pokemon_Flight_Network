@@ -6,6 +6,8 @@
 *.d
 
 # Compiled Object files
+*.vs
+*.bin
 *.slo
 *.lo
 *.o
@@ -36,3 +38,5 @@
 *.app
 
 # End of https://www.toptal.com/developers/gitignore/api/c++
+[Dd]ebug/
+[Rr]elease/
