@@ -7,65 +7,110 @@
 
 #include "ServerUtils.h"
 
+using namespace std;
+
 #define SERVERPORT		9000
 #define MAX_BUFSIZE     1024
 
-using namespace std;
+// 서버에서 가지고 있는 플레이어들의 전역 데이터
+static vector<PlayerData> sPlayers;
 
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
-	SOCKET clientSock = (SOCKET)sock;
+	// ThreadSocket = Socket + threadId 
+	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
+	SOCKET clientSock = threadSocket->Sock;
+	uint8 threadId = threadSocket->Id;
 
-	struct sockaddr_in clientaddr;
-	char addr[INET_ADDRSTRLEN];
+	// 플레이어 배열에 해당 클라이언트 추가
+	sPlayers.emplace_back(clientSock, threadId);
+
+	// 클라이언트 정보 가져오기
+	SOCKADDR_IN clientaddr;
 	int addrlen;
-
 	addrlen = sizeof(clientaddr);
-	getpeername(clientSock, (struct sockaddr*)&clientaddr, &addrlen);
-	inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+	getpeername(clientSock, (SOCKADDR*)&clientaddr, &addrlen);
 
 	while (1) {
+		// 총 데이터에서 앞 4바이트 정수값만 recv하여 데이터 타입을 받아온다.
 		DataType dataType;
 		dataType = RecvDataType(clientSock);
 		if (dataType == DataType::NONE_DATA)
 			break;
 
-#pragma region INTRO
+#pragma region Intro
 		if (dataType == DataType::INTRO_DATA) {
-			IntroData data;
-			recv(clientSock, (char*)&data, sizeof(IntroData), 0);
+			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
+			auto& data = sPlayers[threadId].mIntroData;
+			RecvData<IntroData>(clientSock, data);
+			
+			// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+				
+				SendData<IntroData>(clientSock, player.mIntroData);
+			}
 
 			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
 		}
 #pragma endregion
-#pragma region TOWN
+#pragma region Town
 		if (dataType == DataType::TOWN_DATA) {
-			TownData data;
-			recv(clientSock, (char*)&data, sizeof(TownData), 0);
+			auto& data = sPlayers[threadId].mTownData;
+			RecvData<TownData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<TownData>(clientSock, player.mTownData);
+			}
 
 			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
 #pragma endregion
-#pragma region STAGE
+#pragma region Stage
 		if (dataType == DataType::STAGE_DATA) {
-			StageData data;
-			recv(clientSock, (char*)&data, sizeof(StageData), 0);
+			auto& data = sPlayers[threadId].mStageData;
+			RecvData<StageData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<StageData>(clientSock, player.mStageData);
+			}
 
 			cout << "RECORD: " << data.Record << endl;
 		}
 #pragma endregion
-#pragma region PHASE
+#pragma region Phase
 		if (dataType == DataType::PHASE_DATA) {
-			PhaseData data;
-			recv(clientSock, (char*)&data, sizeof(PhaseData), 0);
+			auto& data = sPlayers[threadId].mPhaseData;
+			RecvData<PhaseData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<PhaseData>(clientSock, player.mPhaseData);
+			}
 
 			cout << "ISREADY: " << data.IsReady << endl;
 		}
 #pragma endregion
-#pragma region BATTLE
+#pragma region Battle
 		if (dataType == DataType::BATTLE_DATA) {
-			BattleData data;
-			recv(clientSock, (char*)&data, sizeof(BattleData), 0);
+			auto& data = sPlayers[threadId].mBattleData;
+			RecvData<BattleData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<BattleData>(clientSock, player.mBattleData);
+			}
 
 			cout << "ISCOLLIDER: " << data.IsCollider << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
@@ -73,7 +118,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 	}
 
 	closesocket(clientSock);
-	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n", addr, ntohs(clientaddr.sin_port));
+	cout << "[클라이언트 종료] IP: " << inet_ntoa(clientaddr.sin_addr) << ", PORT: " << ntohs(clientaddr.sin_port) << endl;
 	return 0;
 }
 
@@ -91,7 +136,7 @@ int main(int argc, char* argv[])
 #pragma endregion
 
 #pragma region SockAddr
-	struct sockaddr_in serveraddr;
+	SOCKADDR_IN serveraddr;
 	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -99,7 +144,7 @@ int main(int argc, char* argv[])
 #pragma endregion
 
 #pragma region Bind
-	retval = bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	retval = bind(listen_sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("bind()");
 #pragma endregion
 
@@ -107,29 +152,30 @@ int main(int argc, char* argv[])
 	retval = listen(listen_sock, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 #pragma endregion
-
-	SOCKET clientSock;
-	struct sockaddr_in clientaddr;
+#pragma region Accept
+	ThreadSocket clientSock;
+	SOCKADDR_IN clientaddr;
 	int addrlen;
 	HANDLE hThread;
-	int clientName{};
-	system("cls");
+
+	uint8 id{};
 	while (1) {
 		addrlen = sizeof(clientaddr);
-		clientSock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
-		if (clientSock == INVALID_SOCKET) break;
+		clientSock.Sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
+		if (clientSock.Sock == INVALID_SOCKET) break;
+		clientSock.Id = id++;
 
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
 
-		printf("\n[TCP 서버] [%d]클라이언트 접속: IP 주소=%s, 포트 번호=%d\n", clientName, addr, ntohs(clientaddr.sin_port));
-		clientName++;
+		cout << "[클라이언트 접속] IP: " << inet_ntoa(clientaddr.sin_addr) << ", PORT: " << ntohs(clientaddr.sin_port) << endl;
 
-		hThread = CreateThread(NULL, 0, ProcessClient, (LPVOID)clientSock, 0, NULL);
-		if (hThread == NULL) { closesocket(clientSock); }
+		hThread = CreateThread(NULL, 0, ProcessClient, &clientSock, 0, NULL);
+
+		if (hThread == NULL) { closesocket(clientSock.Sock); }
 		else { CloseHandle(hThread); }
 	}
-
+#pragma endregion
 #pragma region Close
 	closesocket(listen_sock);
 	WSACleanup();

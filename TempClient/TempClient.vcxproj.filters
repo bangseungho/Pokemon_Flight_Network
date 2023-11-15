@@ -14,10 +14,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Utils.h">
+    <ClInclude Include="ClientUtils.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ClientUtils.h">
+    <ClInclude Include="..\Utils.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

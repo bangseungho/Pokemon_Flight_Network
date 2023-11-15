@@ -1,31 +1,19 @@
 #pragma once
 
-struct IntroData
+class PlayerData
 {
-	int Id;
-	int Password;
-};
+public:
+	PlayerData() {}
+	PlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
+	virtual ~PlayerData() {}
+	
+public:
+	IntroData	mIntroData;
+	TownData	mTownData;
+	StageData	mStageData;
+	PhaseData	mPhaseData;
+	BattleData	mBattleData;
 
-struct TownData
-{
-	float	PosX;
-	float	PosY;
-	bool	IsReady;
-};
-
-struct StageData
-{
-	int Record;
-};
-
-struct PhaseData
-{
-	bool IsReady;
-};
-
-struct BattleData
-{
-	float	PosX;
-	float	PosY;
-	bool	IsCollider;
+	SOCKET		mSock;
+	uint8		mThreadId;
 };

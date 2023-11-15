@@ -5,13 +5,70 @@
 #include <vector>
 #include <string>
 
-#include "ClientUtils.h"
+#include "ClientUtils.h" 
 
 char* SERVERIP = (char*)"127.0.0.1";
 #define SERVERPORT 9000
 #define BUFSIZE    1024
 
 using namespace std;
+
+DWORD WINAPI RecvData(LPVOID sock)
+{
+	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
+	SOCKET clientSock = threadSocket->Sock;
+
+	SOCKADDR_IN clientaddr;
+	int addrlen;
+
+	addrlen = sizeof(clientaddr);
+	getpeername(clientSock, (SOCKADDR*)&clientaddr, &addrlen);
+
+	while (1) {
+		DataType dataType;
+		dataType = RecvDataType(clientSock);
+
+#pragma region Intro
+		if (dataType == DataType::INTRO_DATA) {
+			IntroData data;
+			RecvData<IntroData>(clientSock, data);
+			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
+		}
+#pragma endregion
+#pragma region Town
+		if (dataType == DataType::TOWN_DATA) {
+			TownData data;
+			RecvData<TownData>(clientSock, data);
+			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
+		}
+#pragma endregion
+#pragma region Stage
+		if (dataType == DataType::STAGE_DATA) {
+			StageData data;
+			RecvData<StageData>(clientSock, data);
+			cout << "RECORD: " << data.Record << endl;
+		}
+#pragma endregion
+#pragma region Phase
+		if (dataType == DataType::PHASE_DATA) {
+			PhaseData data;
+			RecvData<PhaseData>(clientSock, data);
+			cout << "ISREADY: " << data.IsReady << endl;
+		}
+#pragma endregion
+#pragma region Battle
+		if (dataType == DataType::BATTLE_DATA) {
+			BattleData data;
+			RecvData<BattleData>(clientSock, data);
+			cout << "ISCOLLIDER: " << data.IsCollider << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
+		}
+#pragma endregion
+	}
+
+	closesocket(clientSock);
+	cout << "[클라이언트 종료] IP: " << inet_ntoa(clientaddr.sin_addr) << ", PORT: " << ntohs(clientaddr.sin_port) << endl;
+	return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -37,34 +94,32 @@ int main(int argc, char* argv[])
 #pragma endregion
 #pragma region SendRecvData
 	IntroData introData = {
-		DataType::INTRO_DATA,
-		1111,
-		1234,
+		0000,
+		0000,
 	};
 	
 	TownData townData = {
-		DataType::TOWN_DATA,
-		1.5f,
-		3.5f,
-		true
+		0.0f,
+		0.0f,
+		false
 	};
 
 	StageData stageData = {
-		DataType::STAGE_DATA,
-		3
+		0
 	};
 
 	PhaseData phaseData = {
-		DataType::PHASE_DATA,
-		true
+		false
 	};
 
 	BattleData battleData = {
-		DataType::BATTLE_DATA,
-		100.f,
-		200.f,
+		0.f,
+		0.f,
 		false
 	};
+
+	HANDLE hThread;
+	hThread = CreateThread(NULL, 0, RecvData, &sock, 0, NULL);
 
 	while (true) {
 		int input;
@@ -74,49 +129,31 @@ int main(int argc, char* argv[])
 		{
 		case static_cast<int>(DataType::INTRO_DATA):
 		{
-			int len = sizeof(introData);
-			retVal = send(sock, (char*)&introData, len, 0);
-			if (ErrorCheck(retVal, 1))
-				break;
+			SendData<IntroData>(sock, introData);
 		}
 		break;
 		case static_cast<int>(DataType::TOWN_DATA):
 		{
-			int len = sizeof(townData);
-			retVal = send(sock, (char*)&townData, len, 0);
-			if (ErrorCheck(retVal, 1))
-				break;
+			SendData<TownData>(sock, townData);
 		}
 		break;
 		case static_cast<int>(DataType::STAGE_DATA):
 		{
-			int len = sizeof(stageData);
-			retVal = send(sock, (char*)&stageData, len, 0);
-			if (ErrorCheck(retVal, 1))
-				break;
+			SendData<StageData>(sock, stageData);
 		}
 		break;
 		case static_cast<int>(DataType::PHASE_DATA):
 		{
-			int len = sizeof(phaseData);
-			retVal = send(sock, (char*)&phaseData, len, 0);
-			if (ErrorCheck(retVal, 1))
-				break;
+			SendData<PhaseData>(sock, phaseData);
 		}
 		break;
 		case static_cast<int>(DataType::BATTLE_DATA):
 		{
-			int len = sizeof(battleData);
-			retVal = send(sock, (char*)&battleData, len, 0);
-			if (ErrorCheck(retVal, 1))
-				break;
+			SendData<BattleData>(sock, battleData);
 		}
 		break;
 		}
 	}
-
-
-		
 
 #pragma endregion
 #pragma region Close
