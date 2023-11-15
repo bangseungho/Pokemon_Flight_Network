@@ -12,20 +12,22 @@ using namespace std;
 #define SERVERPORT		9000
 #define MAX_BUFSIZE     1024
 
+CRITICAL_SECTION gPlayerCS;
 static vector<PlayerData> sPlayers;
 
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
 	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
 	SOCKET clientSock = threadSocket->Sock;
+	uint8 threadId = threadSocket->Id;
+
+	sPlayers.emplace_back(clientSock, threadId);
 
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
 	addrlen = sizeof(clientaddr);
 	getpeername(clientSock, (SOCKADDR*)&clientaddr, &addrlen);
-
-	sPlayers.emplace_back(threadSocket);
 
 	while (1) {
 		DataType dataType;
@@ -35,48 +37,75 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 #pragma region Intro
 		if (dataType == DataType::INTRO_DATA) {
-			recv(clientSock, (char*)&sPlayers[threadSocket->Id].mIntroData, sizeof(IntroData), 0);
-			
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadSocket->Id != threadSocket->Id)
-			//		continue;
+			auto& data = sPlayers[threadId].mIntroData;
+			RecvData<IntroData>(clientSock, data);
 
-			//	//send(player.mThreadSocket)
-			//}
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+				
+				SendData<IntroData>(clientSock, player.mIntroData);
+			}
 
-			send(clientSock, (char*)&sPlayers[threadSocket->Id].mIntroData, sizeof(IntroData), 0);
-
-			cout << "ID: " << sPlayers[threadSocket->Id].mIntroData.Id << ", PASSWORD: " << sPlayers[threadSocket->Id].mIntroData.Password << endl;
+			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
 		}
 #pragma endregion
 #pragma region Town
 		if (dataType == DataType::TOWN_DATA) {
-			TownData data;
-			recv(clientSock, (char*)&data, sizeof(TownData), 0);
+			auto& data = sPlayers[threadId].mTownData;
+			RecvData<TownData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<TownData>(clientSock, player.mTownData);
+			}
 
 			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
 #pragma endregion
 #pragma region Stage
 		if (dataType == DataType::STAGE_DATA) {
-			StageData data;
-			recv(clientSock, (char*)&data, sizeof(StageData), 0);
+			auto& data = sPlayers[threadId].mStageData;
+			RecvData<StageData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<StageData>(clientSock, player.mStageData);
+			}
 
 			cout << "RECORD: " << data.Record << endl;
 		}
 #pragma endregion
 #pragma region Phase
 		if (dataType == DataType::PHASE_DATA) {
-			PhaseData data;
-			recv(clientSock, (char*)&data, sizeof(PhaseData), 0);
+			auto& data = sPlayers[threadId].mPhaseData;
+			RecvData<PhaseData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<PhaseData>(clientSock, player.mPhaseData);
+			}
 
 			cout << "ISREADY: " << data.IsReady << endl;
 		}
 #pragma endregion
 #pragma region Battle
 		if (dataType == DataType::BATTLE_DATA) {
-			BattleData data;
-			recv(clientSock, (char*)&data, sizeof(BattleData), 0);
+			auto& data = sPlayers[threadId].mBattleData;
+			RecvData<BattleData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				if (player.mThreadId == threadId)
+					continue;
+
+				SendData<BattleData>(clientSock, player.mBattleData);
+			}
 
 			cout << "ISCOLLIDER: " << data.IsCollider << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
@@ -124,6 +153,8 @@ int main(int argc, char* argv[])
 	int addrlen;
 	HANDLE hThread;
 
+	InitializeCriticalSection(&gPlayerCS);
+
 	int id{};
 	while (1) {
 		addrlen = sizeof(clientaddr);
@@ -143,6 +174,7 @@ int main(int argc, char* argv[])
 	}
 #pragma endregion
 #pragma region Close
+	DeleteCriticalSection(&gPlayerCS);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion

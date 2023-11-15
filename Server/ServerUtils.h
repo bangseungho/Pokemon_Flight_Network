@@ -3,15 +3,17 @@
 class PlayerData
 {
 public:
-	PlayerData(ThreadSocket* threadSocket) { mThreadSocket = threadSocket; }
+	PlayerData() {}
+	PlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
 	virtual ~PlayerData() {}
 	
 public:
-	IntroData mIntroData;
-	TownData mTownData;
-	StageData mStageData;
-	PhaseData mPhaseData;
-	BattleData mBattleData;
+	IntroData	mIntroData;
+	TownData	mTownData;
+	StageData	mStageData;
+	PhaseData	mPhaseData;
+	BattleData	mBattleData;
 
-	ThreadSocket* mThreadSocket;
+	SOCKET		mSock;
+	uint8		mThreadId;
 };

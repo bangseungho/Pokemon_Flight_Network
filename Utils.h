@@ -33,8 +33,8 @@ enum class DataType : int
 
 struct ThreadSocket
 {
-	SOCKET Sock;
-	int Id;
+	SOCKET	Sock;
+	uint8	Id;
 };
 
 struct IntroData
@@ -128,13 +128,62 @@ bool ErrorCheck(int retVal, int type)
 	return true;
 }
 
-DataType RecvDataType(SOCKET& clientSock) {
-	DataType dataType;
+DataType RecvDataType(SOCKET& clientSock) 
+{
 	int retVal;
+	DataType dataType;
+	ZeroMemory(&dataType, sizeof(dataType));
 
 	retVal = recv(clientSock, (char*)&dataType, sizeof(dataType), 0);
 	if (false == ErrorCheck(retVal, 0))
 		return DataType::NONE_DATA;
 
 	return dataType;
+}
+
+// 패킷 타입에 따라 반환
+template<typename T>
+inline DataType GetDataType()
+{
+	if (std::is_same_v<T, IntroData>)
+		return DataType::INTRO_DATA;
+	else if (std::is_same_v<T, TownData>)
+		return DataType::TOWN_DATA;
+	else if (std::is_same_v<T, StageData>)
+		return DataType::STAGE_DATA;
+	else if (std::is_same_v<T, PhaseData>)
+		return DataType::PHASE_DATA;
+	else if (std::is_convertible_v<T, BattleData>)
+		return DataType::BATTLE_DATA;
+	else
+		return DataType::NONE_DATA;
+}
+
+template<typename T>
+bool SendData(SOCKET& clientSock, const T& data) 
+{
+	DataType dataType = GetDataType<T>();
+
+	// 패킷 타입 송신
+	int retVal = send(clientSock, (char*)&dataType, sizeof(dataType), 0);
+	if (false == ErrorCheck(retVal, 1))
+		return false;
+
+	// 패킷 송신
+	retVal = send(clientSock, (char*)&data, sizeof(T), 0);
+	if (false == ErrorCheck(retVal, 1))
+		return false;
+
+	return true;
+}
+
+template<typename T>
+bool RecvData(SOCKET& clientSock, T& data)
+{
+	// 패킷 수신
+	int retVal = recv(clientSock, (char*)&data, sizeof(T), 0);
+	if (false == ErrorCheck(retVal, 0))
+		return false;
+
+	return true;
 }
