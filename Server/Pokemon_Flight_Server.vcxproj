@@ -130,8 +130,8 @@
     <ClCompile Include="Pokemon_Flight_Server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Utils.h" />
     <ClInclude Include="ServerUtils.h" />
-    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

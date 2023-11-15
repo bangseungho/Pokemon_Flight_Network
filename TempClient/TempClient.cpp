@@ -37,30 +37,25 @@ int main(int argc, char* argv[])
 #pragma endregion
 #pragma region SendRecvData
 	IntroData introData = {
-		DataType::INTRO_DATA,
 		1111,
 		1234,
 	};
 	
 	TownData townData = {
-		DataType::TOWN_DATA,
 		1.5f,
 		3.5f,
 		true
 	};
 
 	StageData stageData = {
-		DataType::STAGE_DATA,
 		3
 	};
 
 	PhaseData phaseData = {
-		DataType::PHASE_DATA,
 		true
 	};
 
 	BattleData battleData = {
-		DataType::BATTLE_DATA,
 		100.f,
 		200.f,
 		false
@@ -70,53 +65,56 @@ int main(int argc, char* argv[])
 		int input;
 		cin >> input;
 
+		retVal = send(sock, (char*)&input, sizeof(input), 0);
+		if (!ErrorCheck(retVal, 1))
+			break;
+
 		switch (input)
 		{
 		case static_cast<int>(DataType::INTRO_DATA):
 		{
-			int len = sizeof(introData);
-			retVal = send(sock, (char*)&introData, len, 0);
-			if (ErrorCheck(retVal, 1))
+			retVal = send(sock, (char*)&introData, sizeof(introData), 0);
+			if (!ErrorCheck(retVal, 1))
 				break;
+
+			IntroData rIntroData;
+			retVal = recv(sock, (char*)&rIntroData, sizeof(rIntroData), 0);
+			if (!ErrorCheck(retVal, 1))
+				break;
+
+			cout << rIntroData.Id << ", " << rIntroData.Password << endl;
 		}
 		break;
 		case static_cast<int>(DataType::TOWN_DATA):
 		{
-			int len = sizeof(townData);
-			retVal = send(sock, (char*)&townData, len, 0);
-			if (ErrorCheck(retVal, 1))
+			retVal = send(sock, (char*)&townData, sizeof(townData), 0);
+			if (!ErrorCheck(retVal, 1))
 				break;
 		}
 		break;
 		case static_cast<int>(DataType::STAGE_DATA):
 		{
-			int len = sizeof(stageData);
-			retVal = send(sock, (char*)&stageData, len, 0);
-			if (ErrorCheck(retVal, 1))
+			retVal = send(sock, (char*)&stageData, sizeof(stageData), 0);
+			if (!ErrorCheck(retVal, 1))
 				break;
 		}
 		break;
 		case static_cast<int>(DataType::PHASE_DATA):
 		{
-			int len = sizeof(phaseData);
-			retVal = send(sock, (char*)&phaseData, len, 0);
-			if (ErrorCheck(retVal, 1))
+			retVal = send(sock, (char*)&phaseData, sizeof(phaseData), 0);
+			if (!ErrorCheck(retVal, 1))
 				break;
 		}
 		break;
 		case static_cast<int>(DataType::BATTLE_DATA):
 		{
-			int len = sizeof(battleData);
-			retVal = send(sock, (char*)&battleData, len, 0);
-			if (ErrorCheck(retVal, 1))
+			retVal = send(sock, (char*)&battleData, sizeof(battleData), 0);
+			if (!ErrorCheck(retVal, 1))
 				break;
 		}
 		break;
 		}
 	}
-
-
-		
 
 #pragma endregion
 #pragma region Close

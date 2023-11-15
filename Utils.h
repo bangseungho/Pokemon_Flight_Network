@@ -21,6 +21,52 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+enum class DataType : int
+{
+	NONE_DATA,
+	INTRO_DATA,
+	TOWN_DATA,
+	STAGE_DATA,
+	PHASE_DATA,
+	BATTLE_DATA,
+};
+
+struct ThreadSocket
+{
+	SOCKET Sock;
+	int Id;
+};
+
+struct IntroData
+{
+	int Id;
+	int Password;
+};
+
+struct TownData
+{
+	float	PosX;
+	float	PosY;
+	bool	IsReady;
+};
+
+struct StageData
+{
+	int Record;
+};
+
+struct PhaseData
+{
+	bool IsReady;
+};
+
+struct BattleData
+{
+	float	PosX;
+	float	PosY;
+	bool	IsCollider;
+};
+
 // 소켓 함수 오류 출력 후 종료
 void err_quit(const char *msg)
 {
@@ -60,16 +106,6 @@ void err_display(int errcode)
 	printf("[오류] %s\n", (char *)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
-
-enum class DataType : int
-{
-	NONE_DATA,
-	INTRO_DATA,
-	TOWN_DATA,
-	STAGE_DATA,
-	PHASE_DATA,
-	BATTLE_DATA,
-};
 
 bool ErrorCheck(int retVal, int type)
 {

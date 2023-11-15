@@ -35,7 +35,6 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 #pragma region Intro
 		if (dataType == DataType::INTRO_DATA) {
-			//IntroData data;
 			recv(clientSock, (char*)&sPlayers[threadSocket->Id].mIntroData, sizeof(IntroData), 0);
 			
 			//for (const auto& player : sPlayers) {
@@ -44,6 +43,8 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 			//	//send(player.mThreadSocket)
 			//}
+
+			send(clientSock, (char*)&sPlayers[threadSocket->Id].mIntroData, sizeof(IntroData), 0);
 
 			cout << "ID: " << sPlayers[threadSocket->Id].mIntroData.Id << ", PASSWORD: " << sPlayers[threadSocket->Id].mIntroData.Password << endl;
 		}
