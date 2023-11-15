@@ -12,24 +12,27 @@ using namespace std;
 #define SERVERPORT		9000
 #define MAX_BUFSIZE     1024
 
-CRITICAL_SECTION gPlayerCS;
+// 서버에서 가지고 있는 플레이어들의 전역 데이터
 static vector<PlayerData> sPlayers;
 
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
+	// ThreadSocket = Socket + threadId 
 	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
 	SOCKET clientSock = threadSocket->Sock;
 	uint8 threadId = threadSocket->Id;
 
+	// 플레이어 배열에 해당 클라이언트 추가
 	sPlayers.emplace_back(clientSock, threadId);
 
+	// 클라이언트 정보 가져오기
 	SOCKADDR_IN clientaddr;
 	int addrlen;
-
 	addrlen = sizeof(clientaddr);
 	getpeername(clientSock, (SOCKADDR*)&clientaddr, &addrlen);
 
 	while (1) {
+		// 총 데이터에서 앞 4바이트 정수값만 recv하여 데이터 타입을 받아온다.
 		DataType dataType;
 		dataType = RecvDataType(clientSock);
 		if (dataType == DataType::NONE_DATA)
@@ -37,9 +40,11 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 #pragma region Intro
 		if (dataType == DataType::INTRO_DATA) {
+			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
 			auto& data = sPlayers[threadId].mIntroData;
 			RecvData<IntroData>(clientSock, data);
-
+			
+			// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
 			for (const auto& player : sPlayers) {
 				if (player.mThreadId == threadId)
 					continue;
@@ -153,9 +158,7 @@ int main(int argc, char* argv[])
 	int addrlen;
 	HANDLE hThread;
 
-	InitializeCriticalSection(&gPlayerCS);
-
-	int id{};
+	uint8 id{};
 	while (1) {
 		addrlen = sizeof(clientaddr);
 		clientSock.Sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
@@ -174,7 +177,6 @@ int main(int argc, char* argv[])
 	}
 #pragma endregion
 #pragma region Close
-	DeleteCriticalSection(&gPlayerCS);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion
