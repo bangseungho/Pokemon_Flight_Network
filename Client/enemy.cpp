@@ -539,6 +539,8 @@ void EnemyController::CreateCheckMelee()
 	}
 	else if (gui->IsFieldEnd() == true)
 	{
+		gameData.ClearRecord++;
+
 		return;
 	}
 

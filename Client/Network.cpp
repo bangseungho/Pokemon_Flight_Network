@@ -35,8 +35,10 @@ void Network::Connect()
 	cout << "[ Server - (IP: " << inet_ntoa(mServerAddr.sin_addr) << ", ";
 	cout << "PORT: " << SERVERPORT << ") ]" << endl;
 	cout << "[ Client - (IP: " << inet_ntoa(localAddr.sin_addr) << ", ";
-	cout << "PORT: " << ntohs(localAddr.sin_port) << ") ]" << endl << endl;
+	cout << "PORT: " << ntohs(localAddr.sin_port) << ") ]" << Endl;
 #endif 
+
+	GET_SINGLE(Network)->SendIntroData();
 }
 
 void Network::DisConnect()
@@ -44,7 +46,7 @@ void Network::DisConnect()
 	closesocket(mClientSock);
 
 #ifdef _DEBUG
-	cout << "[ DisConnect to Server! ]" << endl << endl;
+	cout << "[ DisConnect to Server! ]" << Endl;
 #endif 
 }
 
@@ -54,15 +56,42 @@ void Network::Close()
 	WSACleanup();
 
 #ifdef _DEBUG
-	cout << "[ Close the Socket! ]" << endl << endl;
+	cout << "[ Close the Socket! ]" << Endl;
 #endif 
 }
 
 void Network::SendIntroData(const IntroData& data)
 {
-	SendData(mClientSock, data);
+	int retVal = SendData(mClientSock, data);
 
 #ifdef _DEBUG
-	cout << "[ Send IntroData! ]" << endl;
+	if (retVal)
+		cout << "[ Send IntroData - (" << sizeof(IntroData) << " Byte) ]" << Endl;
+	else
+		cout << "[ Failed Send IntroData! ]" << Endl;
+#endif 
+}
+
+void Network::SendTownData(const TownData& data)
+{
+	int retVal = SendData(mClientSock, data);
+
+#ifdef _DEBUG
+	if (retVal)
+		cout << "[ Send TownData - (" << sizeof(TownData) << " Byte) ]" << Endl;
+	else
+		cout << "[ Failed Send TownData! ]" << Endl;
+#endif 
+}
+
+void Network::SendStageData(const StageData& data)
+{
+	int retVal = SendData(mClientSock, data);
+
+#ifdef _DEBUG
+	if (retVal)
+		cout << "[ Send StageData - (" << sizeof(StageData) << " Byte) ]" << Endl;
+	else
+		cout << "[ Failed Send StageData! ]" << Endl;
 #endif 
 }

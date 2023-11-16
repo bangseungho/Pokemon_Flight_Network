@@ -33,6 +33,8 @@
 using std::cout;
 using std::endl;
 
+#define Endl endl << endl
+
 enum class Difficulty { Easy = 0, Normal, Hard };
 enum class Scene { Intro = 0, Town, Stage, PhaseManager, Battle };
 enum class Action { Idle = 0, Attack, Hurt, Death };

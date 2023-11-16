@@ -10,7 +10,9 @@ public:
 	void DisConnect();
 	void Close();
 
-	void SendIntroData(const IntroData& data);
+	void SendIntroData(const IntroData& data = {});
+	void SendStageData(const StageData& data = {});
+	void SendTownData(const TownData& data = {});
 
 private:
 	SOCKET mClientSock;

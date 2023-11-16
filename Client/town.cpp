@@ -270,6 +270,9 @@ void Town::Update(const RECT& rectWindow)
 		player->_dir = Dir::Down;
 		player->_Pos.y += TPLAYER_SPEED;
 	}
+
+	TownData townData = { player->_Pos.x, player->_Pos.y, false };
+	GET_SINGLE(Network)->SendTownData(townData);
 }
 
 void Town::StopPlayer()

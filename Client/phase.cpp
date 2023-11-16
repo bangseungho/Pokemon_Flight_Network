@@ -2,8 +2,10 @@
 #include "phase.h"
 #include "scene.h"
 #include "stage.h"
+#include "interface.h"
 
 extern SceneManager* sceneManager;
+extern GameData gameData;
 extern Stage stage;
 
 // 페이즈 화면에서 필요한 페이즈들 생성과 필요한 이미지 모두 로드
@@ -210,6 +212,11 @@ void PhaseManager::ClearPhase()
 		*crntPhase = 3;
 		stage.ClearStage();
 	}
+
+	gameData.ClearRecord = phaseWater + phaseFire + phaseElec + phaseDark;
+#ifdef _DEBUG
+	cout << static_cast<uint32>(gameData.ClearRecord) << endl;
+#endif 
 }
 
 int PhaseManager::GetPhase()

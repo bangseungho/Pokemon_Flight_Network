@@ -9,6 +9,9 @@ typedef struct tagGameData {
 
 	bool isShowHitbox = false;
 	bool isShowDrawBox = false;
+
+	// 총 클리어 기록
+	uint8 ClearRecord = 0;
 }GameData;
 
 class GUIManager {
