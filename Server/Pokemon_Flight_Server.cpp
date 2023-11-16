@@ -9,7 +9,6 @@
 
 using namespace std;
 
-#define SERVERPORT		9000
 #define MAX_BUFSIZE     1024
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
@@ -44,13 +43,13 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mIntroData;
 			RecvData<IntroData>(clientSock, data);
 			
-			// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
-				
-				SendData<IntroData>(clientSock, player.mIntroData);
-			}
+			//// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
+			//	
+			//	SendData<IntroData>(clientSock, player.mIntroData);
+			//}
 
 			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
 		}
@@ -132,7 +131,7 @@ int main(int argc, char* argv[])
 
 #pragma region Socket
 	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
+	if (listen_sock == INVALID_SOCKET) ErrorQuit("socket()");
 #pragma endregion
 
 #pragma region SockAddr
@@ -145,12 +144,12 @@ int main(int argc, char* argv[])
 
 #pragma region Bind
 	retval = bind(listen_sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) err_quit("bind()");
+	if (retval == SOCKET_ERROR) ErrorQuit("bind()");
 #pragma endregion
 
 #pragma region Listen
 	retval = listen(listen_sock, SOMAXCONN);
-	if (retval == SOCKET_ERROR) err_quit("listen()");
+	if (retval == SOCKET_ERROR) ErrorQuit("listen()");
 #pragma endregion
 #pragma region Accept
 	ThreadSocket clientSock;

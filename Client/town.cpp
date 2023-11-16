@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "town.h"
 #include "scene.h"
+#include "Network.h"
 
 #define CAMSIZE_X 162
 #define CAMSIZE_Y 375
@@ -195,6 +196,7 @@ void Town::Update(const RECT& rectWindow)
 	// _exit 변수가 true일 경우 엔터키를 누르면 게임 종료
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit == true)
 	{
+		GET_SINGLE(Network)->Close();
 		PostQuitMessage(0);
 	}
 

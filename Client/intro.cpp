@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Intro.h"
 #include "scene.h"
+#include "Network.h"
 
 #define INSTRUCTION_BACKGROUND_X 500
 #define INSTRUCTION_BACKGROUND_Y 750
@@ -22,7 +23,12 @@ extern SceneManager* sceneManager;
 // 인트로 상태
 enum MI_Menu { start = 0, producer, finish };
 
-// 인트로 화면에 필요한 이미지를 로드
+// 인트로 화면 초기화
+void MainIntro::Init()
+{
+}
+
+// 인트로 화면에 필요한 이미지를 로드(추상화 함수)
 void MainIntro::Init(const wchar_t* imgfile, int _PosX, int _PosY)
 {
 	_img.Load(imgfile);
@@ -167,12 +173,18 @@ void Menu::fingerController(const HWND& hWnd)
 		switch (_finger)
 		{
 		case MI_Menu::start:
+		{
+			GET_SINGLE(Network)->Connect();
+			IntroData introdata{ 1111, 2222 };
+			GET_SINGLE(Network)->SendIntroData(introdata);
 			sceneManager->StartLoading(hWnd);
+		}
 			break;
 		case MI_Menu::producer:
 			_producer = true;
 			break;
 		case MI_Menu::finish:
+			GET_SINGLE(Network)->Close();
 			PostQuitMessage(0);
 			break;
 		}

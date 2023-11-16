@@ -1,13 +1,14 @@
 #define _CRT_SECURE_NO_WARNINGS 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 
 
+#define SERVERPORT		9000
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
-
 #include <tchar.h>
 #include <stdio.h>
 #include <stdlib.h> 
-#include <string.h> 
+#include <string.h>
 #include <iostream>
 
 #pragma comment(lib, "ws2_32") 
@@ -68,7 +69,7 @@ struct BattleData
 };
 
 // 소켓 함수 오류 출력 후 종료
-void err_quit(const char *msg)
+static void ErrorQuit(const char *msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
@@ -82,7 +83,7 @@ void err_quit(const char *msg)
 }
 
 // 소켓 함수 오류 출력
-void err_display(const char *msg)
+static void ErrorDisplay(const char *msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
@@ -95,7 +96,7 @@ void err_display(const char *msg)
 }
 
 // 소켓 함수 오류 출력
-void err_display(int errcode)
+static void ErrorDisplay(int errcode)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
@@ -107,12 +108,12 @@ void err_display(int errcode)
 	LocalFree(lpMsgBuf);
 }
 
-bool ErrorCheck(int retVal, int type)
+static bool ErrorCheck(int retVal, int type)
 {
 	// recv error check
 	if (type == 0) {
 		if (retVal == SOCKET_ERROR) {
-			err_display("recv()"); return false;
+			ErrorDisplay("recv()"); return false;
 		}
 		else if (false == retVal)
 			return false;
@@ -120,7 +121,7 @@ bool ErrorCheck(int retVal, int type)
 	// send error check
 	else if (type == 1) {
 		if (retVal == SOCKET_ERROR) {
-			err_display("send()"); return false;
+			ErrorDisplay("send()"); return false;
 		}
 		else if (false == retVal)
 			return false;
