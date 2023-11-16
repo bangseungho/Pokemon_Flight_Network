@@ -7,6 +7,7 @@ public:
 	POINT _Pos = { 0, };
 	RECT _rectDraw = { 0, };
 
+	void Init();
 	void Init(const wchar_t* imgfile, int _PosX, int _PosY);
 	virtual void Paint(HDC hdc, const RECT& rectWindow);	
 

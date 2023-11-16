@@ -6,6 +6,7 @@
 #include "effect.h"
 #include "boss.h"
 #include "scene.h"
+#include "Network.h"
 
 extern Player* player;
 extern EnemyController* enemies;
@@ -235,6 +236,7 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	{
 		sceneManager->StartLoading(hWnd);
 		town._nextFlow = Scene::Intro;
+		GET_SINGLE(Network)->DisConnect();
 	}
 }
 

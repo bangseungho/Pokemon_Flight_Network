@@ -7,7 +7,7 @@
 #include "boss.h"
 #include "timer.h"
 #include "sound.h"
-
+#include "Network.h"
 
 #include "intro.h"
 #include "town.h"
@@ -137,7 +137,6 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
 		break;
 	case Scene::Town:
-
 	{
 		town.Init(rectWindow);
 		SetTimer(hWnd, TIMERID_TPANIMATION, ELAPSE_TPANIMATION, T_TPAnimation); // 플레이어 움직임 타이머
@@ -246,6 +245,8 @@ void SceneManager::Init(const HWND& hWnd)
 {
 	GetClientRect(hWnd, &rectWindow);
 	rectDisplay = rectWindow;
+
+	GET_SINGLE(Network)->Init("127.0.0.1");
 
 	LoadScene(hWnd);
 }

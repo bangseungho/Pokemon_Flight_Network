@@ -1,9 +1,18 @@
-#pragma once
+ï»¿#pragma once
 #pragma warning(disable:28251)
 #pragma warning(disable:4244)
+
+#ifdef _DEBUG
+#ifdef UNICODE                                                                                      
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 
+#else                                                                                                    
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")   
+#endif                                                                                                   
+#endif  
+
+#include "..\Utils.h"
 #include <Windows.h>
 #include <time.h>
-#include <tchar.h>
 #include <gdiplus.h>
 #include <atlImage.h>
 #include <mmsystem.h>
@@ -13,7 +22,6 @@
 #include <cassert>
 #include <algorithm>
 
-
 #define WINDOWSIZE_X 500
 #define WINDOWSIZE_Y 750
 #define MSEC 1000
@@ -21,6 +29,9 @@
 #define	WIN32_LEAN_AND_MEAN
 #undef WINVER
 #define WINVER 0x6000
+
+using std::cout;
+using std::endl;
 
 enum class Difficulty { Easy = 0, Normal, Hard };
 enum class Scene { Intro = 0, Town, Stage, PhaseManager, Battle };
@@ -37,9 +48,30 @@ enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
 #define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
 #define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
 
-enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU }; // ÃÑ ¹æÇâÀº 8°³ÀÌ´Ù.
+// ì‹±ê¸€í„´ ê°ì²´ë¡œ í´ë˜ìŠ¤ ë‚´ë¶€ì—ì„œ ì‚¬ìš©
+#define SINGLETON(type)								\
+public:												\
+	static type* GetInstance()						\
+	{												\
+		if (!instance) instance = new type();		\
+		return instance;							\
+	}												\
+	static void Destroy()							\
+	{												\
+		if (instance) delete instance;				\
+		instance = nullptr;							\
+	}												\
+													\
+private:											\
+	static type* instance;							\
 
-// Direction ¿¬»êÀÚ ¿À¹ö·Îµù
+#define GET_SINGLE(type)			type::GetInstance()
+#define DESTROY_SINGLE(type)		type::Destroy()
+#define DECLARE_SINGLE(type)		type* type::instance = nullptr;
+
+enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU }; // ì´ ë°©í–¥ì€ 8ê°œì´ë‹¤.
+
+// Direction ì—°ì‚°ì ì˜¤ë²„ë¡œë”©
 // ex) Left - LD = LD - Left = Down
 //     Left + Up = LU
 constexpr Dir operator-(Dir lhs, Dir rhs)
@@ -156,7 +188,7 @@ constexpr Dir operator+(Dir lhs, Dir rhs)
 	return Dir::Empty;
 }
 
-// POINT ¿¬»êÀÚ ¿À¹ö·Îµù
+// POINT ì—°ì‚°ì ì˜¤ë²„ë¡œë”©
 // ex) POINT a,b;
 // possible : a - b, a + b;
 inline constexpr POINT operator-(const POINT& lhs, const POINT& rhs)
