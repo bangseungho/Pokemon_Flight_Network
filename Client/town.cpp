@@ -103,9 +103,10 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_npc2.Draw(hdc, _npc2Rect.left, _npc2Rect.top, 40, 40, _npc2Move.x, _npc2Move.y, 64, 64);
 	_npc3.TransparentBlt(hdc, _npc3Rect.left, _npc3Rect.top, 24, 30, 0, 0, 38, 48, RGB(255, 255, 255));
 	_npc4.TransparentBlt(hdc, _npc4Rect.left, _npc4Rect.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
+	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
+
 	player->img.Draw(hdc, player->_Pos.x - 20, player->_Pos.y - 20, 40, 40,
 		player->_rectImage.left, player->_rectImage.top, player->_rectImage.right, player->_rectImage.bottom);
-	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
 	// 타운 건물 렌더링
 	if (_allHide == true)
@@ -203,6 +204,7 @@ void Town::Update(const RECT& rectWindow)
 	// 플레이어의 위치 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
+		mIsKeyPressed = true;
 		player->_keepGoing = true;
 		player->_dir = Dir::Left;
 		player->aboutMapPos.x -= TPLAYER_SPEED;
@@ -231,6 +233,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 	{
+		mIsKeyPressed = true;
 		player->_keepGoing = true;
 		player->_dir = Dir::Right;
 		player->aboutMapPos.x += TPLAYER_SPEED;
@@ -257,6 +260,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
+		mIsKeyPressed = true;
 		player->aboutMapPos.y -= TPLAYER_SPEED;
 		player->_keepGoing = true;
 		player->_dir = Dir::Up;
@@ -264,6 +268,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	{
+		mIsKeyPressed = true;
 		_exit = false;
 		player->aboutMapPos.y += TPLAYER_SPEED;
 		player->_keepGoing = true;
@@ -271,8 +276,12 @@ void Town::Update(const RECT& rectWindow)
 		player->_Pos.y += TPLAYER_SPEED;
 	}
 
-	TownData townData = { player->_Pos.x, player->_Pos.y, false };
-	GET_SINGLE(Network)->SendTownData(townData);
+	// 키가 눌린 경우에만 패킷을 송신한다.
+	if (true == mIsKeyPressed) {
+		TownData townData{ player->_Pos.x, player->_Pos.y };
+		GET_SINGLE(Network)->SendTownData(townData);
+		mIsKeyPressed = false;
+	}
 }
 
 void Town::StopPlayer()

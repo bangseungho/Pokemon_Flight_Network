@@ -42,7 +42,9 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
 			auto& data = sPlayers[threadId].mIntroData;
 			RecvData<IntroData>(clientSock, data);
-			
+
+			SendData<IntroData>(clientSock, data);
+
 			//// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
 			//for (const auto& player : sPlayers) {
 			//	if (player.mThreadId == threadId)
@@ -59,12 +61,14 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mTownData;
 			RecvData<TownData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			SendData<TownData>(clientSock, data);
 
-				SendData<TownData>(clientSock, player.mTownData);
-			}
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
+
+			//	SendData<TownData>(clientSock, player.mTownData);
+			//}
 
 			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
@@ -74,12 +78,14 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mStageData;
 			RecvData<StageData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			SendData<StageData>(clientSock, data);
 
-				SendData<StageData>(clientSock, player.mStageData);
-			}
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
+
+			//	SendData<StageData>(clientSock, player.mStageData);
+			//}
 
 			cout << "RECORD: " << data.Record << endl;
 		}
@@ -89,12 +95,12 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mPhaseData;
 			RecvData<PhaseData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
 
-				SendData<PhaseData>(clientSock, player.mPhaseData);
-			}
+			//	SendData<PhaseData>(clientSock, player.mPhaseData);
+			//}
 
 			cout << "ISREADY: " << data.IsReady << endl;
 		}
@@ -104,12 +110,12 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mBattleData;
 			RecvData<BattleData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
 
-				SendData<BattleData>(clientSock, player.mBattleData);
-			}
+			//	SendData<BattleData>(clientSock, player.mBattleData);
+			//}
 
 			cout << "ISCOLLIDER: " << data.IsCollider << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}

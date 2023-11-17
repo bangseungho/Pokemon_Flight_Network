@@ -2,6 +2,46 @@
 #include "Network.h"
 
 DECLARE_SINGLE(Network);
+#define BUFSIZE    512
+
+DWORD WINAPI ProcessRecv(LPVOID sock)
+{
+	SOCKET clientSock = *(SOCKET*)sock;
+
+	while (1) {
+		DataType dataType;
+		dataType = RecvDataType(clientSock);
+		if (dataType == DataType::NONE_DATA)
+			break;
+
+#pragma region Intro
+		if (dataType == DataType::INTRO_DATA) {
+			auto& data = GET_SINGLE(Network)->GetIntroData();
+			RecvData<IntroData>(clientSock, data);
+
+			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
+		}
+#pragma endregion
+#pragma region Town
+		if (dataType == DataType::TOWN_DATA) {
+			auto& data = GET_SINGLE(Network)->GetTownData();
+			RecvData<TownData>(clientSock, data);
+
+			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
+		}
+#pragma endregion
+#pragma region Stage
+		if (dataType == DataType::STAGE_DATA) {
+			auto& data = GET_SINGLE(Network)->GetStageData();
+			RecvData<StageData>(clientSock, data);
+
+			cout << "RECORD: " << data.Record << endl;
+		}
+#pragma endregion
+	}
+
+	return 0;
+}
 
 void Network::Init(std::string ipAddr)
 {
@@ -39,6 +79,9 @@ void Network::Connect()
 #endif 
 
 	GET_SINGLE(Network)->SendIntroData();
+
+	// Recv 스레드 생성
+	mRecvThread = CreateThread(NULL, 0, ProcessRecv, &mClientSock, 0, NULL);
 }
 
 void Network::DisConnect()
