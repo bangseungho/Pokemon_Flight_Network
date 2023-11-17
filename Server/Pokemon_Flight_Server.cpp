@@ -13,6 +13,7 @@ using namespace std;
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static vector<PlayerData> sPlayers;
+CRITICAL_SECTION cs;
 
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
@@ -42,31 +43,27 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
 			auto& data = sPlayers[threadId].mIntroData;
 			RecvData<IntroData>(clientSock, data);
-			
-			//// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadId == threadId)
-			//		continue;
-			//	
-			//	SendData<IntroData>(clientSock, player.mIntroData);
-			//}
 
-			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
+			// 모든 클라이언트들에게 패킷 송신
+			for (const auto& player : sPlayers) {
+				IntroData data{ static_cast<uint8>(sPlayers.size()) };
+				SendData<IntroData>(player.mSock, data);
+			}
 		}
 #pragma endregion
 #pragma region Town
 		if (dataType == DataType::TOWN_DATA) {
 			auto& data = sPlayers[threadId].mTownData;
 			RecvData<TownData>(clientSock, data);
+			data.PlayerIndex = static_cast<uint8>(threadId);
 
+			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
-
-				SendData<TownData>(clientSock, player.mTownData);
+				SendData<TownData>(player.mSock, data); 
 			}
+			LeaveCriticalSection(&cs);
 
-			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
+			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;
 		}
 #pragma endregion
 #pragma region Stage
@@ -74,12 +71,14 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mStageData;
 			RecvData<StageData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			SendData<StageData>(clientSock, data);
 
-				SendData<StageData>(clientSock, player.mStageData);
-			}
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
+
+			//	SendData<StageData>(clientSock, player.mStageData);
+			//}
 
 			cout << "RECORD: " << data.Record << endl;
 		}
@@ -89,12 +88,12 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mPhaseData;
 			RecvData<PhaseData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
 
-				SendData<PhaseData>(clientSock, player.mPhaseData);
-			}
+			//	SendData<PhaseData>(clientSock, player.mPhaseData);
+			//}
 
 			cout << "ISREADY: " << data.IsReady << endl;
 		}
@@ -104,12 +103,12 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mBattleData;
 			RecvData<BattleData>(clientSock, data);
 
-			for (const auto& player : sPlayers) {
-				if (player.mThreadId == threadId)
-					continue;
+			//for (const auto& player : sPlayers) {
+			//	if (player.mThreadId == threadId)
+			//		continue;
 
-				SendData<BattleData>(clientSock, player.mBattleData);
-			}
+			//	SendData<BattleData>(clientSock, player.mBattleData);
+			//}
 
 			cout << "ISCOLLIDER: " << data.IsCollider << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
 		}
@@ -127,6 +126,7 @@ int main(int argc, char* argv[])
 	int retval;
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
+	InitializeCriticalSection(&cs);
 #pragma endregion
 
 #pragma region Socket
@@ -157,6 +157,7 @@ int main(int argc, char* argv[])
 	int addrlen;
 	HANDLE hThread;
 
+
 	uint8 id{};
 	while (1) {
 		addrlen = sizeof(clientaddr);
@@ -176,6 +177,7 @@ int main(int argc, char* argv[])
 	}
 #pragma endregion
 #pragma region Close
+	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion

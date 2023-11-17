@@ -26,7 +26,7 @@
 #define FOURTHCLOUD_Y 187
 
 extern GameData gameData;
-extern Player* player;
+extern Player* mPlayer;
 extern EnemyController* enemies;
 extern EffectManager* effects;
 extern GUIManager* gui;
@@ -103,13 +103,13 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 		KillTimer(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
 		KillTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS);
 
-		delete player;
+		delete mPlayer;
 		delete enemies;
 		delete effects;
 		delete boss;
 		delete gui;
 
-		player = nullptr;
+		mPlayer = nullptr;
 		enemies = nullptr;
 		effects = nullptr;
 		boss = nullptr;
@@ -195,10 +195,10 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		gameData.stage = stage.GetStage();
 
 		// 스테이지 씬(캐릭터 창)에서 고른 포켓몬 정보를 가져와서 해당 포켓몬으로 플레이어를 생성한다.
-		player = new Player(stage.GetAirPokemon(), stage.GetLandPokemon());
+		mPlayer = new Player(stage.GetAirPokemon(), stage.GetLandPokemon());
 
 		// 플레이어의 스킬 매니저를 생성한다.
-		player->Init();
+		mPlayer->Init();
 
 		// gameData의 스테이지에 따라 등장하는 적 포켓몬 데이터(hp, 범위, 공격력 등)를 각각 세팅한다.
 		enemies = new EnemyController();
@@ -286,9 +286,9 @@ void SceneManager::Paint(const HWND& hWnd)
 	case Scene::Battle:
 		battle.Paint(memDC, rectWindow, stage.GetStage());
 		boss->Paint(memDC);
-		player->Paint(memDC);
+		mPlayer->Paint(memDC);
 		enemies->Paint(memDC);
-		player->PaintSkill(memDC);
+		mPlayer->PaintSkill(memDC);
 		effects->Paint(memDC);
 		gui->Paint(memDC);
 		break;

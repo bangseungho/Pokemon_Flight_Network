@@ -36,7 +36,9 @@ private:
 public:
 	bool _allHide = false;
 	Scene _nextFlow = Scene::Town;
-	Player* player;
+
+	Player* mPlayer;
+
 	RECT _rectImage = { 0, };
 
 	RECT _npc2Rect;

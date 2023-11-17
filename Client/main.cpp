@@ -85,7 +85,7 @@ Menu menu;
 CImage glowing_black;
 
 GameData gameData;
-Player* player = nullptr;
+Player* mPlayer = nullptr;
 EnemyController* enemies = nullptr;
 EffectManager* effects = nullptr;
 GUIManager* gui = nullptr;

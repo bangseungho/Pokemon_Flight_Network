@@ -12,7 +12,7 @@
 #include "battle.h"
 
 extern GameData gameData;
-extern Player* player;
+extern Player* mPlayer;
 extern Boss* boss;
 extern EnemyController* enemies;
 extern EffectManager* effects;
@@ -83,7 +83,7 @@ bool SkillManager::Effect::Animate()
 
 SkillManager::SkillManager()
 {
-	const Type type = player->GetType();
+	const Type type = mPlayer->GetType();
 	switch (type)
 	{
 	case Type::Elec:
@@ -108,17 +108,17 @@ SkillManager::SkillManager()
 RECT SkillManager::GetRectBody() const
 {
 	RECT rectBody = { 0, };
-	switch (player->GetType())
+	switch (mPlayer->GetType())
 	{
 	case Type::Elec:
-		rectBody = player->GetRectBody();
+		rectBody = mPlayer->GetRectBody();
 		rectBody.left -= 20;
 		rectBody.right += 20;
 		rectBody.bottom = rectBody.top;
 		rectBody.top = rectBody.bottom - WINDOWSIZE_Y;
 		break;
 	case Type::Fire:
-		rectBody = player->GetRectBody();
+		rectBody = mPlayer->GetRectBody();
 		rectBody.left -= 40;
 		rectBody.right += 30;
 		rectBody.bottom = rectBody.top + 10;
@@ -199,7 +199,7 @@ void SkillManager::Animate()
 
 	RECT rectBody = GetRectBody();
 	rectBody.top += 20;
-	const Type playerType = player->GetType();
+	const Type playerType = mPlayer->GetType();
 	if (playerType == Type::Fire) // 플레이어 타입이 fire인 경우 프레임 업데이트
 	{
 		if (skillEffect->GetFrame() < 17)
@@ -213,7 +213,7 @@ void SkillManager::Animate()
 		}
 	}
 
-	const float damage = player->GetDamage_Q();
+	const float damage = mPlayer->GetDamage_Q();
 	for (int i = 0; i < 5; ++i) // 스킬은 보스를 5번씩 히트한다.
 	{
 		if (boss->CheckHit(rectBody, damage, playerType) == false)
@@ -246,7 +246,7 @@ void SkillManager::ActiveSkill(Skill skill)
 	switch (skill)
 	{
 	case Skill::Sector:
-		if (player->ReduceMP(15) == false)
+		if (mPlayer->ReduceMP(15) == false)
 		{
 			return;
 		}
@@ -254,7 +254,7 @@ void SkillManager::ActiveSkill(Skill skill)
 		crntSkill = skill;
 		break;
 	case Skill::Circle:
-		if (player->ReduceMP(10) == false)
+		if (mPlayer->ReduceMP(10) == false)
 		{
 			return;
 		}
@@ -262,12 +262,12 @@ void SkillManager::ActiveSkill(Skill skill)
 		crntSkill = skill;
 		break;
 	case Skill::Identity:
-		if (player->ReduceMP(30) == false)
+		if (mPlayer->ReduceMP(30) == false)
 		{
 			return;
 		}
 		// 궁극기 사용시 맵을 흔든다.
-		switch (player->GetType())
+		switch (mPlayer->GetType())
 		{
 		case Type::Elec:
 			battle.ShakeMap(10);
@@ -300,11 +300,11 @@ void SkillManager::ShotBySector()
 	constexpr int bulletCount = 12;
 
 	BulletData bulletData;
-	bulletData.bulletType = player->GetSubType();
-	bulletData.damage = player->GetDamage_WE();
+	bulletData.bulletType = mPlayer->GetSubType();
+	bulletData.damage = mPlayer->GetDamage_WE();
 	bulletData.speed = 10;
 
-	const RECT rectBody = player->GetRectBody();
+	const RECT rectBody = mPlayer->GetRectBody();
 	POINT bulletPos = { 0, };
 	bulletPos.y = rectBody.top;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
@@ -316,7 +316,7 @@ void SkillManager::ShotBySector()
 
 	for (int i = 0; i < bulletCount + 1; ++i)
 	{
-		player->CreateSubBullet(bulletPos, bulletData, unitVector, true, true);
+		mPlayer->CreateSubBullet(bulletPos, bulletData, unitVector, true, true);
 		unitVector = Rotate(unitVector, rotationDegree);
 	}
 
@@ -329,11 +329,11 @@ void SkillManager::ShotByCircle()
 	constexpr int bulletCount = 18;
 
 	BulletData bulletData;
-	bulletData.bulletType = player->GetSubType();
-	bulletData.damage = player->GetDamage_WE();
+	bulletData.bulletType = mPlayer->GetSubType();
+	bulletData.damage = mPlayer->GetDamage_WE();
 	bulletData.speed = 10;
 
-	const POINT bulletPos = player->GetPosCenter();
+	const POINT bulletPos = mPlayer->GetPosCenter();
 
 	Vector2 unitVector = Vector2::Up();
 	constexpr int degree = 6;
@@ -341,7 +341,7 @@ void SkillManager::ShotByCircle()
 
 	for (int i = 0; i < bulletCount; ++i)
 	{
-		player->CreateSubBullet(bulletPos, bulletData, unitVector, true, true);
+		mPlayer->CreateSubBullet(bulletPos, bulletData, unitVector, true, true);
 		unitVector = Rotate(unitVector, 360 / bulletCount);
 	}
 
@@ -464,9 +464,9 @@ bool BossSkillManager::Effect::Animate()
 		{
 			Vector2 vPoints[4];
 			GetRotationPos(rectBody, unitVector_imgRotation, Vector2::Up(), vPoints);
-			if (SATIntersect(player->GetRectBody(), vPoints) == true)
+			if (SATIntersect(mPlayer->GetRectBody(), vPoints) == true)
 			{
-				player->Hit(skillData.damage, boss->GetType());
+				mPlayer->Hit(skillData.damage, boss->GetType());
 				if (skillData.isHitOnce == true)
 				{
 					return false;
@@ -480,10 +480,10 @@ bool BossSkillManager::Effect::Animate()
 				rectBody = rectDraw;
 			}
 
-			const RECT rectPlayer = player->GetRectBody();
+			const RECT rectPlayer = mPlayer->GetRectBody();
 			if (IntersectRect2(rectBody, rectPlayer) == true)
 			{
-				player->Hit(skillData.damage, boss->GetType());
+				mPlayer->Hit(skillData.damage, boss->GetType());
 				if (skillData.isHitOnce == true)
 				{
 					return false;
@@ -541,7 +541,7 @@ bool BossSkillManager::Effect::RotateToPlayer(float t)
 
 	if (skillData.rotationCount++ < maxRotation)
 	{
-		::Rotate(posCenter, player->GetPosCenter(), unitVector_direction, t);
+		::Rotate(posCenter, mPlayer->GetPosCenter(), unitVector_direction, t);
 	}
 	else if (skillData.rotationCount > maxMove)
 	{
@@ -995,7 +995,7 @@ void BossSkillManager::Skill1_Fire()
 		Vector2 posCenter = { 0, };
 		posCenter.x = rectBoss.left + (rand() % width);
 		posCenter.y = rectBoss.top + (rand() % height);
-		Vector2 vToPlayer = (player->GetPosCenter() - posCenter).Normalized();
+		Vector2 vToPlayer = (mPlayer->GetPosCenter() - posCenter).Normalized();
 
 		SkillData skillData;
 		skillData.speed = 20.0f;
@@ -1005,7 +1005,7 @@ void BossSkillManager::Skill1_Fire()
 		
 		posCenter.x = rectBoss.left + (rand() % width);
 		posCenter.y = rectBoss.top + (rand() % height);
-		vToPlayer = (player->GetPosCenter() - posCenter).Normalized();
+		vToPlayer = (mPlayer->GetPosCenter() - posCenter).Normalized();
 		skillEffects.emplace_back(imgSkill1, posCenter, Vector2::Down(), vToPlayer, skillData);
 
 		battle.ShakeMap();
@@ -1033,7 +1033,7 @@ void BossSkillManager::Skill1_Fire()
 }
 void BossSkillManager::Skill2_Fire_Create()
 {
-	const Vector2 posCenter = player->GetPosCenter();
+	const Vector2 posCenter = mPlayer->GetPosCenter();
 	warningEffects.emplace_back(imgSkill2_Warning, posCenter);
 }
 void BossSkillManager::Skill2_Fire()
@@ -1056,7 +1056,7 @@ void BossSkillManager::Skill2_Fire()
 		else
 		{
 			warningEffects.front().IncreaseAlpha(0x20);
-			const Vector2 vToPlayer = (player->GetPosCenter() - warningEffects.front().GetPosCenter()) * 0.25f;
+			const Vector2 vToPlayer = (mPlayer->GetPosCenter() - warningEffects.front().GetPosCenter()) * 0.25f;
 			const Vector2 posCenter = warningEffects.front().GetPosCenter() + vToPlayer;
 			warningEffects.front().SetPosCenter(posCenter);
 		}

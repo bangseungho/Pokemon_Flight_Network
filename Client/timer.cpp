@@ -8,7 +8,7 @@
 #include "scene.h"
 #include "Network.h"
 
-extern Player* player;
+extern Player* mPlayer;
 extern EnemyController* enemies;
 extern Boss* boss;
 extern EffectManager* effects;
@@ -19,14 +19,14 @@ extern SceneManager* sceneManager;
 void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	InvalidateRect(hWnd, NULL, FALSE);
-	player->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
+	mPlayer->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 	enemies->CreateCheckMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
 	enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
 	enemies->CheckAttackDelay(); // 적이 공격을 하고 나서 딜레이를 주는 함수
 	boss->CheckActDelay(); // 보스의 움직임에 딜레이를 주는 함수
 	boss->CheckAttackDelay(); // 보스의 공격에 딜레이를 주는 함수
 
-	player->MoveBullets(); // 플레이어 탄막 이동 함수
+	mPlayer->MoveBullets(); // 플레이어 탄막 이동 함수
 	enemies->MoveBullets(); // 적 탄막 이동 함수
 	enemies->Update(); // 적 이동 및 충돌 검사 함수
 	boss->Update(); // 보스 이동 및 충돌 검사 함수
@@ -34,7 +34,7 @@ void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTi
 
 void CALLBACK T_Battle_Animate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	player->Animate(hWnd); // 플레이어 스프라이트 이미지 애니메이션 함수
+	mPlayer->Animate(hWnd); // 플레이어 스프라이트 이미지 애니메이션 함수
 	enemies->Animate(); // 적 스프라이트 이미지 애니메이션 함수
 	boss->AnimateSkill(); // 보스 스킬 스프라이트 이미지 애니메이션 함수
 }
@@ -46,7 +46,7 @@ void CALLBACK T_Battle_AnimateBoss(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwT
 
 void CALLBACK T_Battle_MovePlayer(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	player->Update(hWnd, TIMERID_BATTLE_MOVE_PLAYER); // 실제 플레이어의 이동을 수행하는 함수
+	mPlayer->Update(hWnd, TIMERID_BATTLE_MOVE_PLAYER); // 실제 플레이어의 이동을 수행하는 함수
 }
 
 void CALLBACK T_Battle_Effect(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -160,9 +160,9 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 		}
 		else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 		{
-			town.player->_Pos.x = rectWindow.right / 2;
-			town.player->_Pos.y = rectWindow.bottom / 2;
-			town.player->_cam = { town.player->_Pos.x - town.GetCamSizeX(), rectWindow.top, town.player->_Pos.x + town.GetCamSizeX(), rectWindow.bottom };
+			town.mPlayer->_Pos.x = rectWindow.right / 2;
+			town.mPlayer->_Pos.y = rectWindow.bottom / 2;
+			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), rectWindow.bottom };
 			town._rectImage = rectWindow;
 
 			if (town._nextFlow == Scene::Stage)
@@ -217,7 +217,7 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	const RECT rectWindow = sceneManager->GetRectWindow();
 	const Scene scene = sceneManager->GetScene();
 
-	town.player->_rectDraw = { town.player->_Pos.x - 20, town.player->_Pos.y - 20, town.player->_Pos.x + 20, town.player->_Pos.y + 20 };
+	town.mPlayer->_rectDraw = { town.mPlayer->_Pos.x - 20, town.mPlayer->_Pos.y - 20, town.mPlayer->_Pos.x + 20, town.mPlayer->_Pos.y + 20 };
 	// 게임 플로우가 현재 타운일때와 장면이 끝남을 확인하는 변수가 참이 아닐 때 움직일 수 있도록 설정
 	if (scene == Scene::Town && sceneManager->IsLoading() == false)
 	{
@@ -226,13 +226,13 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	}
 
 	// 일정 범위 (렉트 윈도우의 오른 쪽) 넘어갈시 다음 스테이지 진행
-	if (sceneManager->IsLoading() == false && town.player->_Pos.x + 20 >= rectWindow.right)
+	if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x + 20 >= rectWindow.right)
 	{
 		sceneManager->StartLoading(hWnd);
 		town._nextFlow = Scene::Stage;
 	}
 	// 일정 범위 (렉트 윈도우의 왼 쪽) 넘어갈시 전 메인화면으로 진행
-	else if (sceneManager->IsLoading() == false && town.player->_Pos.x - 20 <= rectWindow.left)
+	else if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x - 20 <= rectWindow.left)
 	{
 		sceneManager->StartLoading(hWnd);
 		town._nextFlow = Scene::Intro;
@@ -254,26 +254,26 @@ void CALLBACK T_TPAnimationDir(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	const Scene scene = sceneManager->GetScene();
 
 	// 타운의 플레이어가 계속 가는중이면 이미지 장면 변경(애니메이션)
-	if (scene == Scene::Town && town.player->_keepGoing == true)
+	if (scene == Scene::Town && town.mPlayer->_keepGoing == true)
 	{
-		town.player->_rectImage.left += TPLAYER_IMAGESIZE_X;
+		town.mPlayer->_rectImage.left += TPLAYER_IMAGESIZE_X;
 
-		if (town.player->_rectImage.left == TPLAYER_MAX_IMAGESIZE_X)
-			town.player->_rectImage.left = 0;
+		if (town.mPlayer->_rectImage.left == TPLAYER_MAX_IMAGESIZE_X)
+			town.mPlayer->_rectImage.left = 0;
 
-		switch (town.player->_dir)
+		switch (town.mPlayer->_dir)
 		{
 		case Dir::Left:
-			town.player->_rectImage.top = DIR_LEFT_IMAGE_Y;
+			town.mPlayer->_rectImage.top = DIR_LEFT_IMAGE_Y;
 			break;
 		case Dir::Up:
-			town.player->_rectImage.top = DIR_UP_IMAGE_Y;
+			town.mPlayer->_rectImage.top = DIR_UP_IMAGE_Y;
 			break;
 		case Dir::Right:
-			town.player->_rectImage.top = DIR_RIGHT_IMAGE_Y;
+			town.mPlayer->_rectImage.top = DIR_RIGHT_IMAGE_Y;
 			break;
 		case Dir::Down:
-			town.player->_rectImage.top = DIR_DOWN_IMAGE_Y;
+			town.mPlayer->_rectImage.top = DIR_DOWN_IMAGE_Y;
 			break;
 		}
 	}

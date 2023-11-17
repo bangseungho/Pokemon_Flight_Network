@@ -12,7 +12,7 @@
 #include "phase.h"
 
 extern GameData gameData;
-extern Player* player;
+extern Player* mPlayer;
 extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
@@ -30,7 +30,7 @@ void Boss::Death()
 {
 	bossData.hp = 0;
 	bossData.isDeath = true;
-	player->InvincibleMode();
+	mPlayer->InvincibleMode();
 
 	soundManager->StopEffectSound();
 	soundManager->StopBossSound();
@@ -316,9 +316,9 @@ void Boss::Update()
 	}
 
 	const RECT rectBody = GetRectBody();
-	if (player->IsCollide(rectBody) == true)
+	if (mPlayer->IsCollide(rectBody) == true)
 	{
-		player->Hit(bossData.damage, GetType());
+		mPlayer->Hit(bossData.damage, GetType());
 	}
 
 	if (IsMove() == false)

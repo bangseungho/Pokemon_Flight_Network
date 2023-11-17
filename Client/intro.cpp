@@ -175,8 +175,6 @@ void Menu::fingerController(const HWND& hWnd)
 		case MI_Menu::start:
 		{
 			GET_SINGLE(Network)->Connect();
-			IntroData introdata{ 1111, 2222 };
-			GET_SINGLE(Network)->SendIntroData(introdata);
 			sceneManager->StartLoading(hWnd);
 		}
 			break;

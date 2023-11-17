@@ -15,6 +15,9 @@ private:
 	CImage _img;
 	POINT _Size = { 0, };
 	RECT _rectImage = { 0, };
+
+	// SendIntroData
+	IntroData mIntroData;
 };
 
 class Intro : public MainIntro

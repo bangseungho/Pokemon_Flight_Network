@@ -3,23 +3,12 @@
 #include "intro.h"
 #include "scene.h"
 #include "sound.h"
-
-#define TARGET_IMAGESIZE_X 512
-#define TARGET_IMAGESIZE_Y 512
-#define CAMSIZE_X 162
-
-#define STAGE_NUM 5
-
-#define MAPSCROLL_SPEED 4
-
-#define ALPHA 220
-
-#define SELECTPOKEMONSIZE 135
-
-#define VK_R 0x52
+#include "Network.h"
+#include "interface.h"
 
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
+extern GameData gameData;
 
 // 스테이지에 필요한 이미지 모두 로드
 Stage::Stage()
@@ -61,6 +50,10 @@ Stage::Stage()
 // 각 스테이지 충돌 박스 크기 및 위치 설정
 void Stage::Init(const RECT& rectWindow)
 {
+	StageData stageData = { static_cast<uint32>(gameData.ClearRecord) };
+
+	GET_SINGLE(Network)->SendStageData(stageData);
+
 	target->_rectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
 

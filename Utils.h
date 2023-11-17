@@ -3,6 +3,9 @@
 
 #define SERVERPORT		9000
 
+#define TPLAYER_IMAGESIZE_X 64
+#define TPLAYER_IMAGESIZE_Y 64
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
 #include <tchar.h>
@@ -40,15 +43,21 @@ struct ThreadSocket
 
 struct IntroData
 {
-	int Id;
-	int Password;
+	uint8	PlayerCount = 0;
+};
+
+struct TownPlayerData
+{
+	POINT	Pos;
+	RECT	RectDraw;
+	RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
 };
 
 struct TownData
 {
-	float	PosX;
-	float	PosY;
-	bool	IsReady;
+	uint8			PlayerIndex = 0;
+	TownPlayerData	PlayerData;
+	bool			IsReady;
 };
 
 struct StageData
@@ -129,7 +138,7 @@ static bool ErrorCheck(int retVal, int type)
 	return true;
 }
 
-DataType RecvDataType(SOCKET& clientSock) 
+static DataType RecvDataType(SOCKET& clientSock)
 {
 	int retVal;
 	DataType dataType;
@@ -161,7 +170,7 @@ inline DataType GetDataType()
 }
 
 template<typename T>
-bool SendData(SOCKET& clientSock, const T& data) 
+bool SendData(const SOCKET& clientSock, const T& data) 
 {
 	DataType dataType = GetDataType<T>();
 

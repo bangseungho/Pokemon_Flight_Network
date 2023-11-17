@@ -11,7 +11,7 @@
 #include "phase.h"
 
 extern GameData gameData;
-extern Player* player;
+extern Player* mPlayer;
 extern Boss* boss;
 extern EffectManager* effects;
 extern EnemyController* enemies;
@@ -92,7 +92,7 @@ void Melee::SetPosDest()
 	}
 
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - player->GetPosCenter();
+	const Vector2 vectorToPlayer = posCenter - mPlayer->GetPosCenter();
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -154,8 +154,8 @@ void Melee::Update()
 	}
 	else if (CheckCollidePlayer() == true)
 	{
-		player->Hit(data.damage, GetType());
-		effects->CreateHitEffect(player->GetPosCenter(), GetType());
+		mPlayer->Hit(data.damage, GetType());
+		effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
 		return;
 	}
 
@@ -262,7 +262,7 @@ void Enemy::Animate()
 bool Melee::CheckCollidePlayer()
 {
 	const RECT rectBody = GetRectBody();
-	if (player->IsCollide(rectBody) == true)
+	if (mPlayer->IsCollide(rectBody) == true)
 	{
 		StopMove();
 		SetAction(Action::Attack, data.frameNum_Atk);
@@ -539,6 +539,8 @@ void EnemyController::CreateCheckMelee()
 	}
 	else if (gui->IsFieldEnd() == true)
 	{
+		gameData.ClearRecord++;
+
 		return;
 	}
 
