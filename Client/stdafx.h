@@ -30,9 +30,6 @@
 #undef WINVER
 #define WINVER 0x6000
 
-using std::cout;
-using std::endl;
-
 #define Endl endl << endl
 
 enum class Difficulty { Easy = 0, Normal, Hard };

@@ -2,48 +2,8 @@
 #include "Network.h"
 
 DECLARE_SINGLE(Network);
-#define BUFSIZE    512
 
-DWORD WINAPI ProcessRecv(LPVOID sock)
-{
-	SOCKET clientSock = *(SOCKET*)sock;
-
-	while (1) {
-		DataType dataType;
-		dataType = RecvDataType(clientSock);
-		if (dataType == DataType::NONE_DATA)
-			break;
-
-#pragma region Intro
-		if (dataType == DataType::INTRO_DATA) {
-			auto& data = GET_SINGLE(Network)->GetIntroData();
-			RecvData<IntroData>(clientSock, data);
-
-			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
-		}
-#pragma endregion
-#pragma region Town
-		if (dataType == DataType::TOWN_DATA) {
-			auto& data = GET_SINGLE(Network)->GetTownData();
-			RecvData<TownData>(clientSock, data);
-
-			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
-		}
-#pragma endregion
-#pragma region Stage
-		if (dataType == DataType::STAGE_DATA) {
-			auto& data = GET_SINGLE(Network)->GetStageData();
-			RecvData<StageData>(clientSock, data);
-
-			cout << "RECORD: " << data.Record << endl;
-		}
-#pragma endregion
-	}
-
-	return 0;
-}
-
-void Network::Init(std::string ipAddr)
+void Network::Init(string ipAddr)
 {
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) 
@@ -81,7 +41,7 @@ void Network::Connect()
 	GET_SINGLE(Network)->SendIntroData();
 
 	// Recv 스레드 생성
-	mRecvThread = CreateThread(NULL, 0, ProcessRecv, &mClientSock, 0, NULL);
+	mRecvThread = thread(&Network::Receiver, this);
 }
 
 void Network::DisConnect()
@@ -101,6 +61,41 @@ void Network::Close()
 #ifdef _DEBUG
 	cout << "[ Close the Socket! ]" << Endl;
 #endif 
+}
+
+void Network::Receiver()
+{
+	while (1) {
+		DataType dataType;
+		dataType = RecvDataType(mClientSock);
+		if (dataType == DataType::NONE_DATA)
+			break;
+
+#pragma region Intro
+		if (dataType == DataType::INTRO_DATA) {
+			RecvData<IntroData>(mClientSock, mRecvIntroData);
+			mRecvTownData.resize(mRecvIntroData.PlayerCount);
+			
+			cout << "PlayerIndex: " << static_cast<size_t>(mRecvIntroData.PlayerIndex) << "PlayerCount: " << static_cast<size_t>(mRecvIntroData.PlayerCount) << endl;
+		}
+#pragma endregion
+#pragma region Town
+		if (dataType == DataType::TOWN_DATA) {
+			auto& data = mRecvTownData[mRecvIntroData.PlayerIndex];
+			RecvData<TownData>(mClientSock, data);
+
+			cout << "POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;
+		}
+#pragma endregion
+#pragma region Stage
+		if (dataType == DataType::STAGE_DATA) {
+			auto& data = GET_SINGLE(Network)->GetStageData();
+			RecvData<StageData>(mClientSock, data);
+
+			cout << "RECORD: " << data.Record << endl;
+		}
+#pragma endregion
+	}
 }
 
 void Network::SendIntroData(const IntroData& data)

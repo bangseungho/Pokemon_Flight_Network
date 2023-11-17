@@ -24,9 +24,9 @@ extern SceneManager* sceneManager;
 // 타운 화면에 필요한 이미지 모두 로드
 Town::Town()
 {
-	player = new Player();
+	mPlayer = new Player();
 	_backTown.Load(L"images\\town\\Town.png");
-	player->img.Load(L"images\\town\\TownPlayer.png");
+	mPlayer->img.Load(L"images\\town\\TownPlayer.png");
 	_npc.Load(L"images\\town\\npc1.bmp");
 	_npc2.Load(L"images\\town\\npc2.png");
 	_npc3.Load(L"images\\town\\npc3.bmp");
@@ -68,29 +68,29 @@ void Town::Init(const RECT& rectWindow)
 	_rectImage = rectWindow;
 
 	// 타운 플레이어 생성
-	if (player == nullptr)
-		player = new Player();
+	if (mPlayer == nullptr)
+		mPlayer = new Player();
 
-	player->_rectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
+	mPlayer->_rectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
 	
 	// 이전 씬에 따라서 플레이어 방향과 위치 설정
 	if (sceneManager->GetPrevScene() == Scene::Intro)
 	{
-		player->_Pos.x = 60;
-		player->_Pos.y = 232;
-		player->_dir = Dir::Right;
+		mPlayer->_Pos.x = 60;
+		mPlayer->_Pos.y = 232;
+		mPlayer->_dir = Dir::Right;
 	}
 	else if (sceneManager->GetPrevScene() == Scene::Stage)
 	{
-		player->_Pos.x = rectWindow.right / 2;
-		player->_Pos.y = rectWindow.bottom / 2;
-		player->_dir = Dir::Down;
+		mPlayer->_Pos.x = rectWindow.right / 2;
+		mPlayer->_Pos.y = rectWindow.bottom / 2;
+		mPlayer->_dir = Dir::Down;
 	}
 
 	StopPlayer();
 
 	// 절대 좌표값 출력을 위한 변수
-	player->aboutMapPos = { player->_Pos.x, player->_Pos.y };
+	mPlayer->aboutMapPos = { mPlayer->_Pos.x, mPlayer->_Pos.y };
 }
 
 // 타운 화면 렌더링
@@ -105,8 +105,8 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_npc4.TransparentBlt(hdc, _npc4Rect.left, _npc4Rect.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
 	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
-	player->img.Draw(hdc, player->_Pos.x - 20, player->_Pos.y - 20, 40, 40,
-		player->_rectImage.left, player->_rectImage.top, player->_rectImage.right, player->_rectImage.bottom);
+	mPlayer->img.Draw(hdc, mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, 40, 40,
+		mPlayer->_rectImage.left, mPlayer->_rectImage.top, mPlayer->_rectImage.right, mPlayer->_rectImage.bottom);
 
 	// 타운 건물 렌더링
 	if (_allHide == true)
@@ -124,15 +124,15 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
 		HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 
-		Rectangle(hdc, player->_rectDraw.left, player->_rectDraw.top, player->_rectDraw.right, player->_rectDraw.bottom);
-		Rectangle(hdc, player->_cam.left, player->_cam.top, player->_cam.right, player->_cam.bottom);
+		Rectangle(hdc, mPlayer->_rectDraw.left, mPlayer->_rectDraw.top, mPlayer->_rectDraw.right, mPlayer->_rectDraw.bottom);
+		Rectangle(hdc, mPlayer->_cam.left, mPlayer->_cam.top, mPlayer->_cam.right, mPlayer->_cam.bottom);
 
 		TCHAR Posx[1000];
 		TCHAR Posy[1000];
-		wsprintf(Posx, L"X : %d", player->aboutMapPos.x);
-		wsprintf(Posy, L"Y : %d", player->aboutMapPos.y);
-		TextOut(hdc, player->_Pos.x - 25, player->_Pos.y + 30, Posx, lstrlen(Posx));
-		TextOut(hdc, player->_Pos.x - 25, player->_Pos.y + 50, Posy, lstrlen(Posy));
+		wsprintf(Posx, L"X : %d", mPlayer->aboutMapPos.x);
+		wsprintf(Posy, L"Y : %d", mPlayer->aboutMapPos.y);
+		TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 30, Posx, lstrlen(Posx));
+		TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 50, Posy, lstrlen(Posy));
 
 		SelectObject(hdc, oldBrush);
 		DeleteObject(hBrush);
@@ -161,34 +161,34 @@ void Town::Update(const RECT& rectWindow)
 {
 	RECT temp;
 
-	player->_cam = { player->_Pos.x - CAMSIZE_X, rectWindow.top, player->_Pos.x + CAMSIZE_X, rectWindow.bottom };
+	mPlayer->_cam = { mPlayer->_Pos.x - CAMSIZE_X, rectWindow.top, mPlayer->_Pos.x + CAMSIZE_X, rectWindow.bottom };
 
 	// 문 도착시 게임 종료
-	if (IntersectRect(&temp, &player->_rectDraw, &_object[17]))
+	if (IntersectRect(&temp, &mPlayer->_rectDraw, &_object[17]))
 		_exit = true;
 
 	// 모든 오브젝트를 검사하여 충돌시 반대로 1씩 올린다.
 	for (int i = 0; i < TOWN_OBJECT_NUM; i++)
 	{
-		if (IntersectRect(&temp, &player->_rectDraw, &_object[i]))
+		if (IntersectRect(&temp, &mPlayer->_rectDraw, &_object[i]))
 		{
-			switch (player->_dir)
+			switch (mPlayer->_dir)
 			{
 			case Dir::Left:
-				player->aboutMapPos.x += 1;
-				player->_Pos.x += 1;
+				mPlayer->aboutMapPos.x += 1;
+				mPlayer->_Pos.x += 1;
 				return;
 			case Dir::Right:
-				player->aboutMapPos.x -= 1;
-				player->_Pos.x -= 1;
+				mPlayer->aboutMapPos.x -= 1;
+				mPlayer->_Pos.x -= 1;
 				return;
 			case Dir::Up:
-				player->aboutMapPos.y += 1;
-				player->_Pos.y += 1;
+				mPlayer->aboutMapPos.y += 1;
+				mPlayer->_Pos.y += 1;
 				return;
 			case Dir::Down:
-				player->aboutMapPos.y -= 1;
-				player->_Pos.y -= 1;
+				mPlayer->aboutMapPos.y -= 1;
+				mPlayer->_Pos.y -= 1;
 				return;
 			}
 		}
@@ -204,14 +204,13 @@ void Town::Update(const RECT& rectWindow)
 	// 플레이어의 위치 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
-		mIsKeyPressed = true;
-		player->_keepGoing = true;
-		player->_dir = Dir::Left;
-		player->aboutMapPos.x -= TPLAYER_SPEED;
+		mPlayer->_keepGoing = true;
+		mPlayer->_dir = Dir::Left;
+		mPlayer->aboutMapPos.x -= TPLAYER_SPEED;
 		_exit = false;
 
 		// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
-		if (player->_cam.left < rectWindow.left && _rectImage.left > 0)
+		if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 0)
 		{
 			_rectImage.right -= TPLAYER_SPEED;
 			_rectImage.left -= TPLAYER_SPEED;
@@ -229,17 +228,16 @@ void Town::Update(const RECT& rectWindow)
 			_npc4Rect.left += TPLAYER_SPEED;
 		}
 		else
-			player->_Pos.x -= TPLAYER_SPEED;
+			mPlayer->_Pos.x -= TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 	{
-		mIsKeyPressed = true;
-		player->_keepGoing = true;
-		player->_dir = Dir::Right;
-		player->aboutMapPos.x += TPLAYER_SPEED;
+		mPlayer->_keepGoing = true;
+		mPlayer->_dir = Dir::Right;
+		mPlayer->aboutMapPos.x += TPLAYER_SPEED;
 		_exit = false;
 
-		if (player->_cam.right > rectWindow.right && _rectImage.right < 748)
+		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
 		{
 			_rectImage.right += TPLAYER_SPEED;
 			_rectImage.left += TPLAYER_SPEED;
@@ -256,38 +254,36 @@ void Town::Update(const RECT& rectWindow)
 			_npc4Rect.left -= TPLAYER_SPEED;
 		}
 		else
-			player->_Pos.x += TPLAYER_SPEED;
+			mPlayer->_Pos.x += TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
-		mIsKeyPressed = true;
-		player->aboutMapPos.y -= TPLAYER_SPEED;
-		player->_keepGoing = true;
-		player->_dir = Dir::Up;
-		player->_Pos.y -= TPLAYER_SPEED;
+		mPlayer->aboutMapPos.y -= TPLAYER_SPEED;
+		mPlayer->_keepGoing = true;
+		mPlayer->_dir = Dir::Up;
+		mPlayer->_Pos.y -= TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	{
-		mIsKeyPressed = true;
 		_exit = false;
-		player->aboutMapPos.y += TPLAYER_SPEED;
-		player->_keepGoing = true;
-		player->_dir = Dir::Down;
-		player->_Pos.y += TPLAYER_SPEED;
+		mPlayer->aboutMapPos.y += TPLAYER_SPEED;
+		mPlayer->_keepGoing = true;
+		mPlayer->_dir = Dir::Down;
+		mPlayer->_Pos.y += TPLAYER_SPEED;
 	}
 
 	// 키가 눌린 경우에만 패킷을 송신한다.
-	if (true == mIsKeyPressed) {
-		TownData townData{ player->_Pos.x, player->_Pos.y };
+	if (true == mPlayer->_keepGoing) {
+		TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
+		TownData townData{ playerData, false };
 		GET_SINGLE(Network)->SendTownData(townData);
-		mIsKeyPressed = false;
 	}
 }
 
 void Town::StopPlayer()
 {
-	player->_rectImage.left = 0; // 정지시 차렷자세
-	player->_keepGoing = false; // 키 업시 움직임 모션 타이머 정지
+	mPlayer->_rectImage.left = 0; // 정지시 차렷자세
+	mPlayer->_keepGoing = false; // 키 업시 움직임 모션 타이머 정지
 }
 
 int Town::GetCamSizeX()

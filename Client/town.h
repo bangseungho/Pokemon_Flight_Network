@@ -33,13 +33,10 @@ private:
 	CImage _glowing_black;
 	bool _exit = false;
 
-	// 키가 눌렸는지를 확인
-	bool mIsKeyPressed = false;
-
 public:
 	bool _allHide = false;
 	Scene _nextFlow = Scene::Town;
-	Player* player;
+	Player* mPlayer;
 	RECT _rectImage = { 0, };
 
 	RECT _npc2Rect;

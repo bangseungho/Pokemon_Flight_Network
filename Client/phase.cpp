@@ -215,7 +215,7 @@ void PhaseManager::ClearPhase()
 
 	gameData.ClearRecord = phaseWater + phaseFire + phaseElec + phaseDark;
 #ifdef _DEBUG
-	cout << static_cast<uint32>(gameData.ClearRecord) << endl;
+	std::cout << static_cast<uint32>(gameData.ClearRecord) << std::endl;
 #endif 
 }
 

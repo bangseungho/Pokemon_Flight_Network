@@ -43,17 +43,11 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mIntroData;
 			RecvData<IntroData>(clientSock, data);
 
-			SendData<IntroData>(clientSock, data);
-
-			//// 다른 클라이언트들의 패킷을 해당 클라이언트에게 송신
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadId == threadId)
-			//		continue;
-			//	
-			//	SendData<IntroData>(clientSock, player.mIntroData);
-			//}
-
-			cout << "ID: " << data.Id << ", PASSWORD: " << data.Password << endl;
+			// 모든 클라이언트들에게 패킷 송신
+			for (const auto& player : sPlayers) {
+				IntroData data{ static_cast<uint8>(sPlayers.size()), static_cast<uint8>(player.mThreadId) };
+				SendData<IntroData>(player.mSock, data);
+			}
 		}
 #pragma endregion
 #pragma region Town
@@ -61,16 +55,11 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mTownData;
 			RecvData<TownData>(clientSock, data);
 
-			SendData<TownData>(clientSock, data);
+			for (const auto& player : sPlayers) {
+				SendData<TownData>(clientSock, data);
+			}
 
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadId == threadId)
-			//		continue;
-
-			//	SendData<TownData>(clientSock, player.mTownData);
-			//}
-
-			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PosX << ", POSY: " << data.PosY << endl;
+			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;
 		}
 #pragma endregion
 #pragma region Stage

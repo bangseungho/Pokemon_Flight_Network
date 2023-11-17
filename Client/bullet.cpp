@@ -6,7 +6,7 @@
 #include "boss.h"
 #include "scene.h"
 
-extern Player* player;
+extern Player* mPlayer;
 extern EnemyController* enemies;
 extern Boss* boss;
 extern EffectManager* effects;
@@ -236,7 +236,7 @@ void PlayerBullet::Update()
 		{
 			if (bullets.at(i)->IsSkillBullet() == false)
 			{
-				player->AddMP(0.30f);
+				mPlayer->AddMP(0.30f);
 			}
 			BulletController::Pop(i);
 		}
@@ -252,9 +252,9 @@ void EnemyBullet::Update()
 {
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
-		if (player->IsCollide(bullets.at(i)->GetRect()) == true)
+		if (mPlayer->IsCollide(bullets.at(i)->GetRect()) == true)
 		{
-			player->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
+			mPlayer->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
 			BulletController::Pop(i);
 		}
 		else if (bullets.at(i)->Update() == false)

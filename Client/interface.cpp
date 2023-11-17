@@ -21,7 +21,7 @@
 #define MOVE_RIGHT VK_RIGHT
 
 extern GameData gameData;
-extern Player* player;
+extern Player* mPlayer;
 extern EnemyController* enemies;
 extern Boss* boss;
 extern GUIManager* gui;
@@ -67,13 +67,13 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			gameData.isShowDrawBox = !gameData.isShowDrawBox;
 			break;
 		case _T('O'):
-			player->Heal();
+			mPlayer->Heal();
 			break;
 		case _T('P'):
-			player->FullMP();
+			mPlayer->FullMP();
 			break;
 		case _T('I'):
-			player->InvincibleMode();
+			mPlayer->InvincibleMode();
 			break;
 		case VK_SUBTRACT:
 			boss->KillBoss();
@@ -82,51 +82,51 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			gui->SkipField();
 			break;
 		case _T('Q'):
-			player->ActiveSkill(Skill::Identity);
+			mPlayer->ActiveSkill(Skill::Identity);
 			break;
 		case _T('W'):
-			player->ActiveSkill(Skill::Sector);
+			mPlayer->ActiveSkill(Skill::Sector);
 			break;
 		case _T('E'):
-			player->ActiveSkill(Skill::Circle);
+			mPlayer->ActiveSkill(Skill::Circle);
 			break;
 		}
 
 		bool isMove = false;
 		if (KEYDOWN(MOVE_LEFT))
 		{
-			player->Stop(Dir::Right);
-			player->SetDirection(Dir::Left);
+			mPlayer->Stop(Dir::Right);
+			mPlayer->SetDirection(Dir::Left);
 			isMove = true;
 		}
 		if (KEYDOWN(MOVE_RIGHT))
 		{
 			if (wParam != MOVE_LEFT)
 			{
-				player->Stop(Dir::Left);
-				player->SetDirection(Dir::Right);
+				mPlayer->Stop(Dir::Left);
+				mPlayer->SetDirection(Dir::Right);
 				isMove = true;
 			}
 		}
 		if (KEYDOWN(MOVE_UP))
 		{
-			player->Stop(Dir::Down);
-			player->SetDirection(Dir::Up);
+			mPlayer->Stop(Dir::Down);
+			mPlayer->SetDirection(Dir::Up);
 			isMove = true;
 		}
 		if (KEYDOWN(MOVE_DOWN))
 		{
 			if (wParam != MOVE_UP)
 			{
-				player->Stop(Dir::Up);
-				player->SetDirection(Dir::Down);
+				mPlayer->Stop(Dir::Up);
+				mPlayer->SetDirection(Dir::Down);
 				isMove = true;
 			}
 		}
 
 		if (isMove == true)
 		{
-			player->SetMove(hWnd, TIMERID_BATTLE_MOVE_PLAYER, ELAPSE_BATTLE_MOVE_PLAYER, T_Battle_MovePlayer);
+			mPlayer->SetMove(hWnd, TIMERID_BATTLE_MOVE_PLAYER, ELAPSE_BATTLE_MOVE_PLAYER, T_Battle_MovePlayer);
 		}
 	}
 }
@@ -143,36 +143,36 @@ void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 	}
 	else if (sceneManager->GetScene() == Scene::Battle)
 	{
-		if (player->IsMove() == true)
+		if (mPlayer->IsMove() == true)
 		{
 			switch (wParam)
 			{
 			case MOVE_LEFT:
-				player->Stop(Dir::Left);
+				mPlayer->Stop(Dir::Left);
 				if (KEYDOWN(MOVE_RIGHT))
 				{
-					player->SetDirection(Dir::Right);
+					mPlayer->SetDirection(Dir::Right);
 				}
 				break;
 			case MOVE_RIGHT:
-				player->Stop(Dir::Right);
+				mPlayer->Stop(Dir::Right);
 				if (KEYDOWN(MOVE_LEFT))
 				{
-					player->SetDirection(Dir::Left);
+					mPlayer->SetDirection(Dir::Left);
 				}
 				break;
 			case MOVE_UP:
-				player->Stop(Dir::Up);
+				mPlayer->Stop(Dir::Up);
 				if (KEYDOWN(MOVE_DOWN))
 				{
-					player->SetDirection(Dir::Down);
+					mPlayer->SetDirection(Dir::Down);
 				}
 				break;
 			case MOVE_DOWN:
-				player->Stop(Dir::Down);
+				mPlayer->Stop(Dir::Down);
 				if (KEYDOWN(MOVE_UP))
 				{
-					player->SetDirection(Dir::Up);
+					mPlayer->SetDirection(Dir::Up);
 				}
 				break;
 			}
@@ -228,7 +228,7 @@ GUIManager::GUIManager(const RECT& rectWindow)
 	hurtGUI_Elec.gui = new GUIImage();
 	hurtGUI_Dark.gui = new GUIImage();
 
-	switch (player->GetType())
+	switch (mPlayer->GetType())
 	{
 	case Type::Elec:
 		icon_Q->Load(_T("images\\battle\\icon_elec_Q.png"), { 35, 35 });
@@ -246,7 +246,7 @@ GUIManager::GUIManager(const RECT& rectWindow)
 		gaugeMoveBarGUI->Load(_T("images\\battle\\gague_bar_fire.png"), { 14, 217 });
 		break;
 	}
-	switch (player->GetSubType())
+	switch (mPlayer->GetSubType())
 	{
 	case Type::Elec:
 		icon_W->Load(_T("images\\battle\\icon_elec_W.png"), { 130, 130 });
@@ -337,11 +337,11 @@ void GUIManager::Paint(const HDC& hdc)
 	mainGUI->Paint(hdc, rectMain);
 
 	gagueGUI_main->Paint(hdc, rectHP);
-	gagueGUI_hp->PaintGauge(hdc, rectHP, player->GetHP(), player->GetMaxHP());
+	gagueGUI_hp->PaintGauge(hdc, rectHP, mPlayer->GetHP(), mPlayer->GetMaxHP());
 	gagueGUI_border->Paint(hdc, rectHP);
 
 	gagueGUI_main->Paint(hdc, rectMP);
-	gagueGUI_mp->PaintGauge(hdc, rectMP, player->GetMP(), player->GetMaxMP());
+	gagueGUI_mp->PaintGauge(hdc, rectMP, mPlayer->GetMP(), mPlayer->GetMaxMP());
 	gagueGUI_border->Paint(hdc, rectMP);
 
 	icon_Q->Paint(hdc, rectSkill_Q);
@@ -369,7 +369,7 @@ void GUIManager::Update(const HWND& hWnd)
 	hurtGUI_Dark.ReduceAlpha();
 
 	int crntPhase = phase.GetPhase();
-	if (player->IsDeath() == true)
+	if (mPlayer->IsDeath() == true)
 	{
 		return;
 	}
@@ -379,7 +379,7 @@ void GUIManager::Update(const HWND& hWnd)
 		{
 			isClearPhase = true;
 
-			player->InvincibleMode();
+			mPlayer->InvincibleMode();
 			phase.ClearPhase();
 			soundManager->StopEffectSound();
 			soundManager->StopBGMSound();

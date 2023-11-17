@@ -40,15 +40,21 @@ struct ThreadSocket
 
 struct IntroData
 {
-	int Id;
-	int Password;
+	uint8	PlayerCount = 0;
+	uint8	PlayerIndex = 0;
+};
+
+struct TownPlayerData
+{
+	POINT	Pos;
+	RECT	RectDraw;
+	RECT	RectImage;
 };
 
 struct TownData
 {
-	float	PosX;
-	float	PosY;
-	bool	IsReady;
+	TownPlayerData	PlayerData;
+	bool			IsReady;
 };
 
 struct StageData
@@ -161,7 +167,7 @@ inline DataType GetDataType()
 }
 
 template<typename T>
-bool SendData(SOCKET& clientSock, const T& data) 
+bool SendData(const SOCKET& clientSock, const T& data) 
 {
 	DataType dataType = GetDataType<T>();
 
