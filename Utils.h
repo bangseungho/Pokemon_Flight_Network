@@ -129,7 +129,7 @@ static bool ErrorCheck(int retVal, int type)
 	return true;
 }
 
-DataType RecvDataType(SOCKET& clientSock) 
+static DataType RecvDataType(SOCKET& clientSock)
 {
 	int retVal;
 	DataType dataType;
