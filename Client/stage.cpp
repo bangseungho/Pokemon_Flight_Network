@@ -6,20 +6,6 @@
 #include "Network.h"
 #include "interface.h"
 
-#define TARGET_IMAGESIZE_X 512
-#define TARGET_IMAGESIZE_Y 512
-#define CAMSIZE_X 162
-
-#define STAGE_NUM 5
-
-#define MAPSCROLL_SPEED 4
-
-#define ALPHA 220
-
-#define SELECTPOKEMONSIZE 135
-
-#define VK_R 0x52
-
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
 extern GameData gameData;

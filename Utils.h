@@ -3,6 +3,9 @@
 
 #define SERVERPORT		9000
 
+#define TPLAYER_IMAGESIZE_X 64
+#define TPLAYER_IMAGESIZE_Y 64
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
 #include <tchar.h>
@@ -48,7 +51,7 @@ struct TownPlayerData
 {
 	POINT	Pos;
 	RECT	RectDraw;
-	RECT	RectImage;
+	RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
 };
 
 struct TownData

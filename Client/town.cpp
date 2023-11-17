@@ -3,22 +3,6 @@
 #include "scene.h"
 #include "Network.h"
 
-#define CAMSIZE_X 162
-#define CAMSIZE_Y 375
-
-#define TPLAYER_IMAGESIZE_X 64
-#define TPLAYER_IMAGESIZE_Y 64
-#define TPLAYER_MAX_IMAGESIZE_X 256
-
-#define TPLAYER_SPEED 4;
-
-#define DIR_LEFT_IMAGE_Y 64
-#define DIR_RIGHT_IMAGE_Y 128
-#define DIR_UP_IMAGE_Y 192
-#define DIR_DOWN_IMAGE_Y 0
-
-#define ALPHA 150
-
 extern SceneManager* sceneManager;
 
 // 타운 화면에 필요한 이미지 모두 로드
@@ -64,7 +48,6 @@ void Town::Init(const RECT& rectWindow)
 	_npc4Rect = { 550, 175, 387, 424 };
 
 	_rectDraw = rectWindow;
-
 	_rectImage = rectWindow;
 
 	// 타운 플레이어 생성
@@ -72,7 +55,7 @@ void Town::Init(const RECT& rectWindow)
 		mPlayer = new Player();
 
 	mPlayer->_rectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
-	
+
 	// 이전 씬에 따라서 플레이어 방향과 위치 설정
 	if (sceneManager->GetPrevScene() == Scene::Intro)
 	{
@@ -86,6 +69,11 @@ void Town::Init(const RECT& rectWindow)
 		mPlayer->_Pos.y = rectWindow.bottom / 2;
 		mPlayer->_dir = Dir::Down;
 	}
+
+	// 첫 정보 넘겨주기
+	TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
+	TownData townData{ playerData, false };
+	GET_SINGLE(Network)->SendTownData(townData);
 
 	StopPlayer();
 
@@ -105,8 +93,12 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_npc4.TransparentBlt(hdc, _npc4Rect.left, _npc4Rect.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
 	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
-	mPlayer->img.Draw(hdc, mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, 40, 40,
-		mPlayer->_rectImage.left, mPlayer->_rectImage.top, mPlayer->_rectImage.right, mPlayer->_rectImage.bottom);
+	// 그릴때만 여러 번 그리기
+	const auto& players = GET_SINGLE(Network)->GetTownData();
+	for (const auto& player : players) {
+		mPlayer->img.Draw(hdc, player.PlayerData.Pos.x - 20, player.PlayerData.Pos.y - 20, 40, 40,
+			player.PlayerData.RectImage.left, player.PlayerData.RectImage.top, player.PlayerData.RectImage.right, player.PlayerData.RectImage.bottom);
+	}
 
 	// 타운 건물 렌더링
 	if (_allHide == true)

@@ -8,6 +8,10 @@ class Network
 	SINGLETON(Network)
 
 public:
+	Network();
+	~Network();
+
+public:
 	void Init(string ipAddr);
 	void Connect();
 	void DisConnect();

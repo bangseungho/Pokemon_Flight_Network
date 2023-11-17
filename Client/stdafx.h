@@ -26,11 +26,45 @@
 #define WINDOWSIZE_Y 750
 #define MSEC 1000
 
+#define TARGET_IMAGESIZE_X 512
+#define TARGET_IMAGESIZE_Y 512
+#define CAMSIZE_X 162
+
+#define STAGE_NUM 5
+
+#define MAPSCROLL_SPEED 4
+
+#define ALPHA 220
+
+#define SELECTPOKEMONSIZE 135
+
+#define VK_R 0x52
+
+#define Endl endl << endl
+
+#define PI 3.141592
+#define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
+#define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
+
+#define CAMSIZE_X 162
+#define CAMSIZE_Y 375
+
+#define TPLAYER_MAX_IMAGESIZE_X 256
+
+#define TPLAYER_SPEED 4;
+
+#define DIR_LEFT_IMAGE_Y 64
+#define DIR_RIGHT_IMAGE_Y 128
+#define DIR_UP_IMAGE_Y 192
+#define DIR_DOWN_IMAGE_Y 0
+
+#define ALPHA 150
+
 #define	WIN32_LEAN_AND_MEAN
 #undef WINVER
 #define WINVER 0x6000
 
-#define Endl endl << endl
+
 
 enum class Difficulty { Easy = 0, Normal, Hard };
 enum class Scene { Intro = 0, Town, Stage, PhaseManager, Battle };
@@ -43,9 +77,7 @@ enum class Skill { Empty = 0, Identity, Sector, Circle };
 
 enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
 
-#define PI 3.141592
-#define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
-#define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
+
 
 // 싱글턴 객체로 클래스 내부에서 사용
 #define SINGLETON(type)								\

@@ -3,6 +3,15 @@
 
 DECLARE_SINGLE(Network);
 
+Network::Network()
+{
+}
+
+Network::~Network()
+{
+	mRecvThread.join();
+}
+
 void Network::Init(string ipAddr)
 {
 	WSADATA wsa;
