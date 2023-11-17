@@ -45,7 +45,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 			// 모든 클라이언트들에게 패킷 송신
 			for (const auto& player : sPlayers) {
-				IntroData data{ static_cast<uint8>(sPlayers.size()), static_cast<uint8>(player.mThreadId) };
+				IntroData data{ static_cast<uint8>(sPlayers.size()) };
 				SendData<IntroData>(player.mSock, data);
 			}
 		}
@@ -56,7 +56,8 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			RecvData<TownData>(clientSock, data);
 
 			for (const auto& player : sPlayers) {
-				SendData<TownData>(clientSock, data);
+				data.PlayerIndex = static_cast<uint8>(player.mThreadId);
+				SendData<TownData>(clientSock, data); 
 			}
 
 			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;

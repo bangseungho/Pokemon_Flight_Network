@@ -72,7 +72,7 @@ void Town::Init(const RECT& rectWindow)
 
 	// 첫 정보 넘겨주기
 	TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	TownData townData{ playerData, false };
+	TownData townData{ 0, playerData, false };
 	GET_SINGLE(Network)->SendTownData(townData);
 
 	StopPlayer();
@@ -267,7 +267,7 @@ void Town::Update(const RECT& rectWindow)
 	// 키가 눌린 경우에만 패킷을 송신한다.
 	if (true == mPlayer->_keepGoing) {
 		TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
-		TownData townData{ playerData, false };
+		TownData townData{ 0, playerData, false };
 		GET_SINGLE(Network)->SendTownData(townData);
 	}
 }

@@ -44,7 +44,6 @@ struct ThreadSocket
 struct IntroData
 {
 	uint8	PlayerCount = 0;
-	uint8	PlayerIndex = 0;
 };
 
 struct TownPlayerData
@@ -56,6 +55,7 @@ struct TownPlayerData
 
 struct TownData
 {
+	uint8			PlayerIndex = 0;
 	TownPlayerData	PlayerData;
 	bool			IsReady;
 };

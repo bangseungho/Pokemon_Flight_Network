@@ -84,24 +84,22 @@ void Network::Receiver()
 		if (dataType == DataType::INTRO_DATA) {
 			RecvData<IntroData>(mClientSock, mRecvIntroData);
 			mRecvTownData.resize(mRecvIntroData.PlayerCount);
-			
-			cout << "PlayerIndex: " << static_cast<size_t>(mRecvIntroData.PlayerIndex) << "PlayerCount: " << static_cast<size_t>(mRecvIntroData.PlayerCount) << endl;
 		}
 #pragma endregion
 #pragma region Town
 		if (dataType == DataType::TOWN_DATA) {
-			auto& data = mRecvTownData[mRecvIntroData.PlayerIndex];
-			RecvData<TownData>(mClientSock, data);
+			TownData townData;
+			RecvData<TownData>(mClientSock, townData);
 
-			cout << "POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;
+			mRecvTownData[townData.PlayerIndex].PlayerIndex = townData.PlayerIndex;
+			mRecvTownData[townData.PlayerIndex].PlayerData = townData.PlayerData;
+			mRecvTownData[townData.PlayerIndex].IsReady = townData.IsReady;
 		}
 #pragma endregion
 #pragma region Stage
 		if (dataType == DataType::STAGE_DATA) {
 			auto& data = GET_SINGLE(Network)->GetStageData();
 			RecvData<StageData>(mClientSock, data);
-
-			cout << "RECORD: " << data.Record << endl;
 		}
 #pragma endregion
 	}
