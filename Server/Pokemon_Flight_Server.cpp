@@ -13,6 +13,7 @@ using namespace std;
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static vector<PlayerData> sPlayers;
+CRITICAL_SECTION cs;
 
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
@@ -54,11 +55,13 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 		if (dataType == DataType::TOWN_DATA) {
 			auto& data = sPlayers[threadId].mTownData;
 			RecvData<TownData>(clientSock, data);
+			data.PlayerIndex = static_cast<uint8>(threadId);
 
+			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
-				data.PlayerIndex = static_cast<uint8>(player.mThreadId);
-				SendData<TownData>(clientSock, data); 
+				SendData<TownData>(player.mSock, data); 
 			}
+			LeaveCriticalSection(&cs);
 
 			cout << "ISREADY: " << data.IsReady << ", POSX: " << data.PlayerData.Pos.x << ", POSY: " << data.PlayerData.Pos.y << endl;
 		}
@@ -123,6 +126,7 @@ int main(int argc, char* argv[])
 	int retval;
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
+	InitializeCriticalSection(&cs);
 #pragma endregion
 
 #pragma region Socket
@@ -153,6 +157,7 @@ int main(int argc, char* argv[])
 	int addrlen;
 	HANDLE hThread;
 
+
 	uint8 id{};
 	while (1) {
 		addrlen = sizeof(clientaddr);
@@ -172,6 +177,7 @@ int main(int argc, char* argv[])
 	}
 #pragma endregion
 #pragma region Close
+	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion
