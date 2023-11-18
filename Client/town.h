@@ -28,6 +28,10 @@ private:
 	RECT _npc3Rect;
 	CImage _npc4; // npc4
 	RECT _npc4Rect;
+
+	POINT mAdjValue; // 플레이어의 카메라가 맵 끝에 도달했을 경우 다른 오브젝트들을 반대로 계산하기 위한 값
+
+	HWND mHwnd;
 	
 	CImage _exits;
 	CImage _glowing_black;
@@ -35,18 +39,17 @@ private:
 
 public:
 	bool _allHide = false;
+	bool mActive = true;
+
 	Scene _nextFlow = Scene::Town;
-
 	Player* mPlayer;
-
 	RECT _rectImage = { 0, };
-
 	RECT _npc2Rect;
 	POINT _npc1Move = { 0, };
 	POINT _npc2Move = { 0, };
 
 	Town();
-	void Init(const RECT& rectWindow);
+	void Init(const RECT& rectWindow, const HWND& hWnd);
 	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(const RECT& rectWindow);
 	void StopPlayer();

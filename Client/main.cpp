@@ -15,6 +15,7 @@
 #include "stage.h"
 #include "phase.h"
 #include "battle.h"
+#include "Network.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -67,6 +68,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		DispatchMessage(&Message);
 	}
 
+	DESTROY_SINGLE(Network);
 	Gdiplus::GdiplusShutdown(gdiplusToken);
 	return Message.wParam;
 }
@@ -110,6 +112,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		sceneManager->Paint(hWnd);
 	}
 	break;
+	case WM_ACTIVATE:
+		if (wParam == WA_INACTIVE) town.mActive = false;
+		break;
 	case WM_KEYDOWN:
 		CheckKeyDown(hWnd, wParam);
 		break;

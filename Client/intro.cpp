@@ -182,7 +182,7 @@ void Menu::fingerController(const HWND& hWnd)
 			_producer = true;
 			break;
 		case MI_Menu::finish:
-			GET_SINGLE(Network)->Close();
+			GET_SINGLE(Network)->SendDataToTemplate(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 			PostQuitMessage(0);
 			break;
 		}
