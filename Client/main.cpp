@@ -112,6 +112,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		sceneManager->Paint(hWnd);
 	}
 	break;
+	case WM_ACTIVATE:
+		if (wParam == WA_INACTIVE) town.mActive = false;
+		break;
 	case WM_KEYDOWN:
 		CheckKeyDown(hWnd, wParam);
 		break;

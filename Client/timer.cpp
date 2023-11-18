@@ -150,7 +150,7 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	if (loading.IsLoaded() == true)
 	{
 		// 로딩 화면이 끝날때마다 타운 모두 초기화
-		town.Init(rectWindow);
+		town.Init(rectWindow, hWnd);
 
 		stage.SelectPokemonInit();
 

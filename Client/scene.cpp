@@ -138,7 +138,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		break;
 	case Scene::Town:
 	{
-		town.Init(rectWindow);
+		town.Init(rectWindow, hWnd);
 		SetTimer(hWnd, TIMERID_TPANIMATION, ELAPSE_TPANIMATION, T_TPAnimation); // 플레이어 움직임 타이머
 		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
 		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
@@ -225,6 +225,11 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		soundManager->PlayBGMSound(BGMSound::Battle, 1.0f, true);
 		soundManager->PlayEffectSound(EffectSound::Shot, 0.5f, true);
 		break;
+	}
+
+	if (GET_SINGLE(Network)->IsConnected()) {
+		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), static_cast<uint8>(crntScene) };
+		Data::SendDataAndType<SceneData>(GET_SINGLE(Network)->GetSocket(), sendData);
 	}
 }
 

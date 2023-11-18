@@ -20,9 +20,12 @@ Town::Town()
 }
 
 // 타운에서 필요한 초기화 작업
-void Town::Init(const RECT& rectWindow)
+void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 {
-	// 타운에 존재하는 건물들의 충돌 처리를 위한 충돌 박스 위치 설정
+	mHwnd = hWnd;
+	mAdjValue = POINT{ 0, 0 };
+
+	// 타운에 존재하는 건물들의 충돌 처리를 위한 충s돌 박스 위치 설정
 	_object[0] = { 0, 0, 125, 190 };
 	_object[1] = { 156, 0, 300, 100 };
 	_object[2] = { 337, 0, 750, 175 };
@@ -101,15 +104,23 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		mPlayer->_rectImage.right, 
 		mPlayer->_rectImage.bottom);
 
-	const auto& members = GET_SINGLE(Network)->GetTownData();
+	// 현재 멤버들의 정보를 가져오기
+	const auto& members = GET_SINGLE(Network)->GetMemberMap();
 
 	for (const auto& member : members) {
+		// 현재 멤버가 타운 씬에 없다면 그리지 않는다.
+		if (member.second.mSceneData.Scene != static_cast<uint8>(Scene::Town))
+			continue;
+
+		// 현재 멤버 위치 보간
+		POINT newPos = member.second.mTownData.PlayerData.Pos + mAdjValue;
+
 		mPlayer->img.Draw(hdc,
-			member.second.PlayerData.Pos.x - 20, member.second.PlayerData.Pos.y - 20, 40, 40,
-			member.second.PlayerData.RectImage.left,
-			member.second.PlayerData.RectImage.top,
-			member.second.PlayerData.RectImage.right,
-			member.second.PlayerData.RectImage.bottom);
+			newPos.x - 20, newPos.y - 20, 40, 40,
+			member.second.mTownData.PlayerData.RectImage.left,
+			member.second.mTownData.PlayerData.RectImage.top,
+			member.second.mTownData.PlayerData.RectImage.right,
+			member.second.mTownData.PlayerData.RectImage.bottom);
 	};
 
 	// 타운 건물 렌더링
@@ -138,6 +149,17 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 30, Posx, lstrlen(Posx));
 		TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 50, Posy, lstrlen(Posy));
 
+		for (const auto& member : members) {
+			POINT newPos = member.second.mTownData.PlayerData.Pos;
+			wsprintf(Posx, L"X : %d", newPos.x);
+			wsprintf(Posy, L"Y : %d", newPos.y);
+
+			newPos = newPos + mAdjValue;
+
+			TextOut(hdc, newPos.x - 25, newPos.y + 30, Posx, lstrlen(Posx));
+			TextOut(hdc, newPos.x - 25, newPos.y + 50, Posy, lstrlen(Posy));
+		};
+
 		SelectObject(hdc, oldBrush);
 		DeleteObject(hBrush);
 	}
@@ -163,8 +185,10 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 
 void Town::Update(const RECT& rectWindow)
 {
-	RECT temp;
+	//if (GetForegroundWindow() != mHwnd)
+	//	return;
 
+	RECT temp;
 	mPlayer->_cam = { mPlayer->_Pos.x - CAMSIZE_X, rectWindow.top, mPlayer->_Pos.x + CAMSIZE_X, rectWindow.bottom };
 
 	// 문 도착시 게임 종료
@@ -201,13 +225,14 @@ void Town::Update(const RECT& rectWindow)
 	// _exit 변수가 true일 경우 엔터키를 누르면 게임 종료
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit == true)
 	{
-		GET_SINGLE(Network)->SendTypelessData(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+		GET_SINGLE(Network)->SendDataToTemplate(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 		PostQuitMessage(0);
 	}
 
 	// 플레이어의 위치 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
+		mActive = true;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Left;
 		mPlayer->aboutMapPos.x -= TPLAYER_SPEED;
@@ -216,6 +241,8 @@ void Town::Update(const RECT& rectWindow)
 		// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
 		if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 0)
 		{
+			mAdjValue.x += TPLAYER_SPEED;
+
 			_rectImage.right -= TPLAYER_SPEED;
 			_rectImage.left -= TPLAYER_SPEED;
 
@@ -236,6 +263,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 	{
+		mActive = true;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Right;
 		mPlayer->aboutMapPos.x += TPLAYER_SPEED;
@@ -243,6 +271,8 @@ void Town::Update(const RECT& rectWindow)
 
 		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
 		{
+			mAdjValue.x -= TPLAYER_SPEED;
+
 			_rectImage.right += TPLAYER_SPEED;
 			_rectImage.left += TPLAYER_SPEED;
 
@@ -262,6 +292,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
+		mActive = true;
 		mPlayer->aboutMapPos.y -= TPLAYER_SPEED;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Up;
@@ -269,6 +300,7 @@ void Town::Update(const RECT& rectWindow)
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	{
+		mActive = true;
 		_exit = false;
 		mPlayer->aboutMapPos.y += TPLAYER_SPEED;
 		mPlayer->_keepGoing = true;
@@ -277,11 +309,13 @@ void Town::Update(const RECT& rectWindow)
 	}
 
 	// 키가 눌린 경우에만 패킷을 송신한다.
-	if (true == mPlayer->_keepGoing) {
-		TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
-		TownData townData{ 0, playerData, false };
+	if (true == mPlayer->_keepGoing && mActive) {
+		TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
+		TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false};
 		GET_SINGLE(Network)->SendTownData(townData);
 	}
+
+	mActive = false;
 }
 
 void Town::StopPlayer()

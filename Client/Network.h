@@ -15,36 +15,35 @@ public:
 	void Init(string ipAddr);
 	void Connect();
 
-	template<typename T>
-	void SendTypelessData(const T& data = {});
-
 	void Receiver();
+
+	template<typename T>
+	void SendDataToTemplate(const T& data = {});
+
 	void SendIntroData(const IntroData& data = {});
 	void SendTownData(const TownData& data = {});
 	void SendStageData(const StageData& data = {});
 
-	IntroData& GetIntroData() { return mRecvIntroData; }
-	unordered_map<uint8, TownData>& GetTownData() { return mRecvTownData; }
-	StageData& GetStageData() { return mRecvStageData; }
-	
-	uint8 GetClientIndex() const { return mRecvIntroData.PlayerIndex; }
+	uint8 GetClientIndex() const { return mClientIndex; }
+	bool IsConnected() const { return mConnected; }
+
+	SOCKET& GetSocket() { return mClientSock; }
+	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
 private:
-	bool mConnected;
-	SOCKET mClientSock;
-	SOCKADDR_IN mServerAddr;
-	thread mRecvThread;
+	bool			mConnected;
+	uint8			mClientIndex;
+	thread			mRecvThread;
+	SOCKET			mClientSock;
+	SOCKADDR_IN		mServerAddr;
 
-	IntroData mRecvIntroData;
-	unordered_map<uint8, TownData> mRecvTownData; // 파트너 플레이어
-	StageData mRecvStageData;
+	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
 
 template<typename T>
-inline void Network::SendTypelessData(const T& data)
+inline void Network::SendDataToTemplate(const T& data)
 {
-	int retVal = SendData(mClientSock, data);
-
+	int retVal = Data::SendDataAndType(mClientSock, data);
 #ifdef _DEBUG
 	if (retVal)
 		cout << "[ Send TypelessData - (" << sizeof(T) << " Byte) ]" << Endl;

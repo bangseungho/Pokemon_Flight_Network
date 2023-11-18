@@ -33,6 +33,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	SCENE_DATA,
 	END_PROCESSING,
 };
 
@@ -48,15 +49,15 @@ struct IntroData
 	uint8	PlayerCount = 0;
 };
 
-struct TownPlayerData
-{
-	POINT	Pos;
-	RECT	RectDraw;
-	RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
-};
-
 struct TownData
 {
+	struct TownPlayerData
+	{
+		POINT	Pos;
+		RECT	RectDraw;
+		RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
+	};
+
 	uint8			PlayerIndex = 0;
 	TownPlayerData	PlayerData;
 	bool			IsReady;
@@ -64,24 +65,34 @@ struct TownData
 
 struct StageData
 {
-	int Record;
+	uint8	PlayerIndex = 0;
+	int		Record;
 };
 
 struct PhaseData
 {
-	bool IsReady;
+	uint8	PlayerIndex = 0;
+	bool	IsReady;
 };
 
 struct BattleData
 {
+	uint8	PlayerIndex = 0;
 	float	PosX;
 	float	PosY;
 	bool	IsCollider;
 };
 
+struct SceneData
+{
+	uint8	PlayerIndex = 0;
+	uint8 Scene = 0;
+};
+
 struct EndProcessing
 {
-	uint8 EndClientIndex;
+	uint8	PlayerIndex = 0;
+	uint8	EndClientIndex;
 };
 
 // 소켓 함수 오류 출력 후 종료
@@ -145,64 +156,100 @@ static bool ErrorCheck(int retVal, int type)
 	return true;
 }
 
-static DataType RecvDataType(SOCKET& clientSock)
+class Data {
+public:
+	// 패킷 타입에 따라 반환
+	template<typename T>
+	static inline DataType GetDataType()
+	{
+		if (std::is_same_v<T, IntroData>)
+			return DataType::INTRO_DATA;
+		else if (std::is_same_v<T, TownData>)
+			return DataType::TOWN_DATA;
+		else if (std::is_same_v<T, StageData>)
+			return DataType::STAGE_DATA;
+		else if (std::is_same_v<T, PhaseData>)
+			return DataType::PHASE_DATA;
+		else if (std::is_same_v<T, BattleData>)
+			return DataType::BATTLE_DATA;
+		else if (std::is_same_v<T, SceneData>)
+			return DataType::SCENE_DATA;
+		else if (std::is_same_v<T, EndProcessing>)
+			return DataType::END_PROCESSING;
+		else
+			return DataType::NONE_DATA;
+	}
+
+	template<typename T>
+	static bool SendData(const SOCKET& clientSock, const T& data)
+	{
+		// 패킷 송신
+		int retVal = send(clientSock, (char*)&data, sizeof(T), 0);
+		if (false == ErrorCheck(retVal, 1))
+			return false;
+
+		return true;
+	}
+
+	template<typename T>
+	static bool SendDataAndType(const SOCKET& clientSock, const T& data)
+	{
+		DataType dataType = GetDataType<T>();
+
+		// 패킷 타입 송신
+		int retVal = send(clientSock, (char*)&dataType, sizeof(dataType), 0);
+		if (false == ErrorCheck(retVal, 1))
+			return false;
+
+		// 패킷 송신
+		retVal = send(clientSock, (char*)&data, sizeof(T), 0);
+		if (false == ErrorCheck(retVal, 1))
+			return false;
+
+		return true;
+	}
+
+	template<typename T>
+	static bool RecvData(SOCKET& clientSock, T& data)
+	{
+		// 패킷 수신
+		int retVal = recv(clientSock, (char*)&data, sizeof(T), 0);
+		if (false == ErrorCheck(retVal, 0))
+			return false;
+
+		return true;
+	}
+
+	static DataType RecvType(SOCKET& clientSock)
+	{
+		int retVal;
+		DataType dataType;
+		ZeroMemory(&dataType, sizeof(dataType));
+
+		retVal = recv(clientSock, (char*)&dataType, sizeof(dataType), 0);
+		if (false == ErrorCheck(retVal, 0))
+			return DataType::NONE_DATA;
+
+		return dataType;
+	}
+};
+
+class NetworkPlayerData
 {
-	int retVal;
-	DataType dataType;
-	ZeroMemory(&dataType, sizeof(dataType));
+public:
+	NetworkPlayerData() {}
+	NetworkPlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
+	virtual ~NetworkPlayerData() {}
 
-	retVal = recv(clientSock, (char*)&dataType, sizeof(dataType), 0);
-	if (false == ErrorCheck(retVal, 0))
-		return DataType::NONE_DATA;
+public:
+	SOCKET		mSock;
+	uint8		mThreadId;
 
-	return dataType;
-}
-
-// 패킷 타입에 따라 반환
-template<typename T>
-inline DataType GetDataType()
-{
-	if (std::is_same_v<T, IntroData>)
-		return DataType::INTRO_DATA;
-	else if (std::is_same_v<T, TownData>)
-		return DataType::TOWN_DATA;
-	else if (std::is_same_v<T, StageData>)
-		return DataType::STAGE_DATA;
-	else if (std::is_same_v<T, PhaseData>)
-		return DataType::PHASE_DATA;
-	else if (std::is_same_v<T, BattleData>)
-		return DataType::BATTLE_DATA;
-	else if (std::is_same_v<T, EndProcessing>)
-		return DataType::END_PROCESSING;
-	else
-		return DataType::NONE_DATA;
-}
-
-template<typename T>
-bool SendData(const SOCKET& clientSock, const T& data) 
-{
-	DataType dataType = GetDataType<T>();
-
-	// 패킷 타입 송신
-	int retVal = send(clientSock, (char*)&dataType, sizeof(dataType), 0);
-	if (false == ErrorCheck(retVal, 1))
-		return false;
-
-	// 패킷 송신
-	retVal = send(clientSock, (char*)&data, sizeof(T), 0);
-	if (false == ErrorCheck(retVal, 1))
-		return false;
-
-	return true;
-}
-
-template<typename T>
-bool RecvData(SOCKET& clientSock, T& data)
-{
-	// 패킷 수신
-	int retVal = recv(clientSock, (char*)&data, sizeof(T), 0);
-	if (false == ErrorCheck(retVal, 0))
-		return false;
-
-	return true;
-}
+	IntroData		mIntroData;
+	TownData		mTownData;
+	StageData		mStageData;
+	PhaseData		mPhaseData;
+	BattleData		mBattleData;
+	SceneData		mSceneData;
+	EndProcessing	mEndProcessing;
+};

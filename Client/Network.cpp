@@ -56,58 +56,80 @@ void Network::Connect()
 	int localAddrLength = sizeof(localAddr);
 	getsockname(mClientSock, (SOCKADDR*)&localAddr, &localAddrLength);
 
+	// 첫 연결에서 자신의 클라이언트 인덱스를 수신한다.
+	Data::RecvData(mClientSock, mClientIndex);
+
+	// Recv 스레드 생성
+	mRecvThread = thread(&Network::Receiver, this);
+
 #ifdef _DEBUG
 	cout << "[ Connect to Server! ]" << endl;
 	cout << "[ Server - (IP: " << inet_ntoa(mServerAddr.sin_addr) << ", ";
 	cout << "PORT: " << SERVERPORT << ") ]" << endl;
 	cout << "[ Client - (IP: " << inet_ntoa(localAddr.sin_addr) << ", ";
-	cout << "PORT: " << ntohs(localAddr.sin_port) << ") ]" << Endl;
+	cout << "PORT: " << ntohs(localAddr.sin_port) << ", ";
+	cout << "CLIENT_NUMBER: " << static_cast<uint32>(mClientIndex) << ") ]" << Endl;
 #endif 
-
-	GET_SINGLE(Network)->SendIntroData();
-
-	// Recv 스레드 생성
-	mRecvThread = thread(&Network::Receiver, this);
 }
 
 void Network::Receiver()
 {
 	while (1) {
 		DataType dataType;
-		dataType = RecvDataType(mClientSock);
-		if (dataType == DataType::NONE_DATA)
-			break;
+		dataType = Data::RecvType(mClientSock);
 
+#pragma region EndProcessing
 		if (dataType == DataType::END_PROCESSING) {
-			mRecvTownData.clear(); // 클라이언트 중 하나라도 종료 시 맵을 초기화
-
+			// 종료 클라이언트 인덱스를 수신
 			EndProcessing endProcessing;
-			RecvData<EndProcessing>(mClientSock, endProcessing);
+			ZeroMemory(&endProcessing, sizeof(EndProcessing));
 
-			if (endProcessing.EndClientIndex == mRecvIntroData.PlayerIndex) // 종료 클라이언트가 자신인 경우
+			// 패킷 수신
+			Data::RecvData<EndProcessing>(mClientSock, endProcessing);
+
+			if (mClientIndex == endProcessing.PlayerIndex)
 				break;
-		}
 
+			mRecvMemberMap.erase(endProcessing.PlayerIndex);
+		}
+#pragma endregion
+#pragma region SceneData
+		else if (dataType == DataType::SCENE_DATA) {
+			// 패킷을 수신할 임시 객체
+			SceneData recvData;
+			ZeroMemory(&recvData, sizeof(SceneData));
+
+			// 패킷 수신
+			Data::RecvData<SceneData>(mClientSock, recvData);
+
+			// 플레이어 맵에 임시 객체 이동
+			mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
+		}
+#pragma endregion
 #pragma region Intro
-		if (dataType == DataType::INTRO_DATA) {
-			RecvData<IntroData>(mClientSock, mRecvIntroData);
-			mRecvTownData.clear(); // 누군가 서버에 접속했다면 타운 데이터 맵을 초기화
+		else if (dataType == DataType::INTRO_DATA) {
+			// 패킷을 수신할 임시 객체
+			IntroData recvData;
+			ZeroMemory(&recvData, sizeof(IntroData));
+
+			// 패킷 수신
+			Data::RecvData<IntroData>(mClientSock, recvData);
+
+			// 새로운 플레이어 생성
+			mRecvMemberMap[recvData.PlayerIndex].mIntroData = move(recvData);
 		}
 #pragma endregion
 #pragma region Town
-		if (dataType == DataType::TOWN_DATA) {
-			TownData townData;
-			RecvData<TownData>(mClientSock, townData);
+		else if (dataType == DataType::TOWN_DATA) {
+			// 패킷을 수신할 임시 객체
+			TownData recvData;
+			ZeroMemory(&recvData, sizeof(TownData));
 
-			mRecvTownData[townData.PlayerIndex].PlayerIndex = townData.PlayerIndex;
-			mRecvTownData[townData.PlayerIndex].PlayerData = townData.PlayerData;
-			mRecvTownData[townData.PlayerIndex].IsReady = townData.IsReady;
-		}
-#pragma endregion
-#pragma region Stage
-		if (dataType == DataType::STAGE_DATA) {
-			auto& data = GET_SINGLE(Network)->GetStageData();
-			RecvData<StageData>(mClientSock, data);
+			// 패킷 수신
+			Data::RecvData<TownData>(mClientSock, recvData);
+
+			// 플레이어 맵에 임시 객체 이동
+			mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
 		}
 #pragma endregion
 	}
@@ -115,36 +137,36 @@ void Network::Receiver()
 
 void Network::SendIntroData(const IntroData& data)
 {
-	int retVal = SendData(mClientSock, data);
+	int retVal = Data::SendDataAndType(mClientSock, data);
 
-#ifdef _DEBUG
-	if (retVal)
-		cout << "[ Send IntroData - (" << sizeof(IntroData) << " Byte) ]" << Endl;
-	else
-		cout << "[ Failed Send IntroData! ]" << Endl;
-#endif 
+//#ifdef _DEBUG
+//	if (retVal)
+//		cout << "[ Send IntroData - (" << sizeof(IntroData) << " Byte) ]" << Endl;
+//	else
+//		cout << "[ Failed Send IntroData! ]" << Endl;
+//#endif 
 }
 
 void Network::SendTownData(const TownData& data)
 {
-	int retVal = SendData(mClientSock, data);
+	int retVal = Data::SendDataAndType(mClientSock, data);
 
-#ifdef _DEBUG
-	if (retVal)
-		cout << "[ Send TownData - (" << sizeof(TownData) << " Byte) ]" << Endl;
-	else
-		cout << "[ Failed Send TownData! ]" << Endl;
-#endif 
+//#ifdef _DEBUG
+//	if (retVal)
+//		cout << "[ Send TownData - (" << sizeof(TownData) << " Byte) ]" << Endl;
+//	else
+//		cout << "[ Failed Send TownData! ]" << Endl;
+//#endif 
 }
 
 void Network::SendStageData(const StageData& data)
 {
-	int retVal = SendData(mClientSock, data);
+	int retVal = Data::SendDataAndType(mClientSock, data);
 
-#ifdef _DEBUG
-	if (retVal)
-		cout << "[ Send StageData - (" << sizeof(StageData) << " Byte) ]" << Endl;
-	else
-		cout << "[ Failed Send StageData! ]" << Endl;
-#endif 
+//#ifdef _DEBUG
+//	if (retVal)
+//		cout << "[ Send StageData - (" << sizeof(StageData) << " Byte) ]" << Endl;
+//	else
+//		cout << "[ Failed Send StageData! ]" << Endl;
+//#endif 
 }
