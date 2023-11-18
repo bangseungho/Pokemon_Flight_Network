@@ -33,6 +33,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	END_PROCESSING,
 };
 
 struct ThreadSocket
@@ -43,6 +44,7 @@ struct ThreadSocket
 
 struct IntroData
 {
+	uint8	PlayerIndex = 0;
 	uint8	PlayerCount = 0;
 };
 
@@ -75,6 +77,11 @@ struct BattleData
 	float	PosX;
 	float	PosY;
 	bool	IsCollider;
+};
+
+struct EndProcessing
+{
+	uint8 EndClientIndex;
 };
 
 // 소켓 함수 오류 출력 후 종료
@@ -163,8 +170,10 @@ inline DataType GetDataType()
 		return DataType::STAGE_DATA;
 	else if (std::is_same_v<T, PhaseData>)
 		return DataType::PHASE_DATA;
-	else if (std::is_convertible_v<T, BattleData>)
+	else if (std::is_same_v<T, BattleData>)
 		return DataType::BATTLE_DATA;
+	else if (std::is_same_v<T, EndProcessing>)
+		return DataType::END_PROCESSING;
 	else
 		return DataType::NONE_DATA;
 }

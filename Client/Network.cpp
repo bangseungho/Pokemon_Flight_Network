@@ -5,11 +5,20 @@ DECLARE_SINGLE(Network);
 
 Network::Network()
 {
+	mConnected = false;
 }
 
 Network::~Network()
 {
-	mRecvThread.join();
+	if (mRecvThread.joinable())
+		mRecvThread.join();
+
+	closesocket(mClientSock);
+	WSACleanup();
+
+#ifdef _DEBUG
+	cout << "[ Close the Socket! ]" << Endl;
+#endif 
 }
 
 void Network::Init(string ipAddr)
@@ -26,6 +35,13 @@ void Network::Init(string ipAddr)
 
 void Network::Connect()
 {
+	if (true == mConnected) {
+#ifdef _DEBUG
+		cout << "[ Already Connected! ]" << Endl;
+#endif 
+		return;
+	}
+
 	mClientSock = socket(AF_INET, SOCK_STREAM, 0);
 	if (mClientSock == INVALID_SOCKET)
 		ErrorQuit("socket()");
@@ -33,6 +49,7 @@ void Network::Connect()
 	int retVal;
 	retVal = connect(mClientSock, (SOCKADDR*)&mServerAddr, sizeof(mServerAddr));
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
+	else mConnected = true;
 
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;
@@ -53,25 +70,6 @@ void Network::Connect()
 	mRecvThread = thread(&Network::Receiver, this);
 }
 
-void Network::DisConnect()
-{
-	closesocket(mClientSock);
-
-#ifdef _DEBUG
-	cout << "[ DisConnect to Server! ]" << Endl;
-#endif 
-}
-
-void Network::Close()
-{
-	closesocket(mClientSock);
-	WSACleanup();
-
-#ifdef _DEBUG
-	cout << "[ Close the Socket! ]" << Endl;
-#endif 
-}
-
 void Network::Receiver()
 {
 	while (1) {
@@ -80,10 +78,20 @@ void Network::Receiver()
 		if (dataType == DataType::NONE_DATA)
 			break;
 
+		if (dataType == DataType::END_PROCESSING) {
+			mRecvTownData.clear(); // 클라이언트 중 하나라도 종료 시 맵을 초기화
+
+			EndProcessing endProcessing;
+			RecvData<EndProcessing>(mClientSock, endProcessing);
+
+			if (endProcessing.EndClientIndex == mRecvIntroData.PlayerIndex) // 종료 클라이언트가 자신인 경우
+				break;
+		}
+
 #pragma region Intro
 		if (dataType == DataType::INTRO_DATA) {
 			RecvData<IntroData>(mClientSock, mRecvIntroData);
-			mRecvTownData.resize(mRecvIntroData.PlayerCount);
+			mRecvTownData.clear(); // 누군가 서버에 접속했다면 타운 데이터 맵을 초기화
 		}
 #pragma endregion
 #pragma region Town

@@ -71,9 +71,9 @@ void Town::Init(const RECT& rectWindow)
 	}
 
 	// 첫 정보 넘겨주기
-	TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	TownData townData{ 0, playerData, false };
-	GET_SINGLE(Network)->SendTownData(townData);
+	//TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
+	//TownData townData{ 0, playerData, false };
+	//GET_SINGLE(Network)->SendTownData(townData);
 
 	StopPlayer();
 
@@ -94,11 +94,23 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
 	// 그릴때만 여러 번 그리기
-	const auto& players = GET_SINGLE(Network)->GetTownData();
-	for (const auto& player : players) {
-		mPlayer->img.Draw(hdc, player.PlayerData.Pos.x - 20, player.PlayerData.Pos.y - 20, 40, 40,
-			player.PlayerData.RectImage.left, player.PlayerData.RectImage.top, player.PlayerData.RectImage.right, player.PlayerData.RectImage.bottom);
-	}
+	mPlayer->img.Draw(hdc, 
+		mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, 40, 40,
+		mPlayer->_rectImage.left, 
+		mPlayer->_rectImage.top, 
+		mPlayer->_rectImage.right, 
+		mPlayer->_rectImage.bottom);
+
+	const auto& members = GET_SINGLE(Network)->GetTownData();
+
+	for (const auto& member : members) {
+		mPlayer->img.Draw(hdc,
+			member.second.PlayerData.Pos.x - 20, member.second.PlayerData.Pos.y - 20, 40, 40,
+			member.second.PlayerData.RectImage.left,
+			member.second.PlayerData.RectImage.top,
+			member.second.PlayerData.RectImage.right,
+			member.second.PlayerData.RectImage.bottom);
+	};
 
 	// 타운 건물 렌더링
 	if (_allHide == true)
@@ -189,7 +201,7 @@ void Town::Update(const RECT& rectWindow)
 	// _exit 변수가 true일 경우 엔터키를 누르면 게임 종료
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit == true)
 	{
-		GET_SINGLE(Network)->Close();
+		GET_SINGLE(Network)->SendTypelessData(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 		PostQuitMessage(0);
 	}
 

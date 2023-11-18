@@ -8,11 +8,12 @@ public:
 	virtual ~PlayerData() {}
 	
 public:
-	IntroData	mIntroData;
-	TownData	mTownData;
-	StageData	mStageData;
-	PhaseData	mPhaseData;
-	BattleData	mBattleData;
+	IntroData		mIntroData;
+	TownData		mTownData;
+	StageData		mStageData;
+	PhaseData		mPhaseData;
+	BattleData		mBattleData;
+	EndProcessing	mEndProcessing;
 
 	SOCKET		mSock;
 	uint8		mThreadId;

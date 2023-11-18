@@ -236,7 +236,6 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	{
 		sceneManager->StartLoading(hWnd);
 		town._nextFlow = Scene::Intro;
-		GET_SINGLE(Network)->DisConnect();
 	}
 }
 
