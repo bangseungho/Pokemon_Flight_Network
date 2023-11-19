@@ -73,11 +73,6 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 		mPlayer->_dir = Dir::Down;
 	}
 
-	// 첫 정보 넘겨주기
-	//TownPlayerData playerData{ mPlayer->_Pos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	//TownData townData{ 0, playerData, false };
-	//GET_SINGLE(Network)->SendTownData(townData);
-
 	StopPlayer();
 
 	// 절대 좌표값 출력을 위한 변수
@@ -97,12 +92,16 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_npc.TransparentBlt(hdc, _npcRect.left, _npcRect.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
 
 	// 그릴때만 여러 번 그리기
-	mPlayer->img.Draw(hdc, 
+	mPlayer->img.Draw(hdc,
 		mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, 40, 40,
 		mPlayer->_rectImage.left, 
 		mPlayer->_rectImage.top, 
 		mPlayer->_rectImage.right, 
 		mPlayer->_rectImage.bottom);
+
+	TCHAR ID[1000];
+	wsprintf(ID, L"ID : %d", (uint32)GET_SINGLE(Network)->GetClientIndex());
+	TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 30, ID, lstrlen(ID));
 
 	// 현재 멤버들의 정보를 가져오기
 	const auto& members = GET_SINGLE(Network)->GetMemberMap();
@@ -121,6 +120,9 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 			member.second.mTownData.PlayerData.RectImage.top,
 			member.second.mTownData.PlayerData.RectImage.right,
 			member.second.mTownData.PlayerData.RectImage.bottom);
+
+		wsprintf(ID, L"ID : %d", (uint32)member.first);
+		TextOut(hdc, newPos.x - 25, newPos.y + 30, ID, lstrlen(ID));
 	};
 
 	// 타운 건물 렌더링
@@ -225,7 +227,7 @@ void Town::Update(const RECT& rectWindow)
 	// _exit 변수가 true일 경우 엔터키를 누르면 게임 종료
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit == true)
 	{
-		GET_SINGLE(Network)->SendDataToTemplate(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 		PostQuitMessage(0);
 	}
 
@@ -312,7 +314,7 @@ void Town::Update(const RECT& rectWindow)
 	if (true == mPlayer->_keepGoing && mActive) {
 		TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
 		TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false};
-		GET_SINGLE(Network)->SendTownData(townData);
+		GET_SINGLE(Network)->SendDataAndType(townData);
 	}
 
 	mActive = false;

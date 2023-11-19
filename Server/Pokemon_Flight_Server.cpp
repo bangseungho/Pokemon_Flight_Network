@@ -69,8 +69,15 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 				// 현재 클라이언트의 씬 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<SceneData>(player.second.mSock, data);
 
-				// 모든 클라이언트의 씬 정보를 현재 클라이언트로 송신한다.
+				// 모든 클라이언트의 씬, 타운 정보를 현재 클라이언트로 송신한다.
+				// 씬 패킷 송신에서 타운 패킷까지 송신하는 이유는 타운에서는 다른 씬과는 다르게
+				// 멤버 플레이어들의 씬 위치마다 해당 클라이언트에게 보이거나 보이지 말아야 한다.
+				// 또한 키보드 입력을 눌렀을 때만 타운 패킷을 송신하기 때문에 씬을 타운으로 전환 후
+				// 한 번도 키보드를 누르지 않은 경우 멤버 플레이어가 보이지 않거나 이전 위치에 있다.
+				// 따라서 새로운 씬이 로드 될 때마다 새로운 위치를 전송하는 것이다.
+				// 이후 배틀에서도 멤버 플레이어들의 배틀 패킷을 한 번 보내야 한다.
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
+				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
 
 #ifdef _DEBUG
@@ -112,7 +119,11 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 				if (player.second.mThreadId == threadId)
 					continue;
 
+				// 현재 클라이언트의 인트로 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(player.second.mSock, data);
+
+				// 모든 클라이언트의 인트로 정보를 현재 클라이언트로 송신한다.
+				Data::SendDataAndType<IntroData>(clientSock, player.second.mIntroData);
 			}
 		}
 #pragma endregion

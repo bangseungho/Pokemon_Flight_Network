@@ -3,21 +3,6 @@
 #include "scene.h"
 #include "Network.h"
 
-#define INSTRUCTION_BACKGROUND_X 500
-#define INSTRUCTION_BACKGROUND_Y 750
-
-#define LOGO_COLOR RGB(255, 212, 0)
-#define LOGO_SHADOW_COLOR RGB(200, 100, 0)
-
-#define LOGO_SIZE 106
-
-#define MENU_SIZE 31
-
-#define TIMERID_LODING 5
-#define ELAPSE_LOADING 100
-
-#define ALPHA 230
-
 extern SceneManager* sceneManager;
 
 // 인트로 상태
@@ -121,7 +106,7 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	// 이 변수가 켜져 있으면 개발자 이름을 화면 위에 렌더링한다.
 	if (_producer)
 	{
-		_glowing_black.AlphaBlend(hdc, 0, 0, 800, 1200, 0, 0, 800, 1200, ALPHA);
+		_glowing_black.AlphaBlend(hdc, 0, 0, 800, 1200, 0, 0, 800, 1200, IALPHA);
 
 		HFONT hFont = CreateFont(31, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
 		HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
@@ -182,7 +167,7 @@ void Menu::fingerController(const HWND& hWnd)
 			_producer = true;
 			break;
 		case MI_Menu::finish:
-			GET_SINGLE(Network)->SendDataToTemplate(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+			GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 			PostQuitMessage(0);
 			break;
 		}

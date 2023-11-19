@@ -46,7 +46,6 @@ struct ThreadSocket
 struct IntroData
 {
 	uint8	PlayerIndex = 0;
-	uint8	PlayerCount = 0;
 };
 
 struct TownData

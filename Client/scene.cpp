@@ -139,6 +139,11 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	case Scene::Town:
 	{
 		town.Init(rectWindow, hWnd);
+
+		TownData::TownPlayerData playerData{ town.mPlayer->aboutMapPos, town.mPlayer->_rectDraw, town.mPlayer->_rectImage };
+		TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false };
+		GET_SINGLE(Network)->SendDataAndType(sendData);
+
 		SetTimer(hWnd, TIMERID_TPANIMATION, ELAPSE_TPANIMATION, T_TPAnimation); // 플레이어 움직임 타이머
 		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
 		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
@@ -227,9 +232,10 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		break;
 	}
 
+	// 네트워크에 연결이 되어 있다면 씬 정보를 송신한다.
 	if (GET_SINGLE(Network)->IsConnected()) {
 		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), static_cast<uint8>(crntScene) };
-		Data::SendDataAndType<SceneData>(GET_SINGLE(Network)->GetSocket(), sendData);
+		GET_SINGLE(Network)->SendDataAndType(sendData);
 	}
 }
 
@@ -334,16 +340,6 @@ void SceneManager::StopLoading(const HWND& hWnd)
 	KillTimer(hWnd, TIMERID_LOADINGBAR);
 }
 
-#define LOADING_POKEMON_X 150
-#define LOADING_POKEMON_Y 121
-
-#define HALF_RECTWINDOW_X 175 
-#define HALF_RECTWINDOW_Y 280
-
-#define LOADING_BAR_X 182
-#define LOADING_BAR_Y 397
-
-#define ALPHA 220
 
 // 로딩 생성자에서는 로딩 화면에 필요한 이미지를 로드한다.
 Loading::Loading()
@@ -363,7 +359,7 @@ Loading::Loading()
 // 로딩 화면을 렌더링
 void Loading::Paint(HDC hdc, HWND hWnd, const RECT& rectWindow)
 {
-	_glowing_black.AlphaBlend(hdc, rectWindow, rectWindow, ALPHA);
+	_glowing_black.AlphaBlend(hdc, rectWindow, rectWindow, SALPHA);
 	_loading_pokemon.Draw(hdc, HALF_RECTWINDOW_X, HALF_RECTWINDOW_Y - 19, LOADING_POKEMON_X, LOADING_POKEMON_Y,
 		_loding_pokemon_rectImage.left, _loding_pokemon_rectImage.top, _loding_pokemon_rectImage.right, _loding_pokemon_rectImage.bottom);
 

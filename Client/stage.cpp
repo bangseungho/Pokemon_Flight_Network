@@ -51,8 +51,7 @@ Stage::Stage()
 void Stage::Init(const RECT& rectWindow)
 {
 	StageData stageData = { static_cast<uint32>(gameData.ClearRecord) };
-
-	GET_SINGLE(Network)->SendStageData(stageData);
+	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	target->_rectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
