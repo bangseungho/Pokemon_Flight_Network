@@ -106,8 +106,6 @@ enum class Skill { Empty = 0, Identity, Sector, Circle };
 
 enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
 
-
-
 // 싱글턴 객체로 클래스 내부에서 사용
 #define SINGLETON(type)								\
 public:												\
