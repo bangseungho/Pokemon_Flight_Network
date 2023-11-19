@@ -207,7 +207,6 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 	}
 
 	sPlayers.erase(threadId);
-	
 	closesocket(clientSock);
 
 #ifdef _DEBUG

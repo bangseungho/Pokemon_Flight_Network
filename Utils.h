@@ -85,13 +85,12 @@ struct BattleData
 struct SceneData
 {
 	uint8	PlayerIndex = 0;
-	uint8 Scene = 0;
+	uint8	Scene = 0;
 };
 
 struct EndProcessing
 {
 	uint8	PlayerIndex = 0;
-	uint8	EndClientIndex;
 };
 
 // 소켓 함수 오류 출력 후 종료

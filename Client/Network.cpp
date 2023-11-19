@@ -6,6 +6,7 @@ DECLARE_SINGLE(Network);
 Network::Network()
 {
 	mConnected = false;
+	mRecvMemberMap.reserve(10);
 }
 
 Network::~Network()
@@ -30,18 +31,24 @@ void Network::Receiver()
 #pragma region EndProcessing
 		if (dataType == DataType::END_PROCESSING) {
 			// 종료 클라이언트 인덱스를 수신
-			EndProcessing endProcessing;
-			ZeroMemory(&endProcessing, sizeof(EndProcessing));
+			EndProcessing recvData;
+			ZeroMemory(&recvData, sizeof(EndProcessing));
 
 			// 패킷 수신
-			Data::RecvData<EndProcessing>(mClientSock, endProcessing);
+			Data::RecvData<EndProcessing>(mClientSock, recvData);
 
-			// 종료 클라이언트 인덱스가 자신이라면 종료
-			if (mClientIndex == endProcessing.PlayerIndex)
+			// 종료 클라이언트가 자신이라면 스레드를 종료한다.
+			if (mClientIndex == recvData.PlayerIndex)
 				break;
 
-			// 자신이 아니라면 멤버 맵에서 해당 클라이언트 제거
-			mRecvMemberMap.erase(endProcessing.PlayerIndex);
+			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에서 해당 멤버 제거
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap.erase(findIt);
+
+#ifdef _DEBUG
+			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "번 플레이어 게임 종료]" << endl;
+#endif 
 		}
 #pragma endregion
 #pragma region SceneData
@@ -53,8 +60,10 @@ void Network::Receiver()
 			// 패킷 수신
 			Data::RecvData<SceneData>(mClientSock, recvData);
 
-			// 멤버 맵에 임시 객체 이동
-			mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
+			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
 		}
 #pragma endregion
 #pragma region Intro
@@ -68,6 +77,13 @@ void Network::Receiver()
 
 			// 새로운 멤버 생성
 			mRecvMemberMap[recvData.PlayerIndex].mIntroData = move(recvData);
+
+#ifdef _DEBUG
+			cout << endl << "[	" << inet_ntoa(mServerAddr.sin_addr) << " 서버 플레이어 목록	]" << endl;
+			for (const auto& member : mRecvMemberMap) {
+				cout << "[	    " << static_cast<uint32>(recvData.PlayerIndex) << "번 플레이어 접속중		]" << Endl;
+			}
+#endif 
 		}
 #pragma endregion
 #pragma region Town
@@ -79,8 +95,10 @@ void Network::Receiver()
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
 
-			// 멤버 맵에 임시 객체 이동
-			mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
 		}
 #pragma endregion
 	}
