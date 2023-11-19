@@ -5,19 +5,6 @@
 class Town
 {
 private:
-	class Player
-	{
-	public:
-		POINT aboutMapPos;
-		CImage img;
-		POINT _Pos = { 0, };
-		RECT _rectDraw = { 0, };
-		RECT _rectImage = { 0, };
-		RECT _cam = { 0, };
-		Dir _dir = Dir::Down;
-		bool _keepGoing = false;
-	};
-
 	RECT _object[TOWN_OBJECT_NUM];
 	CImage _backTown;
 	RECT _rectDraw = { 0, };
@@ -38,6 +25,19 @@ private:
 	bool _exit = false;
 
 public:
+	class Player
+	{
+	public:
+		POINT aboutMapPos;
+		CImage img;
+		POINT _Pos = { 0, };
+		RECT _rectDraw = { 0, };
+		RECT _rectImage = { 0, };
+		RECT _cam = { 0, };
+		Dir _dir = Dir::Down;
+		bool _keepGoing = false;
+	};
+
 	bool _allHide = false;
 	bool mActive = true;
 

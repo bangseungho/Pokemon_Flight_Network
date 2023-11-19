@@ -64,16 +64,6 @@ void CALLBACK T_Battle_GUI(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 #include "phase.h"
 #include "battle.h"
 
-#define CLOUD_NUM 4
-#define FIRSTCLOUD_X 125
-#define FIRSTCLOUD_Y 187
-#define SECONDCLOUD_X 187
-#define SECONDCLOUD_Y 31
-#define THIRDCLOUD_X -62
-#define THIRDCLOUD_Y 93
-#define FOURTHCLOUD_X 437
-#define FOURTHCLOUD_Y 187
-
 extern Intro intro;
 extern Loading loading;
 extern Town town;
@@ -134,11 +124,6 @@ void CALLBACK T_TwinkleEmotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	menu._finger_twinkle_cnt++;
 }
-
-#define LOADING_POKEMON_X 150
-#define LOADING_POKEMON_Y 121
-#define LOADING_POKEMON_MAX_X 2100
-#define LOADING_POKEMON_MAX_Y 121
 
 // sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
 void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -238,14 +223,6 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 		town._nextFlow = Scene::Intro;
 	}
 }
-
-#define TPLAYER_IMAGESIZE_X 64
-#define TPLAYER_MAX_IMAGESIZE_X 256
-
-#define DIR_LEFT_IMAGE_Y 64
-#define DIR_RIGHT_IMAGE_Y 128
-#define DIR_UP_IMAGE_Y 192
-#define DIR_DOWN_IMAGE_Y 0
 
 // 타운에 있는 플레이어 움직임 방향
 void CALLBACK T_TPAnimationDir(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
