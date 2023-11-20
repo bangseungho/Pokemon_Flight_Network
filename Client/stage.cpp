@@ -66,11 +66,17 @@ void Stage::Init(const RECT& rectWindow)
 // 선택 초기화
 void Stage::SelectPokemonInit()
 {
-	_select_pokemon = false;
-	_ready_Air_pokemon = false;
-	_ready_Land_pokemon = false;
-	_enter_select = false;
-	_finger = 0;
+	if ((uint32)GET_SINGLE(Network)->GetClientIndex() == 0) {
+		_select_pokemon = false;
+		_ready_Air_pokemon = false;
+		_ready_Land_pokemon = false;
+		_enter_select = false;
+		_finger = 0;
+	}
+	else {
+		//받은 데이터 true 처리
+	}
+	
 }
 
 // 스테이지 렌더링
@@ -232,6 +238,8 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 
 		if (_ready_Air_pokemon && _ready_Land_pokemon && menu._finger_twinkle_cnt % 2 != 0)
 			TextOut(hdc, 35, 50, L"PRESS ENTER KEY TO CONTINUE", 28);
+
+		//1p 라면 대기, 화면(커서) 공유받기 || 2p 라면 대기 후 선택
 
 		SelectObject(hdc, oldFont);
 		SelectObject(hdc, oldFont2);
