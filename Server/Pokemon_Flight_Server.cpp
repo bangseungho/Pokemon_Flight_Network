@@ -8,6 +8,7 @@
 
 #include "ServerUtils.h"
 
+//fmod 기기에 설치해야함
 using namespace std;
 
 #define MAX_BUFSIZE     1024
