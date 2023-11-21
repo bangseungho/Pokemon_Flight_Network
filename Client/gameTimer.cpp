@@ -1,10 +1,9 @@
-#include "..\Utils.h"
-#include "Timer.h"
-#include <algorithm>
+#include "stdafx.h"
+#include "GameTimer.h"
 
-DECLARE_SINGLE(Timer)
+DECLARE_SINGLE(GameTimer)
 
-void Timer::Init()
+void GameTimer::Init()
 {
 	int64 countsPerSec;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
@@ -12,7 +11,7 @@ void Timer::Init()
 	Reset();
 }
 
-void Timer::Update()
+void GameTimer::Update()
 {
 	if (mStopped) {
 		mDeltaTime = 0.0;
@@ -36,7 +35,7 @@ void Timer::Update()
 		mTotalTime = (float)(((mCurrTime - mPausedTime) - mBaseTime) * mSecondsPerCount);
 }
 
-void Timer::Reset()
+void GameTimer::Reset()
 {
 	int64 currTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
@@ -47,7 +46,7 @@ void Timer::Reset()
 	mStopped = false;
 }
 
-void Timer::Start()
+void GameTimer::Start()
 {
 	int64 startTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
@@ -60,7 +59,7 @@ void Timer::Start()
 	}
 }
 
-void Timer::Stop()
+void GameTimer::Stop()
 {
 	if (!mStopped)
 	{
@@ -72,17 +71,17 @@ void Timer::Stop()
 	}
 }
 
-float Timer::GetTotalTime() const
+float GameTimer::GetTotalTime()
 {
 	return mTotalTime;
 }
 
-float Timer::GetDeltaTime() const
+float GameTimer::GetDeltaTime() const
 {
 	return (float)mDeltaTime;
 }
 
-float Timer::GetFps() const
+float GameTimer::GetFps() const
 {
 	return mFps;
 }

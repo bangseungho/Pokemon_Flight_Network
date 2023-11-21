@@ -147,7 +147,7 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 		{
 			town.mPlayer->_Pos.x = rectWindow.right / 2;
 			town.mPlayer->_Pos.y = rectWindow.bottom / 2;
-			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), rectWindow.bottom };
+			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), (float)rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), (float)rectWindow.bottom };
 			town._rectImage = rectWindow;
 
 			if (town._nextFlow == Scene::Stage)
@@ -202,7 +202,9 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	const RECT rectWindow = sceneManager->GetRectWindow();
 	const Scene scene = sceneManager->GetScene();
 
-	town.mPlayer->_rectDraw = { town.mPlayer->_Pos.x - 20, town.mPlayer->_Pos.y - 20, town.mPlayer->_Pos.x + 20, town.mPlayer->_Pos.y + 20 };
+	FRECT rectDraw = { town.mPlayer->_Pos.x - 20, town.mPlayer->_Pos.y - 20, town.mPlayer->_Pos.x + 20, town.mPlayer->_Pos.y + 20 };
+	town.mPlayer->_rectDraw = rectDraw;
+
 	// 게임 플로우가 현재 타운일때와 장면이 끝남을 확인하는 변수가 참이 아닐 때 움직일 수 있도록 설정
 	if (scene == Scene::Town && sceneManager->IsLoading() == false)
 	{

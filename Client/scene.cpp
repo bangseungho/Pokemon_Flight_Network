@@ -14,6 +14,7 @@
 #include "stage.h"
 #include "phase.h"
 #include "battle.h"
+#include "gameTimer.h"
 
 #define CLOUD_NUM 4
 #define FIRSTCLOUD_X 125
@@ -256,20 +257,31 @@ void SceneManager::Init(const HWND& hWnd)
 {
 	GetClientRect(hWnd, &rectWindow);
 	rectDisplay = rectWindow;
+	mHwnd = hWnd;
 
+	GET_SINGLE(GameTimer)->Init();
+	GET_SINGLE(GameTimer)->Start();
 	GET_SINGLE(Network)->Init("127.0.0.1");
 
 	LoadScene(hWnd);
 }
 
+void SceneManager::Update()
+{
+	intro.Update();
+	
+
+	Paint();
+}
+
 // 현재 씬을 렌더링한다.
-void SceneManager::Paint(const HWND& hWnd)
+void SceneManager::Paint()
 {
 	PAINTSTRUCT ps;
 	HDC hdc, memDC;
 	HBITMAP hBitmap;
 
-	StartPaint(hWnd, ps, hdc, memDC, hBitmap, rectWindow);
+	StartPaint(mHwnd, ps, hdc, memDC, hBitmap, rectWindow);
 
 	switch (crntScene)
 	{
@@ -283,7 +295,7 @@ void SceneManager::Paint(const HWND& hWnd)
 
 		logo.Paint(memDC);
 
-		menu.Paint(memDC, hWnd);
+		menu.Paint(memDC, mHwnd);
 		break;
 	case Scene::Town:
 		town.Paint(memDC, rectWindow);
@@ -308,10 +320,10 @@ void SceneManager::Paint(const HWND& hWnd)
 	// 씬 매니저는 isLoading 값을 가지고 있으며 true이면 로딩 화면을 렌더링한다.
 	if (IsLoading() == true)
 	{
-		loading.Paint(memDC, hWnd, rectWindow);
+		loading.Paint(memDC, mHwnd, rectWindow);
 	}
 
-	FinishPaint(hWnd, ps, hdc, memDC, hBitmap, rectWindow);
+	FinishPaint(mHwnd, ps, hdc, memDC, hBitmap, rectWindow);
 }
 
 // 씬 인자값을 받아서 이전 씬과 현재 씬을 업데이트 하고 현재 씬을 로드한다.

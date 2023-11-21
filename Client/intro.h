@@ -24,12 +24,14 @@ public:
 	{
 		Init(L"images\\intro\\Instruction_Background2.png", 0, 0);
 	}
+	
+	void Update();
 };
 
 class Cloud : public MainIntro
 {
 public:
-	void Update(int MoveX, int MoveY, const RECT& rectWindow);
+	void Update(float MoveX, int MoveY, const RECT& rectWindow);
 };
 
 class Logo : public MainIntro

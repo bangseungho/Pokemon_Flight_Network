@@ -12,7 +12,6 @@ public:
 	~Network();
 
 public:
-	void TimerReceiver();
 	void ClientReceiver();
 
 public:
@@ -27,17 +26,17 @@ public:
 	uint8 GetClientIndex() const { return mClientIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
+	TownData& GetTownData() { return mTownData; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
 private:
 	bool			mConnected;
 	uint8			mClientIndex;
 	thread			mRecvClientThread;
-	thread			mRecvTimerThread;
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
-	TimerData	    mTimerData;
 
+	TownData		mTownData;
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
 

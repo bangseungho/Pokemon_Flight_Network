@@ -172,6 +172,7 @@
     <ClCompile Include="bullet.cpp" />
     <ClCompile Include="effect.cpp" />
     <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="gameTimer.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="intro.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="bullet.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="enemy.h" />
+    <ClInclude Include="gameTimer.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="intro.h" />

@@ -14,9 +14,6 @@ Network::~Network()
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
 
-	if (mRecvTimerThread.joinable())
-		mRecvTimerThread.join();
-
 	closesocket(mClientSock);
 	WSACleanup();
 
@@ -31,15 +28,8 @@ void Network::ClientReceiver()
 		DataType dataType;
 		dataType = Data::RecvType(mClientSock);
 
-		if (dataType == DataType::TIMER_DATA) {
-			TimerData recvData;
-			ZeroMemory(&recvData, sizeof(TimerData));
-
-			Data::RecvData<TimerData>(mClientSock, recvData);
-			cout << recvData.DeltaTime << endl;
-		}
 #pragma region EndProcessing
-		else if (dataType == DataType::END_PROCESSING) {
+		if (dataType == DataType::END_PROCESSING) {
 			// 종료 클라이언트 인덱스를 수신
 			EndProcessing recvData;
 			ZeroMemory(&recvData, sizeof(EndProcessing));
@@ -105,10 +95,15 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
 
+			// 인덱스가 해당 클라이언트 인덱스일 경우에는 자신의 데이터에 이동
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
-			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+			if (mClientIndex == recvData.PlayerIndex)
+				mTownData = move(recvData);
+			else {
+				auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+				if (findIt != mRecvMemberMap.end())
+					mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+			}
 		}
 #pragma endregion
 	}

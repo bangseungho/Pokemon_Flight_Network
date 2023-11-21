@@ -28,12 +28,12 @@ public:
 	class Player
 	{
 	public:
-		POINT aboutMapPos;
+		Vector2 aboutMapPos;
 		CImage img;
-		POINT _Pos = { 0, };
+		Vector2 _Pos = { 0, };
 		RECT _rectDraw = { 0, };
 		RECT _rectImage = { 0, };
-		RECT _cam = { 0, };
+		FRECT _cam = { 0, };
 		Dir _dir = Dir::Down;
 		bool _keepGoing = false;
 	};

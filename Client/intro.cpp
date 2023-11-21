@@ -4,6 +4,7 @@
 #include "Network.h"
 
 extern SceneManager* sceneManager;
+extern Cloud cloud[4];
 
 // 인트로 상태
 enum MI_Menu { start = 0, producer, finish };
@@ -39,8 +40,13 @@ void MainIntro::Paint(HDC hdc, const RECT& rectWindow)
 	_img.TransparentBlt(hdc, _rectDraw, _rectImage, RGB(254, 254, 254));
 }
 
+void Intro::Update()
+{
+
+}
+
 // 인트로 화면에 필요한 구름 이동, 렌더링은 씬 매니저에서 따로 Paint 함수 호출
-void Cloud::Update(int MoveX, int MoveY, const RECT& rectWindow)
+void Cloud::Update(float MoveX, int MoveY, const RECT& rectWindow)
 {
 	_Pos.x += MoveX;
 	_Pos.y += MoveY;
@@ -167,7 +173,8 @@ void Menu::fingerController(const HWND& hWnd)
 			_producer = true;
 			break;
 		case MI_Menu::finish:
-			GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+			if (GET_SINGLE(Network)->IsConnected())
+				GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 			PostQuitMessage(0);
 			break;
 		}

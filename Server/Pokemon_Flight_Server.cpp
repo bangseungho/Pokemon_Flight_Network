@@ -5,9 +5,10 @@
 #include <unordered_map>
 #include <string>
 #include <thread>
+#include <mutex>
 
 #include "Timer.h"
-
+#include "Physics.h"
 using namespace std;
 
 #define MAX_BUFSIZE     1024
@@ -27,11 +28,10 @@ uint8 sPlayerCount{};
 void ProcessTimer()
 {
 	while (1) {
+		EnterCriticalSection(&cs);
 		GET_SINGLE(Timer)->Update();
-
-		cout << GET_SINGLE(Timer)->GetDeltaTime() << endl;
-
-		GET_SINGLE(Timer)->SendTimerData();
+		
+		LeaveCriticalSection(&cs);
 	}
 }
 
@@ -149,14 +149,13 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			//EnterCriticalSection(&cs);
-			for (const auto& player : sPlayers) {
-				if (player.second.mThreadId == threadId)
-					continue;
+			EnterCriticalSection(&cs);
+			Physics::MoveTownPlayer(data, DELTA_TIME);
+			LeaveCriticalSection(&cs);
 
+			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
-			//LeaveCriticalSection(&cs);
 
 #ifdef _DEBUG
 			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId) 
@@ -167,7 +166,7 @@ void ProcessClient(ThreadSocket sock)
 		}
 #pragma endregion
 #pragma region Stage
-		if (dataType == DataType::STAGE_DATA) {
+		else if (dataType == DataType::STAGE_DATA) {
 			auto& data = sPlayers[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
@@ -186,7 +185,7 @@ void ProcessClient(ThreadSocket sock)
 		}
 #pragma endregion
 #pragma region Phase
-		if (dataType == DataType::PHASE_DATA) {
+		else if (dataType == DataType::PHASE_DATA) {
 			auto& data = sPlayers[threadId].mPhaseData;
 			Data::RecvData<PhaseData>(clientSock, data);
 
@@ -203,7 +202,7 @@ void ProcessClient(ThreadSocket sock)
 		}
 #pragma endregion
 #pragma region Battle
-		if (dataType == DataType::BATTLE_DATA) {
+		else if (dataType == DataType::BATTLE_DATA) {
 			auto& data = sPlayers[threadId].mBattleData;
 			Data::RecvData<BattleData>(clientSock, data);
 
@@ -222,7 +221,6 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 	}
 
-	GET_SINGLE(Timer)->RemovePlayerSock(clientSock);
 	sPlayers.erase(threadId);
 	closesocket(clientSock);
 
@@ -272,16 +270,14 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
-	thread processClientThread;
 	thread processTimerThread = thread(ProcessTimer);
+	vector<thread> processClientThread;
 
 	while (1) {
 		addrlen = sizeof(clientaddr);
 		clientSock.Sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
 		if (clientSock.Sock == INVALID_SOCKET) break;
 		clientSock.Id = sPlayerCount++;
-		// 플레이어의 소켓을 타이머 객체에 등록
-		GET_SINGLE(Timer)->AddPlayerSock(clientSock.Sock);
 
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
@@ -291,14 +287,12 @@ int main(int argc, char* argv[])
 		     << "번 클라이언트 접속] IP: " << inet_ntoa(clientaddr.sin_addr) 
 			 << ", PORT: " << ntohs(clientaddr.sin_port) << endl << endl;
 #endif 
-		processClientThread = thread(ProcessClient, clientSock);
+		processClientThread.emplace_back(ProcessClient, clientSock);
 	}
 #pragma endregion
 #pragma region Close
-	if (processClientThread.joinable())
-		processClientThread.join();
-	if (processTimerThread.joinable())
-		processTimerThread.join();
+	processTimerThread.join();
+	for (auto& clientThread : processClientThread) clientThread.join();
 
 	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);

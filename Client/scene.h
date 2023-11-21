@@ -4,6 +4,7 @@ class SceneManager {
 private:
 	Scene crntScene = Scene::Intro;
 	Scene prevScene = Scene::Intro;
+	HWND mHwnd;
 
 	RECT rectWindow = { 0, };
 	RECT rectDisplay = { 0, };
@@ -19,10 +20,14 @@ private:
 public:
 	SceneManager();
 	void Init(const HWND& hWnd);
-	void Paint(const HWND& hWnd);
+	void Update();
+	void Paint();
 	void MoveScene(const HWND& hWnd, Scene scene);
 	void StartLoading(const HWND& hWnd);
 	void StopLoading(const HWND& hWnd);
+
+	HWND GetHwnd() const { return mHwnd; }
+	
 	inline bool constexpr IsLoading()
 	{
 		return isLoading;
