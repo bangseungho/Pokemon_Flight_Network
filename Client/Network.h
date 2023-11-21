@@ -12,7 +12,8 @@ public:
 	~Network();
 
 public:
-	void Receiver();
+	void TimerReceiver();
+	void ClientReceiver();
 
 public:
 	void Init(string ipAddr);
@@ -31,9 +32,11 @@ public:
 private:
 	bool			mConnected;
 	uint8			mClientIndex;
-	thread			mRecvThread;
+	thread			mRecvClientThread;
+	thread			mRecvTimerThread;
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
+	TimerData	    mTimerData;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };

@@ -11,8 +11,11 @@ Network::Network()
 
 Network::~Network()
 {
-	if (mRecvThread.joinable())
-		mRecvThread.join();
+	if (mRecvClientThread.joinable())
+		mRecvClientThread.join();
+
+	if (mRecvTimerThread.joinable())
+		mRecvTimerThread.join();
 
 	closesocket(mClientSock);
 	WSACleanup();
@@ -22,14 +25,21 @@ Network::~Network()
 #endif 
 }
 
-void Network::Receiver()
+void Network::ClientReceiver()
 {
 	while (1) {
 		DataType dataType;
 		dataType = Data::RecvType(mClientSock);
 
+		if (dataType == DataType::TIMER_DATA) {
+			TimerData recvData;
+			ZeroMemory(&recvData, sizeof(TimerData));
+
+			Data::RecvData<TimerData>(mClientSock, recvData);
+			cout << recvData.DeltaTime << endl;
+		}
 #pragma region EndProcessing
-		if (dataType == DataType::END_PROCESSING) {
+		else if (dataType == DataType::END_PROCESSING) {
 			// 종료 클라이언트 인덱스를 수신
 			EndProcessing recvData;
 			ZeroMemory(&recvData, sizeof(EndProcessing));
@@ -155,5 +165,5 @@ void Network::Connect()
 	Network::SendDataAndType(IntroData{ mClientIndex });
 
 	// Recv 스레드 생성
-	mRecvThread = thread(&Network::Receiver, this);
+	mRecvClientThread = thread(&Network::ClientReceiver, this);
 }

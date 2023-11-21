@@ -106,27 +106,6 @@ enum class Skill { Empty = 0, Identity, Sector, Circle };
 
 enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
 
-// 싱글턴 객체로 클래스 내부에서 사용
-#define SINGLETON(type)								\
-public:												\
-	static type* GetInstance()						\
-	{												\
-		if (!instance) instance = new type();		\
-		return instance;							\
-	}												\
-	static void Destroy()							\
-	{												\
-		if (instance) delete instance;				\
-		instance = nullptr;							\
-	}												\
-													\
-private:											\
-	static type* instance;							\
-
-#define GET_SINGLE(type)			type::GetInstance()
-#define DESTROY_SINGLE(type)		type::Destroy()
-#define DECLARE_SINGLE(type)		type* type::instance = nullptr;
-
 enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU }; // 총 방향은 8개이다.
 
 // Direction 연산자 오버로딩

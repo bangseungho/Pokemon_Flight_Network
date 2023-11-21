@@ -13,6 +13,7 @@
 #include <stdlib.h> 
 #include <string.h>
 #include <iostream>
+#include <vector>
 
 #pragma comment(lib, "ws2_32") 
 
@@ -25,9 +26,31 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+// 싱글턴 객체로 클래스 내부에서 사용
+#define SINGLETON(type)								\
+public:												\
+	static type* GetInstance()						\
+	{												\
+		if (!instance) instance = new type();		\
+		return instance;							\
+	}												\
+	static void Destroy()							\
+	{												\
+		if (instance) delete instance;				\
+		instance = nullptr;							\
+	}												\
+													\
+private:											\
+	static type* instance;							\
+
+#define GET_SINGLE(type)			type::GetInstance()
+#define DESTROY_SINGLE(type)		type::Destroy()
+#define DECLARE_SINGLE(type)		type* type::instance = nullptr;
+
 enum class DataType : int
 {
 	NONE_DATA,
+	TIMER_DATA,
 	INTRO_DATA,
 	TOWN_DATA,
 	STAGE_DATA,
@@ -41,6 +64,12 @@ struct ThreadSocket
 {
 	SOCKET	Sock;
 	uint8	Id;
+};
+
+struct TimerData
+{
+	double DeltaTime = 0;
+	float TotalTime = 0.f;
 };
 
 struct IntroData
@@ -160,7 +189,9 @@ public:
 	template<typename T>
 	static inline DataType GetDataType()
 	{
-		if (std::is_same_v<T, IntroData>)
+		if (std::is_same_v<T, TimerData>)
+			return DataType::TIMER_DATA;
+		else if (std::is_same_v<T, IntroData>)
 			return DataType::INTRO_DATA;
 		else if (std::is_same_v<T, TownData>)
 			return DataType::TOWN_DATA;

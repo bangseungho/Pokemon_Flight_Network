@@ -2,15 +2,20 @@
 #include <Windows.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <unordered_map>
 #include <string>
+#include <thread>
 
-#include "ServerUtils.h"
+#include "Timer.h"
 
 using namespace std;
 
 #define MAX_BUFSIZE     1024
+
+// TODO : 타이머를 서버에서 클라로 넘겨주는 방식이 아니라 키 입력을 받은 후
+// 서버에서 이동 혹은 물리 처리를 한 후 다시 넘겨주는 방식으로 바꿔야함
+// 이유는 타이머를 클라이언트에게 매번 보내는 것은 매우 많은 서버를 사용하게 됨
+// 따라서 서버 타이머의 델타 타임을 기준으로 클라이언트 플레이어의 이동을 처리해야함
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static unordered_map<uint8, NetworkPlayerData> sPlayers;
@@ -19,19 +24,30 @@ CRITICAL_SECTION cs;
 //LeaveCriticalSection(&cs);
 uint8 sPlayerCount{};
 
-DWORD WINAPI ProcessClient(LPVOID sock)
+void ProcessTimer()
+{
+	while (1) {
+		GET_SINGLE(Timer)->Update();
+
+		cout << GET_SINGLE(Timer)->GetDeltaTime() << endl;
+
+		GET_SINGLE(Timer)->SendTimerData();
+	}
+}
+
+void ProcessClient(ThreadSocket sock)
 {
 	// ThreadSocket = Socket + threadId 
-	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
-	SOCKET clientSock = threadSocket->Sock;
-	uint8 threadId = threadSocket->Id;
+	ThreadSocket threadSocket = sock;
+	SOCKET clientSock = threadSocket.Sock;
+	uint8 threadId = threadSocket.Id;
 
 	// 플레이어 배열에 해당 클라이언트 추가
 	sPlayers[threadId] = NetworkPlayerData{ clientSock, threadId };
 
 	// 클라이언트와 연결이 되었다면 클라이언트에게 자신의 인덱스를 송신
 	if (!Data::SendData(clientSock, threadId))
-		return 0;
+		return;
 
 	// 클라이언트 정보 가져오기
 	SOCKADDR_IN clientaddr;
@@ -206,6 +222,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 #pragma endregion
 	}
 
+	GET_SINGLE(Timer)->RemovePlayerSock(clientSock);
 	sPlayers.erase(threadId);
 	closesocket(clientSock);
 
@@ -215,7 +232,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 		<< ", PORT: " << ntohs(clientaddr.sin_port) << endl << endl;
 #endif
 
-	return 0;
+	return;
 }
 
 int main(int argc, char* argv[])
@@ -225,6 +242,7 @@ int main(int argc, char* argv[])
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
 	InitializeCriticalSection(&cs);
+	GET_SINGLE(Timer)->Init();
 #pragma endregion
 
 #pragma region Socket
@@ -253,13 +271,17 @@ int main(int argc, char* argv[])
 	ThreadSocket clientSock;
 	SOCKADDR_IN clientaddr;
 	int addrlen;
-	HANDLE hThread;
+
+	thread processClientThread;
+	thread processTimerThread = thread(ProcessTimer);
 
 	while (1) {
 		addrlen = sizeof(clientaddr);
 		clientSock.Sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
 		if (clientSock.Sock == INVALID_SOCKET) break;
 		clientSock.Id = sPlayerCount++;
+		// 플레이어의 소켓을 타이머 객체에 등록
+		GET_SINGLE(Timer)->AddPlayerSock(clientSock.Sock);
 
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
@@ -269,14 +291,15 @@ int main(int argc, char* argv[])
 		     << "번 클라이언트 접속] IP: " << inet_ntoa(clientaddr.sin_addr) 
 			 << ", PORT: " << ntohs(clientaddr.sin_port) << endl << endl;
 #endif 
-
-		hThread = CreateThread(NULL, 0, ProcessClient, &clientSock, 0, NULL);
-
-		if (hThread == NULL) { closesocket(clientSock.Sock); }
-		else { CloseHandle(hThread); }
+		processClientThread = thread(ProcessClient, clientSock);
 	}
 #pragma endregion
 #pragma region Close
+	if (processClientThread.joinable())
+		processClientThread.join();
+	if (processTimerThread.joinable())
+		processTimerThread.join();
+
 	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
 	WSACleanup();
