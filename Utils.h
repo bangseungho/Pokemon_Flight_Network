@@ -65,6 +65,7 @@ struct TownData
 struct StageData
 {
 	uint8	PlayerIndex = 0;
+	bool	SelectSuccess;
 	int		Record;
 };
 

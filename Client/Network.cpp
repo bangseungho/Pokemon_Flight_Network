@@ -105,7 +105,7 @@ void Network::Receiver()
 		else if (dataType == DataType::STAGE_DATA) {
 			// 패킷을 수신할 임시 객체
 			StageData recvData;
-			ZeroMemory(&recvData, sizeof(TownData));
+			ZeroMemory(&recvData, sizeof(StageData));
 
 			// 패킷 수신
 			Data::RecvData<StageData>(mClientSock, recvData);

@@ -418,7 +418,8 @@ void Stage::fingerController(const HWND& hWnd)
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
-		{
+		{	
+			//if (SelectionSuccess == false ){continue;} else{
 			if (!_ready_Air_pokemon)
 			{
 				_play_Air_pokemon = _finger;
