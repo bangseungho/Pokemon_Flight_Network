@@ -129,11 +129,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	switch (crntScene)
 	{
 	case Scene::Intro:
-		SetTimer(hWnd, TIMERID_CLOUD, ELAPSE_CLOUD, T_MoveCloud); // 구름 이동 타이머
-		SetTimer(hWnd, TIMERID_LOGO, ELAPSE_LOGO, T_MoveLogo); // 로고 움직임 타이머
-		SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 인트로 화면 핑거 컨트롤러 타이머
-		SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡거리는 효과 타이머
-
+		intro.Init();
 		soundManager->StopBGMSound();
 		soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
 		break;
@@ -165,7 +161,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		stage.Init(rectWindow);
 		SetTimer(hWnd, TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
 		SetTimer(hWnd, TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
-		SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡이는 효과 타이머
+		//SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡이는 효과 타이머
 
 		if (prevScene != Scene::PhaseManager)
 		{
@@ -181,7 +177,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		}
 		break;
 	case Scene::PhaseManager:
-		SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
+		//SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
 		phase.Init();
 		
 		if (prevScene == Scene::Battle)
@@ -268,8 +264,25 @@ void SceneManager::Init(const HWND& hWnd)
 
 void SceneManager::Update()
 {
-	intro.Update();
-	
+	GET_SINGLE(GameTimer)->Update();
+
+	switch (crntScene){
+	case Scene::Intro:
+		intro.Update(DELTA_TIME);
+		break;
+	//case Scene::Town:
+	//	town.Update();
+	//	break;
+	//case Scene::Stage:
+	//	stage.Update();
+	//	break;
+	//case Scene::PhaseManager:
+	//	phase.Update();
+	//	break;
+	//case Scene::Battle:
+	//	battle.Update();
+	//	break;
+	}
 
 	Paint();
 }

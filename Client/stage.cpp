@@ -224,13 +224,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		HFONT hFont2 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ARCADECLASSIC"));
 		HFONT oldFont2 = (HFONT)SelectObject(hdc, hFont2);
 
-		if (!_ready_Land_pokemon && menu._finger_twinkle_cnt % 3 != 0)
+		if (!_ready_Land_pokemon && (int)menu._finger_twinkle_cnt % 3 != 0)
 			TextOut(hdc, _fingerPos.x, _fingerPos.y, L"бу", 1);
 
 		HFONT hFont3 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
 		HFONT oldFont3 = (HFONT)SelectObject(hdc, hFont3);
 
-		if (_ready_Air_pokemon && _ready_Land_pokemon && menu._finger_twinkle_cnt % 2 != 0)
+		if (_ready_Air_pokemon && _ready_Land_pokemon && (int)menu._finger_twinkle_cnt % 2 != 0)
 			TextOut(hdc, 35, 50, L"PRESS ENTER KEY TO CONTINUE", 28);
 
 		SelectObject(hdc, oldFont);

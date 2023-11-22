@@ -2,9 +2,12 @@
 #include "Intro.h"
 #include "scene.h"
 #include "Network.h"
+#include "timer.h"
 
 extern SceneManager* sceneManager;
 extern Cloud cloud[4];
+extern Logo logo;
+extern Menu menu;
 
 // 인트로 상태
 enum MI_Menu { start = 0, producer, finish };
@@ -12,6 +15,7 @@ enum MI_Menu { start = 0, producer, finish };
 // 인트로 화면 초기화
 void MainIntro::Init()
 {
+	logo.Init();
 }
 
 // 인트로 화면에 필요한 이미지를 로드(추상화 함수)
@@ -40,20 +44,57 @@ void MainIntro::Paint(HDC hdc, const RECT& rectWindow)
 	_img.TransparentBlt(hdc, _rectDraw, _rectImage, RGB(254, 254, 254));
 }
 
-void Intro::Update()
+void Intro::Update(float elapsedTime)
 {
+	const RECT rectWindow = sceneManager->GetRectDisplay();
 
+	cloud[0].Update(40, 0, rectWindow, elapsedTime);
+	cloud[1].Update(20, 0, rectWindow, elapsedTime);
+	cloud[2].Update(10, 0, rectWindow, elapsedTime);
+	cloud[3].Update(40, 0, rectWindow, elapsedTime);
+
+	logo.Update(elapsedTime);
+	menu.Update(elapsedTime);
+
+	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
+
+//else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
+//{
+//	battle.Init();
+//	phase.fingerController(sceneManager->GetHwnd());
+//}
 }
 
 // 인트로 화면에 필요한 구름 이동, 렌더링은 씬 매니저에서 따로 Paint 함수 호출
-void Cloud::Update(float MoveX, int MoveY, const RECT& rectWindow)
+void Cloud::Update(float MoveX, int MoveY, const RECT& rectWindow, float elapsedTime)
 {
-	_Pos.x += MoveX;
-	_Pos.y += MoveY;
+	_Pos.x += MoveX * elapsedTime;
+	_Pos.y += MoveY * elapsedTime;
 
 	// 윈도우 벗어날 시 왼쪽의 일정 위치부터 시작
 	if (_rectDraw.left > rectWindow.right)
 		_Pos.x = -188;
+}
+
+void Logo::Init()
+{
+	mPokemonStrPos = { 40.f, 94.f };
+	mFlightStrPos = { 94.f, 172.f };
+}
+
+void Logo::Update(float elapsedTime)
+{
+	static float direction = 1.f;
+	float moveSpeed = direction * 10.f * elapsedTime;
+
+	static float acc = 0.f;
+	acc += moveSpeed;
+
+	logo.mFlightStrPos.y += moveSpeed;
+	logo.mPokemonStrPos.y += moveSpeed;
+
+	if (acc >= 10 or acc < 0)
+		direction *= -1.f;
 }
 
 // 인트로 화면에 필요한 로고 렌더링
@@ -68,13 +109,13 @@ void Logo::Paint(HDC hdc)
 
 	// 로고 그림자 출력
 	SetTextColor(hdc, LOGO_SHADOW_COLOR);
-	TextOut(hdc, 45, 99 + _logoMovingCnt, L"POKEMON", 7);
-	TextOut(hdc, 99, 177 + _logoMovingCnt, L"FLIGHT", 6);
+	TextOut(hdc, mPokemonStrPos.x + 5.f, mPokemonStrPos.y + 5.f, L"POKEMON", 7);
+	TextOut(hdc, mFlightStrPos.x + 5.f, mFlightStrPos.y + 5.f, L"FLIGHT", 6);
 
 	// 로고 출력
 	SetTextColor(hdc, LOGO_COLOR);
-	TextOut(hdc, 40, 94 + _logoMovingCnt, L"POKEMON", 7);
-	TextOut(hdc, 94, 172 + _logoMovingCnt, L"FLIGHT", 6);
+	TextOut(hdc, mPokemonStrPos.x, mPokemonStrPos.y, L"POKEMON", 7);
+	TextOut(hdc, mFlightStrPos.x, mFlightStrPos.y, L"FLIGHT", 6);
 
 	SelectObject(hdc, oldFont);
 	DeleteObject(hFont);
@@ -139,7 +180,7 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	}
 
 	// 화살표의 깜빡거리는 부분 설정으로 1.5초에 한번씩 깜빡거림
-	if (_finger_twinkle_cnt % 3 != 0 && !_producer)
+	if ((int)_finger_twinkle_cnt % 3 != 0 && !_producer)
 		TextOut(hdc, _fingerPos.x, _fingerPos.y, L"▶", 1);
 
 	SelectObject(hdc, oldFont);
@@ -147,8 +188,10 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 }
 
 // 현재 인트로 화면의 상태를 가리키는 화살표이다. 화살표를 가리킨 상태에서 엔터키를 누르면 그에 맞는 함수 호출
-void Menu::fingerController(const HWND& hWnd)
+void Menu::Update(float elapsedTime)
 {
+	_finger_twinkle_cnt += elapsedTime * 3.f;
+
 	if (GetAsyncKeyState(VK_UP) & 0x0001 && _finger > 0)
 	{
 		_producer = false;
@@ -166,7 +209,7 @@ void Menu::fingerController(const HWND& hWnd)
 		case MI_Menu::start:
 		{
 			GET_SINGLE(Network)->Connect();
-			sceneManager->StartLoading(hWnd);
+			sceneManager->StartLoading(sceneManager->GetHwnd());
 		}
 			break;
 		case MI_Menu::producer:

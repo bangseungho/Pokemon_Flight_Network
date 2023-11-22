@@ -23,17 +23,6 @@ static unordered_map<uint8, NetworkPlayerData> sPlayers;
 CRITICAL_SECTION cs;
 //EnterCriticalSection(&cs);
 //LeaveCriticalSection(&cs);
-uint8 sPlayerCount{};
-
-void ProcessTimer()
-{
-	while (1) {
-		EnterCriticalSection(&cs);
-		GET_SINGLE(Timer)->Update();
-		
-		LeaveCriticalSection(&cs);
-	}
-}
 
 void ProcessClient(ThreadSocket sock)
 {
@@ -149,11 +138,9 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			EnterCriticalSection(&cs);
-			Physics::MoveTownPlayer(data, DELTA_TIME);
-			LeaveCriticalSection(&cs);
-
 			for (const auto& player : sPlayers) {
+				if (player.second.mThreadId == threadId)
+
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
 
@@ -270,8 +257,8 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
-	thread processTimerThread = thread(ProcessTimer);
 	vector<thread> processClientThread;
+	uint8 sPlayerCount{};
 
 	while (1) {
 		addrlen = sizeof(clientaddr);
@@ -291,7 +278,6 @@ int main(int argc, char* argv[])
 	}
 #pragma endregion
 #pragma region Close
-	processTimerThread.join();
 	for (auto& clientThread : processClientThread) clientThread.join();
 
 	DeleteCriticalSection(&cs);

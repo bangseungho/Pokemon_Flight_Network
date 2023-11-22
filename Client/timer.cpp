@@ -76,53 +76,26 @@ extern Logo logo;
 extern Menu menu;
 extern CImage glowing_black;
 
-// 인트로에서 구름 움직이는 타이머
-void CALLBACK T_MoveCloud(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_MoveCloud(float elapsedTime)
 {
-	const RECT rectWindow = sceneManager->GetRectDisplay();
 
-	// 구름마다 속도 다르게 제어
-	cloud[0].Update(4, 0, rectWindow);
-	cloud[1].Update(2, 0, rectWindow);
-	cloud[2].Update(1, 0, rectWindow);
-	cloud[3].Update(4, 0, rectWindow);
+
 }
 
-// POKEMON FLIGHT의 흔들거리는 움직임
-void CALLBACK T_MoveLogo(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_MoveLogo(float elapsedTime)
 {
-	static bool thiscnt = false;
 
-	// 로고가 얼마나 움직였는지를 확인한 후 값에 따라 다시 반대로 움직이기
-	if (logo._logoMovingCnt > 10)
-		thiscnt = true;
-	else if (logo._logoMovingCnt == 0)
-		thiscnt = false;
-
-	if (thiscnt == true)
-		logo._logoMovingCnt--;
-	else
-		logo._logoMovingCnt++;
 }
 
 // 씬 정보를 받아와서 인트로이거나 페이즈일 경우 핑거 컨트롤러를 애니메이션 하는 함수
-void CALLBACK T_Animation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Animation(float elapsedTime)
 {
-	const Scene scene = sceneManager->GetScene();
-	if (scene == Scene::Intro && sceneManager->IsLoading() == false)
-		menu.fingerController(hWnd);
-	else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
-	{
-		battle.Init();
-		phase.fingerController(hWnd);
-	}
-	InvalidateRect(hWnd, NULL, false);
+
 }
 
 // 화살표가 반짝일 수 있도록 하는 함수
-void CALLBACK T_TwinkleEmotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_TwinkleEmotion(float elapsedTime)
 {
-	menu._finger_twinkle_cnt++;
 }
 
 // sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
