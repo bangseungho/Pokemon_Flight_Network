@@ -34,7 +34,6 @@ extern GUIManager* gui;
 extern Boss* boss;
 extern SoundManager* soundManager;
 
-
 extern Intro intro;
 extern Loading loading;
 extern Town town;
@@ -42,9 +41,6 @@ extern Stage stage;
 extern PhaseManager phase;
 extern Battle battle;
 
-extern Cloud cloud[4];
-extern Logo logo;
-extern Menu menu;
 extern CImage glowing_black;
 
 extern bool flag = false;
@@ -242,10 +238,7 @@ SceneManager::SceneManager()
 	soundManager = new SoundManager();
 
 	crntScene = Scene::Intro;
-	cloud[0].Init(L"images\\intro\\Instruction_Cloud1.bmp", FIRSTCLOUD_X, FIRSTCLOUD_Y);
-	cloud[1].Init(L"images\\intro\\Instruction_Cloud2.bmp", SECONDCLOUD_X, SECONDCLOUD_Y);
-	cloud[2].Init(L"images\\intro\\Instruction_Cloud3.bmp", THIRDCLOUD_X, THIRDCLOUD_Y);
-	cloud[3].Init(L"images\\intro\\Instruction_Cloud4.bmp", FOURTHCLOUD_X, FOURTHCLOUD_Y);
+
 }
 
 // 스크린 사이즈를 받아오고 crntScene(현재 씬)에 따라서 씬을 로드한다.
@@ -299,22 +292,13 @@ void SceneManager::Paint()
 	switch (crntScene)
 	{
 	case Scene::Intro:
-		intro.Paint(memDC, rectWindow);
-
-		for (int i = 0; i < CLOUD_NUM; i++)
-		{
-			cloud[i].Paint(memDC, rectWindow);
-		}
-
-		logo.Paint(memDC);
-
-		menu.Paint(memDC, mHwnd);
+		intro.Paint(memDC);
 		break;
 	case Scene::Town:
 		town.Paint(memDC, rectWindow);
 		break;
 	case Scene::Stage:
-		stage.Paint(memDC, rectWindow, menu);
+		stage.Paint(memDC, rectWindow);
 		break;
 	case Scene::PhaseManager:
 		phase.Paint(memDC, rectWindow, stage.GetStage());
@@ -372,7 +356,7 @@ Loading::Loading()
 	_loding_pokemon_rectImage = { 0, 0, LOADING_POKEMON_X, LOADING_POKEMON_Y };
 	_loding_pokemon_rectDraw = { HALF_RECTWINDOW_X, HALF_RECTWINDOW_Y, LOADING_POKEMON_X, LOADING_POKEMON_Y };
 
-	_glowing_black.Load(L"images\\loading\\Loading_Black_background.bmp");
+	mGlowingBlack.Load(L"images\\loading\\Loading_Black_background.bmp");
 	_loading_pokemon.Load(L"images\\loading\\Loading_pokemon.png");
 	_loading_bar[0].Load(L"images\\loading\\Loading_bar1.bmp");
 	_loading_bar[1].Load(L"images\\loading\\Loading_bar2.bmp");
@@ -384,7 +368,7 @@ Loading::Loading()
 // 로딩 화면을 렌더링
 void Loading::Paint(HDC hdc, HWND hWnd, const RECT& rectWindow)
 {
-	_glowing_black.AlphaBlend(hdc, rectWindow, rectWindow, SALPHA);
+	mGlowingBlack.AlphaBlend(hdc, rectWindow, rectWindow, SALPHA);
 	_loading_pokemon.Draw(hdc, HALF_RECTWINDOW_X, HALF_RECTWINDOW_Y - 19, LOADING_POKEMON_X, LOADING_POKEMON_Y,
 		_loding_pokemon_rectImage.left, _loding_pokemon_rectImage.top, _loding_pokemon_rectImage.right, _loding_pokemon_rectImage.bottom);
 

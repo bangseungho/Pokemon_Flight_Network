@@ -71,32 +71,7 @@ extern Stage stage;
 extern PhaseManager phase;
 extern Battle battle;
 
-extern Cloud cloud[4];
-extern Logo logo;
-extern Menu menu;
 extern CImage glowing_black;
-
-void T_MoveCloud(float elapsedTime)
-{
-
-
-}
-
-void T_MoveLogo(float elapsedTime)
-{
-
-}
-
-// 씬 정보를 받아와서 인트로이거나 페이즈일 경우 핑거 컨트롤러를 애니메이션 하는 함수
-void T_Animation(float elapsedTime)
-{
-
-}
-
-// 화살표가 반짝일 수 있도록 하는 함수
-void T_TwinkleEmotion(float elapsedTime)
-{
-}
 
 // sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
 void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)

@@ -27,7 +27,7 @@ private:
 	CImage _electronic;
 	CImage _dark;
 	CImage _dialog_bar;
-	CImage _glowing_black;
+	CImage mGlowingBlack;
 	Target* target;
 	bool _dialogflag = false; // 해금되지 않은 스테이지를 선택한 경우 true
 	bool _select_pokemon = false; // 포켓몬 선택창이 열린 경우 true
@@ -51,8 +51,8 @@ private:
 
 	POINT _fingerPos = { 0, };
 
-	int _finger = 0;
-	int _finger_twinkle_cnt = 0;
+	int mFingerCount = 0;
+	int mTwinkleCnt = 0;
 	int moveX = 300;
 	int _play_Air_pokemon = 0;
 	int _play_Land_pokemon = 0;
@@ -67,7 +67,7 @@ public:
 	Stage();
 	void Init(const RECT& rectWindow);
 	void SelectPokemonInit();
-	void Paint(HDC hdc, const RECT& rectWindow, Menu menu);
+	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(const HWND& hWnd, const RECT& rectWindow);
 	void fingerController(const HWND& hWnd);
 	inline constexpr StageElement GetStage()

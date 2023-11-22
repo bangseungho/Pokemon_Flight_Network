@@ -17,7 +17,7 @@ Town::Town()
 	_npc3.Load(L"images\\town\\npc3.bmp");
 	_npc4.Load(L"images\\town\\npc4.bmp");
 	_exits.Load(L"images\\dialog\\Exit.bmp");
-	_glowing_black.Load(L"images\\loading\\Loading_Black_background.bmp");
+	mGlowingBlack.Load(L"images\\loading\\Loading_Black_background.bmp");
 }
 
 // 타운에서 필요한 초기화 작업
@@ -170,7 +170,7 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	// 종료 변수가 true라면 종료 여부 화면 렌더링
 	if (_exit == true)
 	{
-		_glowing_black.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
+		mGlowingBlack.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
 		_exits.Draw(hdc, rectWindow.right / 2 - 100, rectWindow.bottom / 2 + 60, 200, 51, 0, 0, 810, 210);
 
 		HFONT hFont = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
@@ -243,74 +243,74 @@ void Town::Update(const RECT& rectWindow)
 		mActive = true;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Left;
-		mPlayer->aboutMapPos.x -= TPLAYER_SPEED * DELTA_TIME;
+		//mPlayer->aboutMapPos.x -= TPLAYER_SPEED/*;
 		_exit = false;
 
 		// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
 		if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 0)
 		{
-			mAdjValue.x += TPLAYER_SPEED * DELTA_TIME;
+			mAdjValue.x += TPLAYER_SPEED;
 
-			_rectImage.right -= TPLAYER_SPEED * DELTA_TIME;
-			_rectImage.left -= TPLAYER_SPEED * DELTA_TIME;
+			_rectImage.right -= TPLAYER_SPEED;
+			_rectImage.left -= TPLAYER_SPEED;
 
 			// 모든 건물들을 자리 그대로 놓기 -> 안하면 플레이어 이동시 오브젝트가 같이 움직임
 			for (int i = 0; i < TOWN_OBJECT_NUM; i++)
 			{
-				_object[i].left += TPLAYER_SPEED * DELTA_TIME;
-				_object[i].right += TPLAYER_SPEED * DELTA_TIME;
+				_object[i].left += TPLAYER_SPEED;
+				_object[i].right += TPLAYER_SPEED;
 			}
 
-			_npcRect.left += TPLAYER_SPEED * DELTA_TIME;
-			_npc2Rect.left += TPLAYER_SPEED * DELTA_TIME;
-			_npc3Rect.left += TPLAYER_SPEED * DELTA_TIME;
-			_npc4Rect.left += TPLAYER_SPEED * DELTA_TIME;
+			_npcRect.left += TPLAYER_SPEED;
+			_npc2Rect.left += TPLAYER_SPEED;
+			_npc3Rect.left += TPLAYER_SPEED;
+			_npc4Rect.left += TPLAYER_SPEED;
 		}
 		else
-			mPlayer->_Pos.x -= TPLAYER_SPEED * DELTA_TIME;
+			mPlayer->_Pos.x -= TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
 		mActive = true;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Right;
-		mPlayer->aboutMapPos.x += TPLAYER_SPEED * DELTA_TIME;
+		mPlayer->aboutMapPos.x += TPLAYER_SPEED;
 		_exit = false;
 
 		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
 		{
-			mAdjValue.x -= TPLAYER_SPEED * DELTA_TIME;
+			mAdjValue.x -= TPLAYER_SPEED;
 
-			_rectImage.right += TPLAYER_SPEED * DELTA_TIME;
-			_rectImage.left += TPLAYER_SPEED * DELTA_TIME;
+			_rectImage.right += TPLAYER_SPEED;
+			_rectImage.left += TPLAYER_SPEED;
 
 			for (int i = 0; i < TOWN_OBJECT_NUM; i++)
 			{
-				_object[i].left -= TPLAYER_SPEED * DELTA_TIME;
-				_object[i].right -= TPLAYER_SPEED * DELTA_TIME;
+				_object[i].left -= TPLAYER_SPEED;
+				_object[i].right -= TPLAYER_SPEED;
 			}
 
-			_npcRect.left -= TPLAYER_SPEED * DELTA_TIME;
-			_npc2Rect.left -= TPLAYER_SPEED * DELTA_TIME;
-			_npc3Rect.left -= TPLAYER_SPEED * DELTA_TIME;
-			_npc4Rect.left -= TPLAYER_SPEED * DELTA_TIME;
+			_npcRect.left -= TPLAYER_SPEED;
+			_npc2Rect.left -= TPLAYER_SPEED;
+			_npc3Rect.left -= TPLAYER_SPEED;
+			_npc4Rect.left -= TPLAYER_SPEED;
 		}
 		else
-			mPlayer->_Pos.x += TPLAYER_SPEED * DELTA_TIME;
+			mPlayer->_Pos.x += TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000) {
 		mActive = true;
-		mPlayer->aboutMapPos.y -= TPLAYER_SPEED * DELTA_TIME;
+		mPlayer->aboutMapPos.y -= TPLAYER_SPEED;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Up;
-		mPlayer->_Pos.y -= TPLAYER_SPEED * DELTA_TIME;
+		mPlayer->_Pos.y -= TPLAYER_SPEED;
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		mActive = true;
 		_exit = false;
-		mPlayer->aboutMapPos.y += TPLAYER_SPEED * DELTA_TIME;
+		mPlayer->aboutMapPos.y += TPLAYER_SPEED;
 		mPlayer->_keepGoing = true;
 		mPlayer->_dir = Dir::Down;
-		mPlayer->_Pos.y += TPLAYER_SPEED * DELTA_TIME;
+		mPlayer->_Pos.y += TPLAYER_SPEED;
 	}
 
 	// 플레이어 패킷 송신

@@ -21,7 +21,7 @@ private:
 	HWND mHwnd;
 	
 	CImage _exits;
-	CImage _glowing_black;
+	CImage mGlowingBlack;
 	bool _exit = false;
 
 public:

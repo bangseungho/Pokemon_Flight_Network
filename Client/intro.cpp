@@ -5,83 +5,50 @@
 #include "timer.h"
 
 extern SceneManager* sceneManager;
-extern Cloud cloud[4];
-extern Logo logo;
-extern Menu menu;
 
-// 인트로 상태
-enum MI_Menu { start = 0, producer, finish };
-
-// 인트로 화면 초기화
-void MainIntro::Init()
+// ============================================================= IntroGameObject
+void IntroGameObject::Init()
 {
-	logo.Init();
 }
-
-// 인트로 화면에 필요한 이미지를 로드(추상화 함수)
-void MainIntro::Init(const wchar_t* imgfile, int _PosX, int _PosY)
+void IntroGameObject::Init(const wchar_t* imgfile, Vector2 pos)
 {
-	_img.Load(imgfile);
+	mCImage.Load(imgfile);
 
-	_Size.x = _img.GetWidth();
-	_Size.y = _img.GetHeight();
+	mSize.x = mCImage.GetWidth();
+	mSize.y = mCImage.GetHeight();
 
-	// 이미지의 위치값
-	_Pos.x = _PosX;
-	_Pos.y = _PosY;
-
-	// 원본 이미지 렉트값
-	_rectImage = { 0, 0, _Size.x, _Size.y };
+	mPos = pos;
+	mRectImage = { 0, 0, mSize.x, mSize.y };
 }
-
-// 인트로 화면 렌더링
-void MainIntro::Paint(HDC hdc, const RECT& rectWindow)
+void IntroGameObject::Update(float elapsedTime)
+{
+}
+void IntroGameObject::Paint(HDC hdc)
 {
 	// 사이즈에 따른 위치 렉트값
-	_rectDraw = { _Pos.x, _Pos.y, _Size.x + _Pos.x, _Size.y + _Pos.y };
+	mRectDraw = { mPos.x, mPos.y, mSize.x + mPos.x, mSize.y + mPos.y };
 
 	// 이미지 출력
-	_img.TransparentBlt(hdc, _rectDraw, _rectImage, RGB(254, 254, 254));
+	mCImage.TransparentBlt(hdc, mRectDraw, mRectImage, RGB(254, 254, 254));
 }
 
-void Intro::Update(float elapsedTime)
+// ============================================================= Cloud
+void Cloud::Update(float elapsedTime)
 {
-	const RECT rectWindow = sceneManager->GetRectDisplay();
-
-	cloud[0].Update(40, 0, rectWindow, elapsedTime);
-	cloud[1].Update(20, 0, rectWindow, elapsedTime);
-	cloud[2].Update(10, 0, rectWindow, elapsedTime);
-	cloud[3].Update(40, 0, rectWindow, elapsedTime);
-
-	logo.Update(elapsedTime);
-	menu.Update(elapsedTime);
-
-	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
-
-//else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
-//{
-//	battle.Init();
-//	phase.fingerController(sceneManager->GetHwnd());
-//}
-}
-
-// 인트로 화면에 필요한 구름 이동, 렌더링은 씬 매니저에서 따로 Paint 함수 호출
-void Cloud::Update(float MoveX, int MoveY, const RECT& rectWindow, float elapsedTime)
-{
-	_Pos.x += MoveX * elapsedTime;
-	_Pos.y += MoveY * elapsedTime;
+	mPos.x += mMove.x * elapsedTime;
+	mPos.y += mMove.y * elapsedTime;
 
 	// 윈도우 벗어날 시 왼쪽의 일정 위치부터 시작
-	if (_rectDraw.left > rectWindow.right)
-		_Pos.x = -188;
+	if (mRectDraw.left > mRectWindow.right)
+		mPos.x = -188;
 }
 
+// ============================================================= Logo
 void Logo::Init()
 {
 	mPokemonStrPos = { 40.f, 94.f };
 	mFlightStrPos = { 94.f, 172.f };
 }
-
 void Logo::Update(float elapsedTime)
 {
 	static float direction = 1.f;
@@ -90,14 +57,12 @@ void Logo::Update(float elapsedTime)
 	static float acc = 0.f;
 	acc += moveSpeed;
 
-	logo.mFlightStrPos.y += moveSpeed;
-	logo.mPokemonStrPos.y += moveSpeed;
+	mFlightStrPos.y += moveSpeed;
+	mPokemonStrPos.y += moveSpeed;
 
 	if (acc >= 10 or acc < 0)
 		direction *= -1.f;
 }
-
-// 인트로 화면에 필요한 로고 렌더링
 void Logo::Paint(HDC hdc)
 {
 	// 폰트 설정
@@ -121,8 +86,12 @@ void Logo::Paint(HDC hdc)
 	DeleteObject(hFont);
 }
 
-// 처음 메인 화면 start, finish, finish등 메인 메뉴 설정
-void Menu::Paint(HDC hdc, HWND hWnd)
+// ============================================================= Menu
+void Menu::Init()
+{
+	mGlowingBlack.Load(L"images\\loading\\Loading_Black_background.bmp");
+}
+void Menu::Paint(HDC hdc)
 {
 	HFONT hFont = CreateFont(MENU_SIZE, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ARCADECLASSIC"));
 	HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
@@ -130,19 +99,19 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	SetBkMode(hdc, TRANSPARENT);
 	SetTextColor(hdc, RGB(0, 0, 0));
 
-	switch (_finger)
+	switch (mFingerCount)
 	{
 	case MI_Menu::start:
-		_fingerPos.x = 175;
-		_fingerPos.y = 525;
+		mPos.x = 175;
+		mPos.y = 525;
 		break;
 	case MI_Menu::producer:
-		_fingerPos.x = 147;
-		_fingerPos.y = 575;
+		mPos.x = 147;
+		mPos.y = 575;
 		break;
 	case MI_Menu::finish:
-		_fingerPos.x = 165;
-		_fingerPos.y = 625;
+		mPos.x = 165;
+		mPos.y = 625;
 		break;
 	}
 
@@ -151,9 +120,9 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	TextOut(hdc, 192, 625, L"FINISH", 6);
 
 	// 이 변수가 켜져 있으면 개발자 이름을 화면 위에 렌더링한다.
-	if (_producer)
+	if (mProducer)
 	{
-		_glowing_black.AlphaBlend(hdc, 0, 0, 800, 1200, 0, 0, 800, 1200, IALPHA);
+		mGlowingBlack.AlphaBlend(hdc, 0, 0, 800, 1200, 0, 0, 800, 1200, IALPHA);
 
 		HFONT hFont = CreateFont(31, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
 		HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
@@ -180,31 +149,29 @@ void Menu::Paint(HDC hdc, HWND hWnd)
 	}
 
 	// 화살표의 깜빡거리는 부분 설정으로 1.5초에 한번씩 깜빡거림
-	if ((int)_finger_twinkle_cnt % 3 != 0 && !_producer)
-		TextOut(hdc, _fingerPos.x, _fingerPos.y, L"▶", 1);
+	if ((int)mTwinkleCnt % 3 != 0 && !mProducer)
+		TextOut(hdc, mPos.x, mPos.y, L"▶", 1);
 
 	SelectObject(hdc, oldFont);
 	DeleteObject(hFont);
 }
-
-// 현재 인트로 화면의 상태를 가리키는 화살표이다. 화살표를 가리킨 상태에서 엔터키를 누르면 그에 맞는 함수 호출
 void Menu::Update(float elapsedTime)
 {
-	_finger_twinkle_cnt += elapsedTime * 3.f;
+	mTwinkleCnt += elapsedTime * 3.f;
 
-	if (GetAsyncKeyState(VK_UP) & 0x0001 && _finger > 0)
+	if (GetAsyncKeyState(VK_UP) & 0x0001 && mFingerCount > 0)
 	{
-		_producer = false;
-		_finger -= 1;
+		mProducer = false;
+		mFingerCount -= 1;
 	}
-	else if (GetAsyncKeyState(VK_DOWN) & 0x0001 && _finger < 2)
+	else if (GetAsyncKeyState(VK_DOWN) & 0x0001 && mFingerCount < 2)
 	{
-		_producer = false;
-		_finger += 1;
+		mProducer = false;
+		mFingerCount += 1;
 	}
 	else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 	{
-		switch (_finger)
+		switch (mFingerCount)
 		{
 		case MI_Menu::start:
 		{
@@ -213,7 +180,7 @@ void Menu::Update(float elapsedTime)
 		}
 			break;
 		case MI_Menu::producer:
-			_producer = true;
+			mProducer = true;
 			break;
 		case MI_Menu::finish:
 			if (GET_SINGLE(Network)->IsConnected())
@@ -223,4 +190,73 @@ void Menu::Update(float elapsedTime)
 		}
 	}
 
+}
+
+// ============================================================= Intro
+void Intro::Init()
+{
+	mBackground = make_shared<IntroGameObject>();
+	mBackground->Init(L"images\\intro\\Instruction_Background2.png", Vector2{ 0.f, 0.f });
+
+	mMenu = make_shared<Menu>();
+	mMenu->Init();
+
+	mLogo = make_shared<Logo>();
+	mLogo->Init();
+
+	{
+		const RECT rectWindow = sceneManager->GetRectDisplay();
+
+		std::shared_ptr<Cloud> cloud1 = make_shared<Cloud>();
+		cloud1->SetMove(Vector2{ 40, 0 });
+		cloud1->SetRectWindow(rectWindow);
+		cloud1->Init(L"images\\intro\\Instruction_Cloud1.bmp", Vector2{ FIRSTCLOUD_X, FIRSTCLOUD_Y });
+		mClouds.emplace_back(cloud1);
+
+		std::shared_ptr<Cloud> cloud2 = make_shared<Cloud>();
+		cloud2->Init(L"images\\intro\\Instruction_Cloud2.bmp", Vector2{ SECONDCLOUD_X, SECONDCLOUD_Y });
+		cloud2->SetMove(Vector2{ 20, 0 });
+		cloud2->SetRectWindow(rectWindow);
+		mClouds.emplace_back(cloud2);
+
+		std::shared_ptr<Cloud> cloud3 = make_shared<Cloud>();
+		cloud3->Init(L"images\\intro\\Instruction_Cloud3.bmp", Vector2{ THIRDCLOUD_X, THIRDCLOUD_Y });
+		cloud3->SetMove(Vector2{ 10, 0 });
+		cloud3->SetRectWindow(rectWindow);
+		mClouds.emplace_back(cloud3);
+
+		std::shared_ptr<Cloud> cloud4 = make_shared<Cloud>();
+		cloud4->Init(L"images\\intro\\Instruction_Cloud4.bmp", Vector2{ FOURTHCLOUD_X, FOURTHCLOUD_Y });
+		cloud4->SetMove(Vector2{ 40, 0 });
+		cloud4->SetRectWindow(rectWindow);
+		mClouds.emplace_back(cloud4);
+	}
+}
+void Intro::Update(float elapsedTime)
+{
+	const RECT rectWindow = sceneManager->GetRectDisplay();
+
+	mClouds[0]->Update(elapsedTime);
+	mClouds[1]->Update(elapsedTime);
+	mClouds[2]->Update(elapsedTime);
+	mClouds[3]->Update(elapsedTime);
+	mLogo->Update(elapsedTime);
+	mMenu->Update(elapsedTime);
+
+	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
+
+	//else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
+	//{
+	//	battle.Init();
+	//	phase.fingerController(sceneManager->GetHwnd());
+	//}
+}
+
+void Intro::Paint(HDC hdc)
+{
+	mBackground->Paint(hdc);
+	for (auto& cloud : mClouds)
+		cloud->Paint(hdc);
+	mLogo->Paint(hdc);
+	mMenu->Paint(hdc);
 }

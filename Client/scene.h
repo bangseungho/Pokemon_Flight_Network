@@ -59,7 +59,7 @@ public:
 class Loading
 {
 private:
-	CImage _glowing_black;
+	CImage mGlowingBlack;
 	CImage _loading_pokemon;
 	CImage _loading_bar[5];
 	int _loading_bar_cnt = 0;

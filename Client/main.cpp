@@ -26,9 +26,6 @@ Stage stage;
 PhaseManager phase;
 Battle battle;
 
-Cloud cloud[4];
-Logo logo;
-Menu menu;
 CImage glowing_black;
 
 GameData gameData;
