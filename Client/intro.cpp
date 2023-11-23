@@ -1,35 +1,58 @@
 #include "stdafx.h"
 #include "Intro.h"
 #include "scene.h"
+#include "sound.h"
 #include "Network.h"
 #include "timer.h"
 
 extern SceneManager* sceneManager;
+extern SoundManager* soundManager;
 
 // ============================================================= IntroGameObject
-void IntroGameObject::Init()
+void MyGameObject::Init()
 {
 }
-void IntroGameObject::Init(const wchar_t* imgfile, Vector2 pos)
+void MyGameObject::Init(const FRECT& draw, const wchar_t* imgfile)
 {
-	mCImage.Load(imgfile);
+	if (imgfile != nullptr)
+		mCImage.Load(imgfile);
+
+	mRectDraw = draw;
+	ConvertToVector();
+	mRectImage = { 0, 0, (LONG)mSize.x, (LONG)mSize.y };
+}
+void MyGameObject::Init(const Vector2& pos, const Vector2& size, const RECT& rectImage, const wchar_t* imgfile)
+{
+	if (imgfile != nullptr)
+		mCImage.Load(imgfile);
+
+	mPos = pos;
+	mSize = size;
+	mRectImage = rectImage;
+	ConvertToFRECT();
+}
+void MyGameObject::Init(const Vector2& pos, const wchar_t* imgfile)
+{
+	if (imgfile != nullptr)
+		mCImage.Load(imgfile);
 
 	mSize.x = mCImage.GetWidth();
 	mSize.y = mCImage.GetHeight();
 
 	mPos = pos;
-	mRectImage = { 0, 0, mSize.x, mSize.y };
+	mRectImage = { 0, 0, (LONG)mSize.x, (LONG)mSize.y };
 }
-void IntroGameObject::Update(float elapsedTime)
+void MyGameObject::Update(float elapsedTime)
 {
 }
-void IntroGameObject::Paint(HDC hdc)
+void MyGameObject::Paint(HDC hdc)
 {
 	// 사이즈에 따른 위치 렉트값
 	mRectDraw = { mPos.x, mPos.y, mSize.x + mPos.x, mSize.y + mPos.y };
 
+	FRECT rect = { mPos.x, mPos.y, mSize.x, mSize.y };
 	// 이미지 출력
-	mCImage.TransparentBlt(hdc, mRectDraw, mRectImage, RGB(254, 254, 254));
+	mCImage.TransparentBlt(hdc, rect, mRectImage, RGB(254, 254, 254));
 }
 
 // ============================================================= Cloud
@@ -195,8 +218,8 @@ void Menu::Update(float elapsedTime)
 // ============================================================= Intro
 void Intro::Init()
 {
-	mBackground = make_shared<IntroGameObject>();
-	mBackground->Init(L"images\\intro\\Instruction_Background2.png", Vector2{ 0.f, 0.f });
+	mBackground = make_shared<MyGameObject>();
+	mBackground->Init(Vector2{ 0.f, 0.f }, L"images\\intro\\Instruction_Background2.png");
 
 	mMenu = make_shared<Menu>();
 	mMenu->Init();
@@ -210,27 +233,30 @@ void Intro::Init()
 		std::shared_ptr<Cloud> cloud1 = make_shared<Cloud>();
 		cloud1->SetMove(Vector2{ 40, 0 });
 		cloud1->SetRectWindow(rectWindow);
-		cloud1->Init(L"images\\intro\\Instruction_Cloud1.bmp", Vector2{ FIRSTCLOUD_X, FIRSTCLOUD_Y });
+		cloud1->Init(Vector2{ FIRSTCLOUD_X, FIRSTCLOUD_Y }, L"images\\intro\\Instruction_Cloud1.bmp");
 		mClouds.emplace_back(cloud1);
 
 		std::shared_ptr<Cloud> cloud2 = make_shared<Cloud>();
-		cloud2->Init(L"images\\intro\\Instruction_Cloud2.bmp", Vector2{ SECONDCLOUD_X, SECONDCLOUD_Y });
+		cloud2->Init(Vector2{ SECONDCLOUD_X, SECONDCLOUD_Y }, L"images\\intro\\Instruction_Cloud2.bmp");
 		cloud2->SetMove(Vector2{ 20, 0 });
 		cloud2->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud2);
 
 		std::shared_ptr<Cloud> cloud3 = make_shared<Cloud>();
-		cloud3->Init(L"images\\intro\\Instruction_Cloud3.bmp", Vector2{ THIRDCLOUD_X, THIRDCLOUD_Y });
+		cloud3->Init(Vector2{ THIRDCLOUD_X, THIRDCLOUD_Y }, L"images\\intro\\Instruction_Cloud3.bmp");
 		cloud3->SetMove(Vector2{ 10, 0 });
 		cloud3->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud3);
 
 		std::shared_ptr<Cloud> cloud4 = make_shared<Cloud>();
-		cloud4->Init(L"images\\intro\\Instruction_Cloud4.bmp", Vector2{ FOURTHCLOUD_X, FOURTHCLOUD_Y });
+		cloud4->Init(Vector2{ FOURTHCLOUD_X, FOURTHCLOUD_Y }, L"images\\intro\\Instruction_Cloud4.bmp");
 		cloud4->SetMove(Vector2{ 40, 0 });
 		cloud4->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud4);
 	}
+
+	soundManager->StopBGMSound();
+	soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
 }
 void Intro::Update(float elapsedTime)
 {

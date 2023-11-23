@@ -16,6 +16,7 @@ public:
 	float GetDeltaTime() const;
 	float GetFps() const;
 	double			mDeltaTime = -1.0;
+	mutable std::mutex	mMutex;
 
 private:
 	double			mSecondsPerCount = 0.0;
@@ -28,7 +29,6 @@ private:
 	float			mFps = 0.f;
 	float			mSpf = 0.f;
 	bool			mStopped = false;
-
 	std::vector<SOCKET> mPlayerSockVec;
 };
 

@@ -83,8 +83,6 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	if (loading.IsLoaded() == true)
 	{
 		// 로딩 화면이 끝날때마다 타운 모두 초기화
-		town.Init(rectWindow, hWnd);
-
 		stage.SelectPokemonInit();
 
 		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운

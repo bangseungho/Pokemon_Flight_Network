@@ -1,26 +1,8 @@
 #pragma once
-#include <array>
-#include <memory>
 
 enum MI_Menu { start = 0, producer, finish };
 
-class IntroGameObject
-{
-public:
-	virtual void Init();
-	virtual void Init(const wchar_t* imgfile, Vector2 pos);
-	virtual void Update(float elapsedTime);
-	virtual void Paint(HDC hdc);
-
-protected:
-	CImage		mCImage;
-	Vector2		mPos;
-	POINT		mSize = { 0, };
-	FRECT		mRectDraw = { 0, };
-	RECT		mRectImage = { 0, };
-};
-
-class Cloud : public IntroGameObject
+class Cloud : public MyGameObject
 {
 public:
 	virtual void Update(float elapsedTime) override;
@@ -34,7 +16,7 @@ private:
 	RECT	mRectWindow;
 };
 
-class Logo : public IntroGameObject
+class Logo : public MyGameObject
 {
 public:
 	virtual void Init() override;
@@ -47,7 +29,7 @@ private:
 	Vector2		mFlightStrPos = {};
 };
 
-class Menu : public IntroGameObject
+class Menu : public MyGameObject
 {
 public:
 	virtual void Init() override;
@@ -72,12 +54,12 @@ public:
 	virtual void Paint(HDC hdc);
 
 public:
-	std::shared_ptr<IntroGameObject> GetMenu() { return mMenu; }
+	std::shared_ptr<MyGameObject> GetMenu() { return mMenu; }
 
 private:
-	std::shared_ptr<IntroGameObject>				mBackground;
-	std::shared_ptr<IntroGameObject>				mMenu;
-	std::shared_ptr<IntroGameObject>				mLogo;
-	std::vector<std::shared_ptr<IntroGameObject>>	mClouds;
+	std::shared_ptr<MyGameObject>				mBackground;
+	std::shared_ptr<MyGameObject>				mMenu;
+	std::shared_ptr<MyGameObject>				mLogo;
+	std::vector<std::shared_ptr<MyGameObject>>	mClouds;
 };
 

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <thread>
-#include <mutex>
+#include <chrono>
 
 #include "Timer.h"
 #include "Physics.h"
@@ -13,16 +13,19 @@ using namespace std;
 
 #define MAX_BUFSIZE     1024
 
-// TODO : 타이머를 서버에서 클라로 넘겨주는 방식이 아니라 키 입력을 받은 후
-// 서버에서 이동 혹은 물리 처리를 한 후 다시 넘겨주는 방식으로 바꿔야함
-// 이유는 타이머를 클라이언트에게 매번 보내는 것은 매우 많은 서버를 사용하게 됨
-// 따라서 서버 타이머의 델타 타임을 기준으로 클라이언트 플레이어의 이동을 처리해야함
-
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static unordered_map<uint8, NetworkPlayerData> sPlayers;
 CRITICAL_SECTION cs;
 //EnterCriticalSection(&cs);
 //LeaveCriticalSection(&cs);
+
+void ProcessTimer()
+{
+	while (true) {
+		GET_SINGLE(Timer)->Update();
+		this_thread::sleep_for(chrono::milliseconds(16)); // 대략 60fps로 맞추기
+	}
+}
 
 void ProcessClient(ThreadSocket sock)
 {
@@ -73,14 +76,6 @@ void ProcessClient(ThreadSocket sock)
 
 				// 현재 클라이언트의 씬 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<SceneData>(player.second.mSock, data);
-
-				// 모든 클라이언트의 씬, 타운 정보를 현재 클라이언트로 송신한다.
-				// 씬 패킷 송신에서 타운 패킷까지 송신하는 이유는 타운에서는 다른 씬과는 다르게
-				// 멤버 플레이어들의 씬 위치마다 해당 클라이언트에게 보이거나 보이지 말아야 한다.
-				// 또한 키보드 입력을 눌렀을 때만 타운 패킷을 송신하기 때문에 씬을 타운으로 전환 후
-				// 한 번도 키보드를 누르지 않은 경우 멤버 플레이어가 보이지 않거나 이전 위치에 있다.
-				// 따라서 새로운 씬이 로드 될 때마다 새로운 위치를 전송하는 것이다.
-				// 이후 배틀에서도 멤버 플레이어들의 배틀 패킷을 한 번 보내야 한다.
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
@@ -138,14 +133,14 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			for (const auto& player : sPlayers) {
-				if (player.second.mThreadId == threadId)
+			Physics::MoveTownPlayer(data, DELTA_TIME);
 
+			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
 
 #ifdef _DEBUG
-			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId) 
+			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId)
 				 << ", ISREADY: " << data.IsReady 
 				 << ", POSX: " << data.PlayerData.Pos.x 
 				 << ", POSY: " << data.PlayerData.Pos.y << endl;
@@ -228,6 +223,7 @@ int main(int argc, char* argv[])
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
 	InitializeCriticalSection(&cs);
 	GET_SINGLE(Timer)->Init();
+	GET_SINGLE(Timer)->Start();
 #pragma endregion
 
 #pragma region Socket
@@ -257,6 +253,7 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
+	thread processTimerThread{ ProcessTimer };
 	vector<thread> processClientThread;
 	uint8 sPlayerCount{};
 

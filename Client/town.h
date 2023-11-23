@@ -1,10 +1,22 @@
 #pragma once
 
 #define TOWN_OBJECT_NUM 18
+#define NPC_COUNT 4
+
+class TownObject : public MyGameObject
+{
+};
+
+class NpcObject : public MyGameObject
+{
+};
 
 class Town
 {
 private:
+	std::array<TownObject, TOWN_OBJECT_NUM> mObjects;
+	std::array<NpcObject, NPC_COUNT> mNpcs;
+
 	RECT _object[TOWN_OBJECT_NUM];
 	CImage _backTown;
 	RECT _rectDraw = { 0, };
@@ -43,7 +55,7 @@ public:
 
 	Scene _nextFlow = Scene::Town;
 	Player* mPlayer;
-	RECT _rectImage = { 0, };
+	FRECT _rectImage = { 0, };
 	RECT _npc2Rect;
 	POINT _npc1Move = { 0, };
 	POINT _npc2Move = { 0, };

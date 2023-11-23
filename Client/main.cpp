@@ -68,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	hWnd = CreateWindow(lpszClass,
 		lpszWindowName,
 		WS_OVERLAPPED,
-		300,
+		1500,
 		300,
 		WINDOWSIZE_X,
 		WINDOWSIZE_Y,
@@ -115,9 +115,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_ERASEBKGND:
 		return FALSE;
 	break;
-	case WM_ACTIVATE:
-		if (wParam == WA_INACTIVE) town.mActive = false;
-		break;
 	case WM_KEYDOWN:
 		CheckKeyDown(hWnd, wParam);
 		break;

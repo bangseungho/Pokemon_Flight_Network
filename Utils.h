@@ -14,6 +14,7 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <mutex>
 
 #pragma comment(lib, "ws2_32") 
 
@@ -226,6 +227,18 @@ struct Vector2 {
 	{
 		return { (LONG)x, (LONG)y };
 	}
+	inline constexpr Vector2& operator+=(const Vector2& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		return *this;
+	}
+	inline constexpr Vector2& operator-=(const Vector2& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		return *this;
+	}
 	inline constexpr Vector2 operator=(const POINT& rhs)
 	{
 		return { static_cast<float>(rhs.x), static_cast<float>(rhs.y) };
@@ -325,6 +338,41 @@ typedef struct FRECT {
 	{
 		return { (float)rhs.left, (float)rhs.right, (float)rhs.top, (float)rhs.bottom };
 	}
+	inline FRECT operator+(const FRECT& rhs)
+	{
+		FRECT res;
+		res.left = left + rhs.left;
+		res.top = top + rhs.top;
+		res.right = right + rhs.right;
+		res.bottom = bottom + rhs.bottom;
+		return res;
+	}
+	inline FRECT& operator+=(const FRECT& rhs)
+	{
+		left = left + rhs.left;
+		top = top + rhs.top;
+		right = right + rhs.right;
+		bottom = bottom + rhs.bottom;
+		return *this;
+	}
+	inline FRECT operator-(const FRECT& rhs)
+	{
+		FRECT res;
+		res.left = left - rhs.left;
+		res.top = top - rhs.top;
+		res.right = right - rhs.right;
+		res.bottom = bottom - rhs.bottom;
+		return res;
+	}
+	inline FRECT& operator-=(const FRECT& rhs)
+	{
+		left = left - rhs.left;
+		top = top - rhs.top;
+		right = right - rhs.right;
+		bottom = bottom - rhs.bottom;
+		return *this;
+	}
+
 }FRECT;
 
 Vector2 Rotate(Vector2 vector, float degree);
@@ -352,12 +400,6 @@ struct ThreadSocket
 {
 	SOCKET	Sock;
 	uint8	Id;
-};
-
-struct TimerData
-{
-	double DeltaTime = 0;
-	float TotalTime = 0.f;
 };
 
 struct IntroData
@@ -478,9 +520,7 @@ public:
 	template<typename T>
 	static inline DataType GetDataType()
 	{
-		if (std::is_same_v<T, TimerData>)
-			return DataType::TIMER_DATA;
-		else if (std::is_same_v<T, IntroData>)
+		if (std::is_same_v<T, IntroData>)
 			return DataType::INTRO_DATA;
 		else if (std::is_same_v<T, TownData>)
 			return DataType::TOWN_DATA;

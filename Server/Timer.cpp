@@ -14,6 +14,7 @@ void Timer::Init()
 
 void Timer::Update()
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	if (mStopped) {
 		mDeltaTime = 0.0;
 		return;
@@ -79,6 +80,7 @@ float Timer::GetTotalTime() const
 
 float Timer::GetDeltaTime() const
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	return (float)mDeltaTime;
 }
 

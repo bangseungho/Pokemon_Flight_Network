@@ -22,6 +22,8 @@
 #include <cassert>
 #include <algorithm>
 #include <unordered_map>
+#include <array>
+#include <memory>
 
 #pragma region Window Define
 #define WINDOWSIZE_X				500
@@ -94,3 +96,34 @@
 #define	WIN32_LEAN_AND_MEAN
 #undef WINVER
 #define WINVER 0x6000
+
+class MyGameObject
+{
+public:
+	virtual void Init();
+	virtual void Init(const FRECT& draw, const wchar_t* imgfile = nullptr);
+	virtual void Init(const Vector2& pos, const Vector2& size, const RECT& rectImage = RECT{}, const wchar_t* imgfile = nullptr);
+	virtual void Init(const Vector2& pos, const wchar_t* imgfile = nullptr);
+	virtual void Update(float elapsedTime);
+	virtual void Paint(HDC hdc);
+
+public:
+	void ConvertToVector() {
+		mPos = Vector2{ (mRectDraw.right + mRectDraw.left) / 2.f, (mRectDraw.bottom + mRectDraw.top) / 2.f };
+		mSize = Vector2{ (mRectDraw.right - mRectDraw.left) / 2.f, (mRectDraw.bottom - mRectDraw.top) / 2.f };
+	}
+
+	void ConvertToFRECT()
+	{
+		mRectDraw = FRECT{ mPos.x - mSize.x, mPos.y - mSize.y, mPos.x + mSize.x, mPos.y + mSize.y };
+	}
+
+public:
+	CImage		mCImage;
+	Vector2		mPos;
+	Vector2		mSize = { 0, };
+	FRECT		mRectDraw = { 0, };
+	RECT		mRectImage = { 0, };
+};
+
+

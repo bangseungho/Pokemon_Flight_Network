@@ -126,8 +126,6 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	{
 	case Scene::Intro:
 		intro.Init();
-		soundManager->StopBGMSound();
-		soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
 		break;
 	case Scene::Town:
 	{
