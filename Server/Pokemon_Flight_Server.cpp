@@ -19,8 +19,13 @@ CRITICAL_SECTION cs;
 //LeaveCriticalSection(&cs);
 uint8 sPlayerCount{};
 
+CharacterSelection selection;
+
+
 DWORD WINAPI ProcessClient(LPVOID sock)
 {
+	
+	
 	// ThreadSocket = Socket + threadId 
 	ThreadSocket* threadSocket = reinterpret_cast<ThreadSocket*>(sock);
 	SOCKET clientSock = threadSocket->Sock;
@@ -155,7 +160,37 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 			auto& data = sPlayers[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
-			Data::SendDataAndType<StageData>(clientSock, data);
+			
+				for (const auto& player : sPlayers) {
+
+					if (player.second.mThreadId == threadId) {
+						
+
+						if (selection.player1 == 3) { // 1착
+							data.PlayerData.PickApproved = true;
+							selection.player1 = data.PlayerData.PickedCharacter;
+							Data::SendDataAndType<StageData>(player.second.mSock, data);
+						}
+						else if (selection.player1 == data.PlayerData.PickedCharacter) { // 겹침
+							data.PlayerData.PickApproved = false;
+							Data::SendDataAndType<StageData>(player.second.mSock, data);
+						
+						}
+						else if (selection.player1 != data.PlayerData.PickedCharacter) { //안겹침
+							data.PlayerData.PickApproved = true;
+							selection.player2 = data.PlayerData.PickedCharacter;
+							Data::SendDataAndType<StageData>(player.second.mSock, data);
+						}
+
+					}
+
+
+				}
+			
+
+			
+			
+
 
 			//for (const auto& player : sPlayers) {
 			//	if (player.mThreadId == threadId)
@@ -163,9 +198,11 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 			//	SendData<StageData>(clientSock, player.mStageData);
 			//}
+			Data::SendDataAndType<StageData>(clientSock, data);
 
 #ifdef _DEBUG
 			cout << "RECORD: " << data.Record << endl;
+			cout << "pick1: " << selection.player1 << "pick2: " << selection.player2 << endl;
 #endif
 		}
 #pragma endregion
