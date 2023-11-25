@@ -64,8 +64,12 @@ struct TownData
 
 struct StageData
 {
+	struct StagePlayerData {
+		int		PickedCharacter;
+		bool	PickApproved;
+	};
 	uint8	PlayerIndex = 0;
-	bool	SelectSuccess;
+	StagePlayerData PlayerData;
 	int		Record;
 };
 

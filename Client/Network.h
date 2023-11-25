@@ -13,6 +13,8 @@ public:
 
 public:
 	void Receiver();
+	bool Approval;
+	
 
 public:
 	void Init(string ipAddr);
@@ -34,6 +36,7 @@ private:
 	thread			mRecvThread;
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
+	
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };

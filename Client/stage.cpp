@@ -1,3 +1,4 @@
+#pragma once
 #include "stdafx.h"
 #include "stage.h"
 #include "intro.h"
@@ -414,36 +415,56 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 
 // 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러
 void Stage::fingerController(const HWND& hWnd)
-{
+{	
+	
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
+		StageData::StagePlayerData playerData{ _play_Air_pokemon, false };
+		StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord };
+
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
 		{	
 			//if (SelectionSuccess == false ){continue;} else{
 			if (!_ready_Air_pokemon)
-			{
-				_play_Air_pokemon = _finger;
-				_finger = 3;
-				_ready_Air_pokemon = true;
+			{	
+				while (1) {
+					
+					_play_Air_pokemon = _finger;
+					_finger = 3;
+					playerData.PickedCharacter = _play_Air_pokemon;
+					
+					
+					
 
-				switch (_play_Air_pokemon)
-				{
-				case 0:
-					airPokemon = Type::Elec;
-					soundManager->PlayHitSound(HitSound::Elec);
-					break;
-				case 1:
-					airPokemon = Type::Fire;
-					soundManager->PlayHitSound(HitSound::Fire);
-					break;
-				case 2:
-					airPokemon = Type::Water;
-					soundManager->PlayHitSound(HitSound::Water);
-					break;
-				default:
-					assert(0);
-					break;
+					GET_SINGLE(Network)->SendDataAndType(stageData);
+					
+					if (playerData.PickApproved == true) {
+						_ready_Air_pokemon = true;
+						switch (_play_Air_pokemon)
+						{
+						case 0:
+							airPokemon = Type::Elec;
+							soundManager->PlayHitSound(HitSound::Elec);
+							break;
+						case 1:
+							airPokemon = Type::Fire;
+							soundManager->PlayHitSound(HitSound::Fire);
+							break;
+						case 2:
+							airPokemon = Type::Water;
+							soundManager->PlayHitSound(HitSound::Water);
+							break;
+						default:
+							assert(0);
+							break;
+						}
+						break;
+					}
+					
 				}
+				
+
+				
 			}
 			else if (!_ready_Land_pokemon)
 			{

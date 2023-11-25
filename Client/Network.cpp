@@ -22,6 +22,7 @@ Network::~Network()
 #endif 
 }
 
+
 void Network::Receiver()
 {
 	while (1) {
@@ -116,8 +117,26 @@ void Network::Receiver()
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
 		}
 #pragma endregion
+
+#pragma region Stage
+		else if (dataType == DataType::STAGE_DATA) {
+			// 패킷을 수신할 임시 객체
+			StageData recvData;
+			ZeroMemory(&recvData, sizeof(StageData));
+
+			// 패킷 수신
+			Data::RecvData<StageData>(mClientSock, recvData);
+			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mStageData= move(recvData);
+
+		}
 	}
 }
+
+
+
 
 void Network::Init(string ipAddr)
 {
@@ -172,3 +191,5 @@ void Network::Connect()
 	// Recv 스레드 생성
 	mRecvThread = thread(&Network::Receiver, this);
 }
+
+
