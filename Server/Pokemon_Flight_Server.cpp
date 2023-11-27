@@ -84,6 +84,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 				// 이후 배틀에서도 멤버 플레이어들의 배틀 패킷을 한 번 보내야 한다.
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
+				Data::SendDataAndType<StageData>(clientSock, player.second.mStageData);
 			}
 
 #ifdef _DEBUG
@@ -165,12 +166,15 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 				for (const auto& player : sPlayers) {
 
 					if (player.second.mThreadId == threadId) {
+
 						
 
 						if (selection.player1 == 3) { // 1착
 							data.PlayerData.PickApproved = true;
 							selection.player1 = data.PlayerData.PickedCharacter;
+							data.IsReady = true;
 							Data::SendDataAndType<StageData>(player.second.mSock, data);
+
 						}
 						else if (selection.player1 == data.PlayerData.PickedCharacter) { // 겹침
 							data.PlayerData.PickApproved = false;
@@ -180,6 +184,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 						else if (selection.player1 != data.PlayerData.PickedCharacter) { //안겹침
 							data.PlayerData.PickApproved = true;
 							selection.player2 = data.PlayerData.PickedCharacter;
+							data.IsReady = true;
 							Data::SendDataAndType<StageData>(player.second.mSock, data);
 						}
 
@@ -187,11 +192,7 @@ DWORD WINAPI ProcessClient(LPVOID sock)
 
 
 				}
-			
-
-			
-			
-
+				// 상대방도 선택 완료될때까지 기다려야함 
 
 			//for (const auto& player : sPlayers) {
 			//	if (player.mThreadId == threadId)

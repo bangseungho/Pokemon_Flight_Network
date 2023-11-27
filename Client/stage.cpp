@@ -419,26 +419,26 @@ void Stage::fingerController(const HWND& hWnd)
 	
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
-		StageData::StagePlayerData playerData{ _play_Air_pokemon, false };
-		StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord };
-
+		
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
 		{	
-			//if (SelectionSuccess == false ){continue;} else{
+
+			
 			if (!_ready_Air_pokemon)
 			{	
 				while (1) {
-					
 					_play_Air_pokemon = _finger;
 					_finger = 3;
-					playerData.PickedCharacter = _play_Air_pokemon;
+					StageData::StagePlayerData playerData;
+					if ((GetAsyncKeyState(VK_RETURN))) {
+						StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), playerData,false};						
+						playerData.PickedCharacter = _play_Air_pokemon;
+						GET_SINGLE(Network)->SendDataAndType(playerData);
+					}
 					
-					
-					
-
-					GET_SINGLE(Network)->SendDataAndType(stageData);
 					
 					if (playerData.PickApproved == true) {
+						
 						_ready_Air_pokemon = true;
 						switch (_play_Air_pokemon)
 						{
@@ -468,42 +468,53 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (!_ready_Land_pokemon)
 			{
-				_play_Land_pokemon = _finger;
-				_ready_Land_pokemon = true;
-
-				switch (_play_Land_pokemon)
-				{
-				case 3:
-				{
-					landPokemon = Type::Elec;
-
-					const int randSound = rand() % 2;
-					if (randSound != 0)
-					{
-						soundManager->PlaySelectSound(SelectSound::Pikachu1);
+				while (1) {
+					_play_Land_pokemon = _finger;
+					_ready_Land_pokemon = true;
+					StageData::StagePlayerData playerData{ _play_Land_pokemon };
+					if ((GetAsyncKeyState(VK_RETURN) == true)) {
+						StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord };
+						playerData.PickedCharacter = _play_Land_pokemon;
+						GET_SINGLE(Network)->SendDataAndType(stageData);
 					}
-					else
+
+					switch (_play_Land_pokemon)
 					{
-						soundManager->PlaySelectSound(SelectSound::Pikachu2);
+					case 3:
+					{
+						landPokemon = Type::Elec;
+
+						const int randSound = rand() % 2;
+						if (randSound != 0)
+						{
+							soundManager->PlaySelectSound(SelectSound::Pikachu1);
+						}
+						else
+						{
+							soundManager->PlaySelectSound(SelectSound::Pikachu2);
+						}
+					}
+						break;
+					case 4:
+						landPokemon = Type::Fire;
+						soundManager->PlaySelectSound(SelectSound::Charmander);
+						break;
+					case 5:
+						landPokemon = Type::Water;
+						soundManager->PlaySelectSound(SelectSound::Squirtle);
+						break;
+					default:
+						assert(0);
+						break;
 					}
 				}
-					break;
-				case 4:
-					landPokemon = Type::Fire;
-					soundManager->PlaySelectSound(SelectSound::Charmander);
-					break;
-				case 5:
-					landPokemon = Type::Water;
-					soundManager->PlaySelectSound(SelectSound::Squirtle);
-					break;
-				default:
-					assert(0);
-					break;
-				}
+				
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
-			{
+			{	
+				
 				moveX = 300;
+				//넘어가길 기다려야함
 				sceneManager->StartLoading(hWnd);
 			}
 		}

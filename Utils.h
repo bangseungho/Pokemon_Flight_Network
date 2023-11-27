@@ -66,11 +66,13 @@ struct StageData
 {
 	struct StagePlayerData {
 		int		PickedCharacter;
-		bool	PickApproved;
+		bool	PickApproved = false;
 	};
 	uint8	PlayerIndex = 0;
 	StagePlayerData PlayerData;
+	bool	IsReady;
 	int		Record;
+	
 };
 
 struct PhaseData

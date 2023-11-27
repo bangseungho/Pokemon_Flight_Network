@@ -214,6 +214,7 @@ void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x + 20 >= rectWindow.right)
 	{
 		sceneManager->StartLoading(hWnd);
+
 		town._nextFlow = Scene::Stage;
 	}
 	// 일정 범위 (렉트 윈도우의 왼 쪽) 넘어갈시 전 메인화면으로 진행
