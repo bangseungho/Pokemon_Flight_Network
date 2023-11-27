@@ -113,11 +113,12 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 	}
 
 	auto& recvData = GET_SINGLE(Network)->GetStageData();
+	target->_rectDraw = recvData.RectDraw;
 
 	// 타겟이 해당 스테이지 충돌 박스와 충돌시 빨간색 타겟 이미지로 변경
 	if (target->_select == false)
 	{
-		target->_img.Draw(hdc, recvData.RectDraw, target->_rectImage);
+		target->_img.Draw(hdc, target->_rectDraw, target->_rectImage);
 	}
 	else
 	{
@@ -265,18 +266,40 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 		}
 	}
 
-	auto& recvData = GET_SINGLE(Network)->GetStageData();
-	target->_rectDraw = recvData.RectDraw;
-
 	int inputKey = 0;
 	// 타겟 이동
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left && !_select_pokemon)
 	{
 		inputKey = VK_LEFT;
-		target->_rectDraw.left -= MAPSCROLL_SPEED;
-		target->_rectDraw.right -= MAPSCROLL_SPEED;
 		_dialogflag = false;
+	}
+	// 타겟 이동
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
+	{
+		inputKey = VK_RIGHT;
+		_dialogflag = false;
+	}
+	// 타겟 이동
+	if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
+	{
+		inputKey = VK_UP;
+		_dialogflag = false;
+	}
+	// 타겟 이동
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
+	{
+		inputKey = VK_DOWN;
+		_dialogflag = false;
+	}
 
+	if (inputKey != 0) {
+		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, target->_rectDraw };
+		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+	}
+	
+	auto& recvData = GET_SINGLE(Network)->GetStageData();
+
+	if (recvData.InputKey == VK_LEFT) {
 		if (moveX > 0)
 		{
 			moveX -= 10;
@@ -288,14 +311,7 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 			}
 		}
 	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
-	{
-		inputKey = VK_RIGHT;
-		target->_rectDraw.left += MAPSCROLL_SPEED;
-		target->_rectDraw.right += MAPSCROLL_SPEED;
-		_dialogflag = false;
-
+	else if (recvData.InputKey == VK_RIGHT) {
 		if (moveX < 450)
 		{
 			moveX += 10;
@@ -307,28 +323,9 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 			}
 		}
 	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
-	{
-		inputKey = VK_UP;
-		target->_rectDraw.top -= MAPSCROLL_SPEED * 2;
-		target->_rectDraw.bottom -= MAPSCROLL_SPEED * 2;
-		_dialogflag = false;
-	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
-	{
-		inputKey = VK_DOWN;
-		target->_rectDraw.top += MAPSCROLL_SPEED * 2;
-		target->_rectDraw.bottom += MAPSCROLL_SPEED * 2;
-		_dialogflag = false;
-	}
 
-	if (inputKey != 0) {
-		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, target->_rectDraw };
-		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
-	}
-	
+	target->_rectDraw = recvData.RectDraw;
+	recvData.InputKey = 0;
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
 	if (GetAsyncKeyState(VK_RETURN) & 0x0001 && target->_select == true)

@@ -448,6 +448,7 @@ struct SceneData
 {
 	uint8	PlayerIndex = 0;
 	uint8	Scene = 0;
+	int		Record = 0;
 };
 
 struct EndProcessing

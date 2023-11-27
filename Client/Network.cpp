@@ -7,8 +7,11 @@ extern SceneManager* sceneManager;
 
 Network::Network()
 {
+	auto rectWindow = sceneManager->GetRectWindow();
+
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
+	mRecvStageData.RectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 }
 
 Network::~Network()

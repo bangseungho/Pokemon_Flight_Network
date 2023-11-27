@@ -39,6 +39,8 @@ void ProcessClient(ThreadSocket sock)
 	if (!Data::SendData(clientSock, threadId))
 		return;
 
+	int mainPlayerIndex = 0;
+
 	// 클라이언트 정보 가져오기
 	SOCKADDR_IN clientaddr;
 	int addrlen;
@@ -67,7 +69,13 @@ void ProcessClient(ThreadSocket sock)
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			// 모든 클라이언트들에게 자신의 정보를 담은 패킷 송신
+			uint8 minRecord = 9;
 			for (const auto& player : sPlayers) {
+				if (minRecord > player.second.mSceneData.Record) {
+					minRecord = player.second.mSceneData.Record;
+					mainPlayerIndex = player.second.mThreadId;
+				}
+
 				// 플레이어가 자신이라면 패킷을 전송하지 않는다.
 				if (player.second.mThreadId == threadId)
 					continue;
@@ -153,24 +161,17 @@ void ProcessClient(ThreadSocket sock)
 			auto& data = sPlayers[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
-			uint8 mainPlayerRecord = 9;
-			uint8 mainPlayerIndex = 0;
-			for (const auto& player : sPlayers) {
-				if (player.second.mStageData.Record < mainPlayerRecord) {
-					mainPlayerRecord = player.second.mStageData.Record;
-					mainPlayerIndex = player.second.mThreadId;
-				}
-			}
+			if (mainPlayerIndex != threadId)
+				continue;
 
 			Physics::MoveStagePlayer(sPlayers[mainPlayerIndex].mStageData, DELTA_TIME);
 
 			for (const auto& player : sPlayers) {
-				Data::SendDataAndType<StageData>(clientSock, data);
-			}
-
+				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[mainPlayerIndex].mStageData);
 #ifdef _DEBUG
-			cout << "RECORD: " << data.Record << endl;
+				cout << "POSX: " << sPlayers[mainPlayerIndex].mStageData.RectDraw.left << endl;
 #endif
+			}
 		}
 #pragma endregion
 #pragma region Phase
