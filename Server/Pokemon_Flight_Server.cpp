@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <algorithm>
 
 #include "Timer.h"
 #include "Physics.h"
@@ -121,6 +122,7 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<IntroData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
+			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
 				if (player.second.mThreadId == threadId)
 					continue;
@@ -131,6 +133,7 @@ void ProcessClient(ThreadSocket sock)
 				// 모든 클라이언트의 인트로 정보를 현재 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(clientSock, player.second.mIntroData);
 			}
+			LeaveCriticalSection(&cs);
 		}
 #pragma endregion
 #pragma region Town
@@ -141,10 +144,12 @@ void ProcessClient(ThreadSocket sock)
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			EnterCriticalSection(&cs);
-			for (const auto& player : sPlayers) {
-				if (player.second.mThreadId == threadId)
-					continue;
+			bool allReady = all_of(sPlayers.begin(), sPlayers.end(), [](const auto& a) {
+					return a.second.mTownData.IsReady == 1;
+				});
+			data.IsReady = allReady;
 
+			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
 			LeaveCriticalSection(&cs);
@@ -164,14 +169,17 @@ void ProcessClient(ThreadSocket sock)
 			if (mainPlayerIndex != threadId)
 				continue;
 
-			Physics::MoveStagePlayer(sPlayers[mainPlayerIndex].mStageData, DELTA_TIME);
+			if (data.InputKey == 0)
+				continue;
 
+			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[mainPlayerIndex].mStageData);
 #ifdef _DEBUG
 				cout << "POSX: " << sPlayers[mainPlayerIndex].mStageData.RectDraw.left << endl;
 #endif
 			}
+			LeaveCriticalSection(&cs);
 		}
 #pragma endregion
 #pragma region Phase

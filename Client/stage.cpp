@@ -53,6 +53,7 @@ void Stage::Init(const RECT& rectWindow)
 {
 	target->_rectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
+	mRectTarget = target->_rectDraw;
 
 	rectStage[static_cast<int>(StageElement::Water)] = { 350, 570, 610, 720 };
 	rectStage[static_cast<int>(StageElement::Fire)] = { -230, 570, 30, 720 };
@@ -111,9 +112,6 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 		DeleteObject(hBrush);
 
 	}
-
-	auto& recvData = GET_SINGLE(Network)->GetStageData();
-	target->_rectDraw = recvData.RectDraw;
 
 	// 타겟이 해당 스테이지 충돌 박스와 충돌시 빨간색 타겟 이미지로 변경
 	if (target->_select == false)
@@ -274,60 +272,79 @@ void Stage::Update(float elapsedTime)
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left && !_select_pokemon)
 	{
 		inputKey = VK_LEFT;
-		_dialogflag = false;
+		mRectTarget.left -= 200 * elapsedTime;
+		mRectTarget.right -= 200 * elapsedTime;
 	}
 	// 타겟 이동
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
+	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
 	{
 		inputKey = VK_RIGHT;
-		_dialogflag = false;
+		mRectTarget.left += 200 * elapsedTime;
+		mRectTarget.right += 200 * elapsedTime;
 	}
 	// 타겟 이동
-	if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
+	else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
 	{
 		inputKey = VK_UP;
-		_dialogflag = false;
+		mRectTarget.top -= 200 * elapsedTime;
+		mRectTarget.bottom -= 200 * elapsedTime;
 	}
 	// 타겟 이동
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
+	else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
 	{
 		inputKey = VK_DOWN;
-		_dialogflag = false;
+		mRectTarget.top += 200 * elapsedTime;
+		mRectTarget.bottom += 200 * elapsedTime;
 	}
-	if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+	else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 	{
 		inputKey = VK_RETURN;
 	}
+	else if (GetAsyncKeyState(VK_BACK) & 0x0001)
+	{
+		inputKey = VK_BACK;
+	}
 
-	StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, target->_rectDraw };
+	StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, mRectTarget };
 	Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
-	
+
 	auto& recvData = GET_SINGLE(Network)->GetStageData();
-
-	if (recvData.InputKey == VK_LEFT) {
-		if (moveX > 0)
-		{
-			moveX -= 1;
-
-			for (int i = 0; i < STAGE_NUM; i++)
-			{
-				rectStage[i].left += 1;
-				rectStage[i].right += 1;
-			}
-		}
+	if (recvData.InputKey != 0) {
+		target->_rectDraw = recvData.RectDraw;
+		_dialogflag = false;
 	}
-	else if (recvData.InputKey == VK_RIGHT) {
-		if (moveX < 450)
-		{
-			moveX += 1;
-
-			for (int i = 0; i < STAGE_NUM; i++)
-			{
-				rectStage[i].left -= 1;
-				rectStage[i].right -= 1;
-			}
-		}
+	if (recvData.InputKey == VK_BACK) {
+		_select_pokemon = false;
+		_ready_Air_pokemon = false;
+		_ready_Land_pokemon = false;
+		_enter_select = false;
+		mFingerCount = 0;
 	}
+
+	//if (recvData.InputKey == VK_LEFT) {
+	//	if (moveX > 0)
+	//	{
+	//		moveX -= interval.left;
+
+	//		for (int i = 0; i < STAGE_NUM; i++)
+	//		{
+	//			rectStage[i].left += interval.left;
+	//			rectStage[i].right += interval.left;
+	//		}
+	//	}
+	//}
+	//else if (recvData.InputKey == VK_RIGHT) {
+	//	if (moveX < 450)
+	//	{
+	//		moveX += interval.left;
+
+	//		for (int i = 0; i < STAGE_NUM; i++)
+	//		{
+	//			rectStage[i].left -= interval.left;
+	//			rectStage[i].right -= interval.left;
+	//		}
+	//	}
+	//}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
 	if (recvData.InputKey == VK_RETURN && target->_select == true)
@@ -400,15 +417,6 @@ void Stage::Update(float elapsedTime)
 
 		}
 	}
-
-	if (sceneManager->IsLoading() == false && GetAsyncKeyState(VK_BACK) & 0x0001)
-	{
-		_select_pokemon = false;
-		_ready_Air_pokemon = false;
-		_ready_Land_pokemon = false;
-		_enter_select = false;
-		mFingerCount = 0;
-	}
 	if (GetAsyncKeyState(VK_R) & 0x0001)
 	{
 		_ready_Air_pokemon = false;
@@ -475,7 +483,7 @@ void Stage::fingerController(const HWND& hWnd)
 						soundManager->PlaySelectSound(SelectSound::Pikachu2);
 					}
 				}
-					break;
+				break;
 				case 4:
 					landPokemon = Type::Fire;
 					soundManager->PlaySelectSound(SelectSound::Charmander);

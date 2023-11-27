@@ -35,7 +35,6 @@ private:
 	CImage _exits;
 	CImage mGlowingBlack;
 	bool _exit = false;
-	bool mCanNextScene = false;
 
 public:
 	class Player
@@ -48,6 +47,7 @@ public:
 		RECT _rectImage = { 0, };
 		FRECT _cam = { 0, };
 		Dir _dir = Dir::Down;
+		bool mCanNextScene = false;
 		bool _keepGoing = false;
 	};
 

@@ -100,6 +100,9 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
 
+			if (mClientIndex == recvData.PlayerIndex)
+				mRecvTownData = move(recvData);
+
 			// 인덱스가 해당 클라이언트 인덱스일 경우에는 자신의 데이터에 이동
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);

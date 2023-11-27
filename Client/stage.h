@@ -21,7 +21,7 @@ private:
 
 	RECT _rectDraw = { 0, };
 	RECT _rectImage = { 0, };
-	RECT rectStage[5] = { 0, };
+	FRECT rectStage[5] = { 0, };
 	CImage _water;
 	CImage _fire;
 	CImage _electronic;
@@ -29,6 +29,8 @@ private:
 	CImage _dialog_bar;
 	CImage mGlowingBlack;
 	Target* target;
+	FRECT mRectTarget;
+	FRECT mRectBack;
 	bool _dialogflag = false; // 해금되지 않은 스테이지를 선택한 경우 true
 	bool _select_pokemon = false; // 포켓몬 선택창이 열린 경우 true
 	bool _ready_Air_pokemon = false;
