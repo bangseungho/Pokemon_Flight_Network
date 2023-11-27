@@ -8,11 +8,11 @@ private:
 	class Target
 	{
 	public:
-		RECT _rectDraw = { 0, };
+		FRECT _rectDraw = { 0, };
 		RECT _rectImage = { 0, };
 		CImage _img;
 		CImage _select_img;
-		RECT _cam = { 0, };
+		FRECT _cam = { 0, };
 		bool _select = false;
 		StageElement _select_index;
 	};
@@ -53,7 +53,7 @@ private:
 
 	int mFingerCount = 0;
 	int mTwinkleCnt = 0;
-	int moveX = 300;
+	float moveX = 300;
 	int _play_Air_pokemon = 0;
 	int _play_Land_pokemon = 0;
 
@@ -68,7 +68,7 @@ public:
 	void Init(const RECT& rectWindow);
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow);
-	void Update(const HWND& hWnd, const RECT& rectWindow);
+	void Update(float elapsedTime);
 	void fingerController(const HWND& hWnd);
 	inline constexpr StageElement GetStage()
 	{

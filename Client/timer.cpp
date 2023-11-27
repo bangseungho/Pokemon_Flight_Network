@@ -236,7 +236,6 @@ void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	stage.fingerController(hWnd);
 	if (sceneManager->IsLoading() == false)
 	{
-		stage.Update(hWnd, rectWindow);
 		InvalidateRect(hWnd, NULL, false);
 	}
 }

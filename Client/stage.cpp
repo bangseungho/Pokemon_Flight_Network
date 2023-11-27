@@ -51,7 +51,7 @@ Stage::Stage()
 // 각 스테이지 충돌 박스 크기 및 위치 설정
 void Stage::Init(const RECT& rectWindow)
 {
-	target->_rectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
+	target->_rectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
 
 	rectStage[static_cast<int>(StageElement::Water)] = { 350, 570, 610, 720 };
@@ -248,10 +248,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 }
 
 // 스테이지에서의 Update 함수
-void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
+void Stage::Update(float elapsedTime)
 {
+	if (sceneManager->IsLoading())
+		return;
+
 	RECT rect;
-	target->_cam = { target->_rectDraw.left - CAMSIZE_X, rectWindow.top, target->_rectDraw.right + CAMSIZE_X, rectWindow.bottom };
+	auto rectWindow = sceneManager->GetRectWindow();
 
 	target->_select = false;
 	target->_select_index = StageElement::Null;
@@ -259,7 +262,7 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 	// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
 	for (int i = 0; i < STAGE_NUM; i++)
 	{
-		if (IntersectRect(&rect, &rectStage[i], &target->_rectDraw))
+		if (IntersectRect2(rectStage[i], target->_rectDraw))
 		{
 			target->_select = true;
 			target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
@@ -291,51 +294,50 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 		inputKey = VK_DOWN;
 		_dialogflag = false;
 	}
-
-	if (inputKey != 0) {
-		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, target->_rectDraw };
-		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+	if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+	{
+		inputKey = VK_RETURN;
 	}
+
+	StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, target->_rectDraw };
+	Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
 	
 	auto& recvData = GET_SINGLE(Network)->GetStageData();
 
 	if (recvData.InputKey == VK_LEFT) {
 		if (moveX > 0)
 		{
-			moveX -= 10;
+			moveX -= 1;
 
 			for (int i = 0; i < STAGE_NUM; i++)
 			{
-				rectStage[i].left += 10;
-				rectStage[i].right += 10;
+				rectStage[i].left += 1;
+				rectStage[i].right += 1;
 			}
 		}
 	}
 	else if (recvData.InputKey == VK_RIGHT) {
 		if (moveX < 450)
 		{
-			moveX += 10;
+			moveX += 1;
 
 			for (int i = 0; i < STAGE_NUM; i++)
 			{
-				rectStage[i].left -= 10;
-				rectStage[i].right -= 10;
+				rectStage[i].left -= 1;
+				rectStage[i].right -= 1;
 			}
 		}
 	}
 
-	target->_rectDraw = recvData.RectDraw;
-	recvData.InputKey = 0;
-
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
-	if (GetAsyncKeyState(VK_RETURN) & 0x0001 && target->_select == true)
+	if (recvData.InputKey == VK_RETURN && target->_select == true)
 	{
 		_enter_select = true;
 
 		if (target->_select_index == StageElement::Town)
 		{
 			moveX = 300;
-			sceneManager->StartLoading(hWnd);
+			sceneManager->StartLoading(sceneManager->GetHwnd());
 			return;
 		}
 
@@ -414,6 +416,10 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 		_enter_select = true;
 		mFingerCount = 0;
 	}
+
+	target->_rectDraw = recvData.RectDraw;
+	recvData.InputKey = 0;
+	target->_cam = { target->_rectDraw.left - CAMSIZE_X, (float)rectWindow.top, target->_rectDraw.right + CAMSIZE_X, (float)rectWindow.bottom };
 }
 
 // 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러

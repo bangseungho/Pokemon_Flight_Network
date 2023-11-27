@@ -242,9 +242,9 @@ void SceneManager::Update()
 	case Scene::Town:
 		town.Update(DELTA_TIME);
 		break;
-	//case Scene::Stage:
-	//	stage.Update();
-	//	break;
+	case Scene::Stage:
+		stage.Update(DELTA_TIME);
+		break;
 	//case Scene::PhaseManager:
 	//	phase.Update();
 	//	break;

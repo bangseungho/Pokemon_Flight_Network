@@ -29,20 +29,20 @@ void Physics::MoveStagePlayer(StageData& stageData, float elapsedTime)
 	switch (stageData.InputKey)
 	{
 	case VK_LEFT:
-		stageData.RectDraw.left -= 10;
-		stageData.RectDraw.right -= 10;
+		stageData.RectDraw.left -= 10.f * elapsedTime;
+		stageData.RectDraw.right -= 10.f * elapsedTime;
 		break;
 	case VK_RIGHT:
-		stageData.RectDraw.left += 10;
-		stageData.RectDraw.right += 10;
+		stageData.RectDraw.left += 10.f * elapsedTime;
+		stageData.RectDraw.right += 10.f * elapsedTime;
 		break;
 	case VK_UP:
-		stageData.RectDraw.top -= 10;
-		stageData.RectDraw.bottom -= 10;
+		stageData.RectDraw.top -= 10.f * elapsedTime;
+		stageData.RectDraw.bottom -= 10.f * elapsedTime;
 		break;
 	case VK_DOWN:
-		stageData.RectDraw.top += 10;
-		stageData.RectDraw.bottom += 10;
+		stageData.RectDraw.top += 10.f * elapsedTime;
+		stageData.RectDraw.bottom += 10.f * elapsedTime;
 		break;
 	default:
 		break;

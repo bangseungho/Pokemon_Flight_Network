@@ -11,7 +11,7 @@ Network::Network()
 
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
-	mRecvStageData.RectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
+	mRecvStageData.RectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 }
 
 Network::~Network()

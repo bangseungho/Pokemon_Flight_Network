@@ -427,7 +427,7 @@ struct StageData
 	uint8	PlayerIndex = 0;
 	int		Record;
 	int		InputKey;
-	RECT	RectDraw;
+	FRECT	RectDraw;
 };
 
 struct PhaseData
