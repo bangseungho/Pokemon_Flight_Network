@@ -142,36 +142,6 @@ void CALLBACK T_Loadingbar(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	loading.Load(hWnd);
 }
 
-// 타운에 있는 플레이어 움직임 타이머
-void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	const RECT rectWindow = sceneManager->GetRectWindow();
-	const Scene scene = sceneManager->GetScene();
-
-	FRECT rectDraw = { town.mPlayer->_Pos.x - 20, town.mPlayer->_Pos.y - 20, town.mPlayer->_Pos.x + 20, town.mPlayer->_Pos.y + 20 };
-	town.mPlayer->_rectDraw = rectDraw;
-
-	// 게임 플로우가 현재 타운일때와 장면이 끝남을 확인하는 변수가 참이 아닐 때 움직일 수 있도록 설정
-	if (scene == Scene::Town && sceneManager->IsLoading() == false)
-	{
-		town.Update(rectWindow);
-		InvalidateRect(hWnd, NULL, false);
-	}
-
-	// 일정 범위 (렉트 윈도우의 오른 쪽) 넘어갈시 다음 스테이지 진행
-	if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x + 20 >= rectWindow.right)
-	{
-		sceneManager->StartLoading(hWnd);
-		town._nextFlow = Scene::Stage;
-	}
-	// 일정 범위 (렉트 윈도우의 왼 쪽) 넘어갈시 전 메인화면으로 진행
-	else if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x - 20 <= rectWindow.left)
-	{
-		sceneManager->StartLoading(hWnd);
-		town._nextFlow = Scene::Intro;
-	}
-}
-
 // 타운에 있는 플레이어 움직임 방향
 void CALLBACK T_TPAnimationDir(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {

@@ -131,24 +131,8 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	{
 		town.Init(rectWindow, hWnd);
 
-		TownData::TownPlayerData playerData{ town.mPlayer->aboutMapPos, town.mPlayer->_rectDraw, town.mPlayer->_rectImage };
-		TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false };
-		GET_SINGLE(Network)->SendDataAndType(sendData);
-
-		SetTimer(hWnd, TIMERID_TPANIMATION, ELAPSE_TPANIMATION, T_TPAnimation); // 플레이어 움직임 타이머
 		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
 		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
-
-		soundManager->StopBGMSound();
-		const int randBgm = rand() % 2;
-		if (randBgm == 0)
-		{
-			soundManager->PlayBGMSound(BGMSound::Town1, 1.0f, true);
-		}
-		else
-		{
-			soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
-		}
 	}
 		break;
 	case Scene::Stage:
@@ -261,9 +245,9 @@ void SceneManager::Update()
 	case Scene::Intro:
 		intro.Update(DELTA_TIME);
 		break;
-	//case Scene::Town:
-	//	town.Update();
-	//	break;
+	case Scene::Town:
+		town.Update(DELTA_TIME);
+		break;
 	//case Scene::Stage:
 	//	stage.Update();
 	//	break;

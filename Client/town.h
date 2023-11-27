@@ -14,8 +14,8 @@ class NpcObject : public MyGameObject
 class Town
 {
 private:
-	std::array<TownObject, TOWN_OBJECT_NUM> mObjects;
-	std::array<NpcObject, NPC_COUNT> mNpcs;
+	std::array<std::shared_ptr<TownObject>, TOWN_OBJECT_NUM> mObjects;
+	std::array<std::shared_ptr<NpcObject>, NPC_COUNT> mNpcs;
 
 	RECT _object[TOWN_OBJECT_NUM];
 	CImage _backTown;
@@ -35,6 +35,7 @@ private:
 	CImage _exits;
 	CImage mGlowingBlack;
 	bool _exit = false;
+	bool mCanNextScene = false;
 
 public:
 	class Player
@@ -63,7 +64,7 @@ public:
 	Town();
 	void Init(const RECT& rectWindow, const HWND& hWnd);
 	void Paint(HDC hdc, const RECT& rectWindow);
-	void Update(const RECT& rectWindow);
+	void Update(float elapedTime);
 	void StopPlayer();
 	int GetCamSizeX();
 	int GetCamSizeY();

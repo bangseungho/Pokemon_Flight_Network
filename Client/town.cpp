@@ -3,8 +3,10 @@
 #include "scene.h"
 #include "Network.h"
 #include "gameTimer.h"
+#include "sound.h"
 
 extern SceneManager* sceneManager;
+extern SoundManager* soundManager;
 
 // 타운 화면에 필요한 이미지 모두 로드
 Town::Town()
@@ -27,29 +29,37 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 	mAdjValue = POINT{ 0, 0 };
 
 	// 타운에 존재하는 건물들의 충돌 처리를 위한 충s돌 박스 위치 설정
-	mObjects[0].Init(FRECT{ 0, 0, 125, 190 });
-	mObjects[1].Init(FRECT{ 156, 0, 300, 100 });
-	mObjects[2].Init(FRECT{ 337, 0, 750, 175 });
-	mObjects[3].Init(FRECT{ 644, 175, 750, 300 });
-	mObjects[4].Init(FRECT{ 0, 253, 144, 750 });
-	mObjects[5].Init(FRECT{ 130, 556, 267, 750 });
-	mObjects[6].Init(FRECT{ 267, 594, 325, 750 });
-	mObjects[7].Init(FRECT{ 325, 619, 362, 750 });
-	mObjects[8].Init(FRECT{ 687, 487, 750, 750 });
-	mObjects[9].Init(FRECT{ 725, 300, 750, 372 });
-	mObjects[10].Init(FRECT{ 218, 290, 247, 312 });
-	mObjects[11].Init(FRECT{ 306, 290, 334, 312 });
-	mObjects[12].Init(FRECT{ 184, 394, 312, 481 });
-	mObjects[13].Init(FRECT{ 500, 312, 600, 406 });
-	mObjects[14].Init(FRECT{ 184, 325, 187, 481 });
-	mObjects[15].Init(FRECT{ 506, 500, 594, 594 });
-	mObjects[16].Init(FRECT{ 0, 710, 750, 750 });
-	mObjects[17].Init(FRECT{ 189, 80, 191, 100 });
+	for (int i = 0; i < TOWN_OBJECT_NUM; ++i) {
+		mObjects[i] = std::make_shared<TownObject>();
+	}
 
-	mNpcs[0].Init(FRECT{ 125, 515, 194, 556 }, L"images\\town\\npc1.bmp");
-	mNpcs[1].Init(FRECT{ 406, 219, 194, 556 }, L"images\\town\\npc2.png");
-	mNpcs[2].Init(FRECT{ 581, 402, 605, 432 }, L"images\\town\\npc3.bmp");
-	mNpcs[3].Init(FRECT{ 550, 175, 387, 424 }, L"images\\town\\npc4.bmp");
+	for (int i = 0; i < NPC_COUNT; ++i) {
+		mNpcs[i] = std::make_shared<NpcObject>();
+	}
+
+	mObjects[0]->Init(FRECT{ 0, 0, 125, 190 });
+	mObjects[1]->Init(FRECT{ 156, 0, 300, 100 });
+	mObjects[2]->Init(FRECT{ 337, 0, 750, 175 });
+	mObjects[3]->Init(FRECT{ 644, 175, 750, 300 });
+	mObjects[4]->Init(FRECT{ 0, 253, 144, 750 });
+	mObjects[5]->Init(FRECT{ 130, 556, 267, 750 });
+	mObjects[6]->Init(FRECT{ 267, 594, 325, 750 });
+	mObjects[7]->Init(FRECT{ 325, 619, 362, 750 });
+	mObjects[8]->Init(FRECT{ 687, 487, 750, 750 });
+	mObjects[9]->Init(FRECT{ 725, 300, 750, 372 });
+	mObjects[10]->Init(FRECT{ 218, 290, 247, 312 });
+	mObjects[11]->Init(FRECT{ 306, 290, 334, 312 });
+	mObjects[12]->Init(FRECT{ 184, 394, 312, 481 });
+	mObjects[13]->Init(FRECT{ 500, 312, 600, 406 });
+	mObjects[14]->Init(FRECT{ 184, 325, 187, 481 });
+	mObjects[15]->Init(FRECT{ 506, 500, 594, 594 });
+	mObjects[16]->Init(FRECT{ 0, 710, 750, 750 });
+	mObjects[17]->Init(FRECT{ 189, 80, 191, 100 });
+
+	mNpcs[0]->Init(FRECT{ 125, 515, 194, 556 }, L"images\\town\\npc1.bmp");
+	mNpcs[1]->Init(FRECT{ 406, 219, 194, 556 }, L"images\\town\\npc2.png");
+	mNpcs[2]->Init(FRECT{ 581, 402, 605, 432 }, L"images\\town\\npc3.bmp");
+	mNpcs[3]->Init(FRECT{ 550, 175, 387, 424 }, L"images\\town\\npc4.bmp");
 
 	_npcRect = { 125, 515, 194, 556 };
 	_npc2Rect = { 406, 219, 194, 556 };
@@ -68,7 +78,7 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 	// 이전 씬에 따라서 플레이어 방향과 위치 설정
 	if (sceneManager->GetPrevScene() == Scene::Intro)
 	{
-		mPlayer->_Pos.x = 160;
+		mPlayer->_Pos.x = 100;
 		mPlayer->_Pos.y = 232;
 		mPlayer->_dir = Dir::Right;
 	}
@@ -83,6 +93,21 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 
 	// 절대 좌표값 출력을 위한 변수
 	mPlayer->aboutMapPos = { mPlayer->_Pos.x, mPlayer->_Pos.y };
+
+	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
+	TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false };
+	GET_SINGLE(Network)->SendDataAndType(sendData);
+
+	soundManager->StopBGMSound();
+	const int randBgm = rand() % 2;
+	if (randBgm == 0)
+	{
+		soundManager->PlayBGMSound(BGMSound::Town1, 1.0f, true);
+	}
+	else
+	{
+		soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
+	}
 }
 
 // 타운 화면 렌더링
@@ -92,15 +117,10 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	_backTown.Draw(hdc, _rectDraw, _rectImage);
 
 	// NPC 및 플레이어 렌더링 
-	// Draw(hdc, rectDraw.left, rectDraw.top, mSize.x, mSize.y, rectImage.left, rectImage.top, rectImage.right, rectImage.bottom)
-	//_npc2.Draw(hdc, _npc2Rect.left, _npc2Rect.top, 40, 40, _npc2Move.x, _npc2Move.y, 64, 64);
-	//_npc3.TransparentBlt(hdc, _npc3Rect.left, _npc3Rect.top, 24, 30, 0, 0, 38, 48, RGB(255, 255, 255));
-	//_npc4.TransparentBlt(hdc, _npc4Rect.left, _npc4Rect.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
-	//
-	mNpcs[0].mCImage.TransparentBlt(hdc, mNpcs[0].mRectDraw.left, mNpcs[0].mRectDraw.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
-	mNpcs[1].mCImage.Draw(hdc, mNpcs[1].mRectDraw.left, mNpcs[1].mRectDraw.top, 40, 40, _npc2Move.x, _npc2Move.y, 64, 64);
-	mNpcs[2].mCImage.TransparentBlt(hdc, mNpcs[2].mRectDraw.left, mNpcs[2].mRectDraw.top, 24, 30, 0, 0, 38, 48, RGB(255, 255, 255));
-	mNpcs[3].mCImage.TransparentBlt(hdc, mNpcs[3].mRectDraw.left, mNpcs[3].mRectDraw.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
+	mNpcs[0]->mCImage.TransparentBlt(hdc, mNpcs[0]->mRectDraw.left, mNpcs[0]->mRectDraw.top, 75, 40, _npc1Move.x, _npc1Move.y, 50, 27, RGB(255, 255, 255));
+	mNpcs[1]->mCImage.Draw(hdc, mNpcs[1]->mRectDraw.left, mNpcs[1]->mRectDraw.top, 40, 40, _npc2Move.x, _npc2Move.y, 64, 64);
+	mNpcs[2]->mCImage.TransparentBlt(hdc, mNpcs[2]->mRectDraw.left, mNpcs[2]->mRectDraw.top, 24, 30, 0, 0, 38, 48, RGB(255, 255, 255));
+	mNpcs[3]->mCImage.TransparentBlt(hdc, mNpcs[3]->mRectDraw.left, mNpcs[3]->mRectDraw.top, 34, 36, 0, 0, 54, 58, RGB(255, 255, 255));
 
 	// 그릴때만 여러 번 그리기
 	mPlayer->img.Draw(hdc,
@@ -123,7 +143,7 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 			continue;
 
 		// 현재 멤버 위치 보간
-		POINT newPos = member.second.mTownData.PlayerData.Pos /*+ mAdjValue*/;
+		POINT newPos = member.second.mTownData.PlayerData.Pos + mAdjValue;
 
 		mPlayer->img.Draw(hdc,
 			newPos.x - 20, newPos.y - 20, 40, 40,
@@ -143,8 +163,8 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		for (int i = 0; i < TOWN_OBJECT_NUM; i++)
 		{
 			wsprintf(lpOut, L"%d", i);
-			Rectangle(hdc, mObjects[i].mRectDraw.left, mObjects[i].mRectDraw.top, mObjects[i].mRectDraw.right, mObjects[i].mRectDraw.bottom);
-			TextOut(hdc, mObjects[i].mRectDraw.left + 10, mObjects[i].mRectDraw.top + 10, lpOut, lstrlen(lpOut));
+			Rectangle(hdc, mObjects[i]->mRectDraw.left, mObjects[i]->mRectDraw.top, mObjects[i]->mRectDraw.right, mObjects[i]->mRectDraw.bottom);
+			TextOut(hdc, mObjects[i]->mRectDraw.left + 10, mObjects[i]->mRectDraw.top + 10, lpOut, lstrlen(lpOut));
 		}
 
 		HBRUSH hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
@@ -165,7 +185,7 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 			wsprintf(Posx, L"X : %d", newPos.x);
 			wsprintf(Posy, L"Y : %d", newPos.y);
 
-			newPos = newPos /*+ mAdjValue*/;
+			newPos = newPos + mAdjValue;
 
 			TextOut(hdc, newPos.x - 25, newPos.y + 30, Posx, lstrlen(Posx));
 			TextOut(hdc, newPos.x - 25, newPos.y + 50, Posy, lstrlen(Posy));
@@ -203,40 +223,45 @@ Vector2 abs(const Vector2& point)
 	return ret;
 }
 
-void Town::Update(const RECT& rectWindow)
+void Town::Update(float elapedTime)
 {
-	RECT temp;
+	if (sceneManager->IsLoading() == true)
+		return;
+
+	const RECT rectWindow = sceneManager->GetRectWindow();
 
 	// 문 도착시 게임 종료
-	RECT rect = mObjects[17].mRectDraw;
-	if (IntersectRect(&temp, &mPlayer->_rectDraw, &rect))
+	RECT rect = mObjects[17]->mRectDraw;
+	if (IntersectRect2(mPlayer->_rectDraw, rect))
 		_exit = true;
 
 	// 모든 오브젝트를 검사하여 충돌시 반대로 1씩 올린다.
 	for (int i = 0; i < TOWN_OBJECT_NUM; i++)
 	{
-		RECT rect = mObjects[i].mRectDraw;
-		if (IntersectRect(&temp, &mPlayer->_rectDraw, &rect))
+		RECT rect = mObjects[i]->mRectDraw;
+		if (IntersectRect2(mPlayer->_rectDraw, rect))
 		{
 			switch (mPlayer->_dir)
 			{
 			case Dir::Left:
 				mPlayer->aboutMapPos.x += 1;
 				mPlayer->_Pos.x += 1;
-				return;
+				break;
 			case Dir::Right:
 				mPlayer->aboutMapPos.x -= 1;
 				mPlayer->_Pos.x -= 1;
-				return;
+				break;
 			case Dir::Up:
 				mPlayer->aboutMapPos.y += 1;
 				mPlayer->_Pos.y += 1;
-				return;
+				break;
 			case Dir::Down:
 				mPlayer->aboutMapPos.y -= 1;
 				mPlayer->_Pos.y -= 1;
-				return;
+				break;
 			}
+			mPlayer->_rectDraw = FRECT{ mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, mPlayer->_Pos.x + 20, mPlayer->_Pos.y + 20 };
+			return;
 		}
 	}
 
@@ -259,7 +284,7 @@ void Town::Update(const RECT& rectWindow)
 	// 방향키가 눌러졌다면 패킷 송신
 	if (inputKey != 0) {
 		TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
-		TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false, inputKey };
+		TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mCanNextScene, inputKey };
 		GET_SINGLE(Network)->SendDataAndType(townData);
 	}
 
@@ -269,8 +294,10 @@ void Town::Update(const RECT& rectWindow)
 
 	Vector2 interval = recvData.PlayerData.Pos - mPlayer->aboutMapPos;
 	mPlayer->aboutMapPos += interval;
+	mAdjValue += interval;
 
 	if (recvData.InputKey == VK_LEFT) {
+		_exit = false;
 		mPlayer->_dir = Dir::Left;
 
 		//// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
@@ -280,40 +307,21 @@ void Town::Update(const RECT& rectWindow)
 			_rectImage.left += interval.x;
 
 			for (auto& townObject : mObjects) {
-				townObject.mPos -= interval;
-				townObject.ConvertToFRECT();
+				townObject->mPos -= interval;
+				townObject->ConvertToFRECT();
 			}
 
 			for (auto& npcObject : mNpcs) {
-				npcObject.mPos -= interval;
-				npcObject.ConvertToFRECT();
+				npcObject->mPos -= interval;
+				npcObject->ConvertToFRECT();
 			}
 		}
 		else {
 			mPlayer->_Pos += interval;
 		}
-		//{
-		//	mAdjValue.x += interval.x;
-
-		//	_rectImage.right -= interval.x;
-		//	_rectImage.left -= interval.x;
-
-		//	// 모든 건물들을 자리 그대로 놓기 -> 안하면 플레이어 이동시 오브젝트가 같이 움직임
-		//	for (int i = 0; i < TOWN_OBJECT_NUM; i++)
-		//	{
-		//		mObjects[i].mPos.x += interval.x;
-		//		mObjects[i].ConvertToFRECT();
-		//	}
-
-		//	_npcRect.left += interval.x;
-		//	_npc2Rect.left += interval.x;
-		//	_npc3Rect.left += interval.x;
-		//	_npc4Rect.left += interval.x;
-		//}
-		//else
-		//	mPlayer->_Pos.x -= interval.x;
 	}
 	else if (recvData.InputKey == VK_RIGHT) {
+		_exit = false;
 		mPlayer->_dir = Dir::Right;
 
 		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
@@ -322,121 +330,64 @@ void Town::Update(const RECT& rectWindow)
 			_rectImage.left += interval.x;
 
 			for (auto& townObject : mObjects) {
-				townObject.mPos -= interval;
-				townObject.ConvertToFRECT();
+				townObject->mPos -= interval;
+				townObject->ConvertToFRECT();
 			}
 
 			for (auto& npcObject : mNpcs) {
-				npcObject.mPos -= interval;
-				npcObject.ConvertToFRECT();
+				npcObject->mPos -= interval;
+				npcObject->ConvertToFRECT();
 			}
 		}
 		else
 			mPlayer->_Pos += interval;
-
-		//if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748) {
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//	mPlayer->_Pos -= interval;
-		//}
-		//if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
-		//{
-		//	mAdjValue.x -= interval.x;
-
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-
-		//	for (int i = 0; i < TOWN_OBJECT_NUM; i++)
-		//	{
-		//		mObjects[i].mPos.x -= interval.x;
-		//		mObjects[i].ConvertToFRECT();
-		//	}
-
-		//	_npcRect.left -= interval.x;
-		//	_npc2Rect.left -= interval.x;
-		//	_npc3Rect.left -= interval.x;
-		//	_npc4Rect.left -= interval.x;
-		//}
-		//else
-		//	mPlayer->_Pos.x += interval.x;
 	}
 	else if (recvData.InputKey == VK_UP) {
 		mPlayer->_dir = Dir::Up;
 		mPlayer->_Pos += interval;
 	}
 	else if (recvData.InputKey == VK_DOWN) {
+		_exit = false;
 		mPlayer->_dir = Dir::Down;
 		mPlayer->_Pos += interval;
 	}
-
-	// 카메라가 윈도우 화면에 충돌한 경우
-
-
-		//	mPlayer->_Pos -= interval;
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//}
-
-		//if (mPlayer->_dir == Dir::Left) {
-		//	mPlayer->_Pos -= interval;
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//}
-		//else if (mPlayer->_dir == Dir::Right) {
-		//	mPlayer->_Pos -= interval;
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//}
-		//
-
-		//mAdjValue += interval;
-		//if (_rectImage.right < 748) {
-		//	mPlayer->_Pos -= interval;
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//}
-		//else if (_rectImage.left > 748) {
-		//	mPlayer->_Pos -= interval;
-		//	_rectImage.right += interval.x;
-		//	_rectImage.left += interval.x;
-		//}
-	//else if (mPlayer->_cam.left < rectWindow.left) {
-	//	if (_rectImage.left > 0) {
-	//		mPlayer->_Pos -= interval;
-	//		_rectImage.right += interval.x;
-	//		_rectImage.left += interval.x;
-	//	}
-	//}
-
-	//if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
-	//{
-	//	mAdjValue.x -= interval.x;
-	//
-	//	_rectImage.right += interval.x;
-	//	_rectImage.left += interval.x;
-	//
-	//	for (int i = 0; i < TOWN_OBJECT_NUM; i++)
-	//	{
-	//		mObjects[i].mPos.x -= interval.x;
-	//		mObjects[i].ConvertToFRECT();
-	//	}
-	//
-	//	_npcRect.left -= interval.x;
-	//	_npc2Rect.left -= interval.x;
-	//	_npc3Rect.left -= interval.x;
-	//	_npc4Rect.left -= interval.x;
-	//}
-	//else
-	//	mPlayer->_Pos.x += interval.x;
 
 	mPlayer->_cam = FRECT{
 		mPlayer->_Pos.x - CAMSIZE_X, 0,
 		mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom
 	};
 
+	mPlayer->_rectDraw = FRECT{ mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, mPlayer->_Pos.x + 20, mPlayer->_Pos.y + 20 };
+
+	if (mPlayer->_Pos.x + 20 >= rectWindow.right)
+	{
+		mCanNextScene = true;
+		bool bCanNextScene = true;
+		const auto& members = GET_SINGLE(Network)->GetMemberMap();
+		for (const auto& member : members) {
+			if (member.second.mTownData.IsReady == false) {
+				bCanNextScene = false;
+				break;
+			}
+		}
+
+		if (bCanNextScene == true) {
+			sceneManager->StartLoading(sceneManager->GetHwnd());
+			_nextFlow = Scene::Stage;
+		}
+	}
+	else if (mPlayer->_Pos.x - 20 <= rectWindow.left)
+	{
+		sceneManager->StartLoading(sceneManager->GetHwnd());
+		_nextFlow = Scene::Intro;
+	}
+	else 
+		mCanNextScene = false;
+
 	recvData.InputKey = 0;
 	mPlayer->_keepGoing = true;
-	_exit = false;
+
+	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
 void Town::StopPlayer()
