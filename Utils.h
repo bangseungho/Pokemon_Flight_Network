@@ -6,6 +6,9 @@
 #define TPLAYER_IMAGESIZE_X 64
 #define TPLAYER_IMAGESIZE_Y 64
 
+
+
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
 #include <tchar.h>
@@ -83,6 +86,14 @@ struct PhaseData
 
 struct BattleData
 {
+	struct BattleBullet {
+		Dir dir = Dir::Empty; // 총알 방향
+		Vector2 unitVector; // 해당 탄막을 발사한 유닛의 위치
+		BulletData data; // 탄막 데이터
+		bool isSkillBullet = false; // 스킬 탄막인지
+		bool isRotateImg = false; // 회전 이미지인지
+
+	};
 	uint8	PlayerIndex = 0;
 	float	PosX;
 	float	PosY;
