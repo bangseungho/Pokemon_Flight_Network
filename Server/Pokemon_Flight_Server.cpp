@@ -16,8 +16,6 @@ using namespace std;
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static unordered_map<uint8, NetworkPlayerData> sPlayers;
 CRITICAL_SECTION cs;
-//EnterCriticalSection(&cs);
-//LeaveCriticalSection(&cs);
 
 void ProcessTimer()
 {
@@ -52,7 +50,7 @@ void ProcessClient(ThreadSocket sock)
 		DataType dataType;
 		dataType = Data::RecvType(clientSock);
 		if (dataType == DataType::NONE_DATA)
-			break;
+			continue;
 
 		// 클라이언트 종료했을 경우 모든 클라이언트에게 자신의 종료 신호를 송신한다.
 		if (dataType == DataType::END_PROCESSING) {
@@ -131,14 +129,17 @@ void ProcessClient(ThreadSocket sock)
 		else if (dataType == DataType::TOWN_DATA) {
 			auto& data = sPlayers[threadId].mTownData;
 			Data::RecvData<TownData>(clientSock, data);
+
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			Physics::MoveTownPlayer(data, DELTA_TIME);
-
+			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
+				if (player.second.mThreadId == threadId)
+					continue;
+
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
-
+			LeaveCriticalSection(&cs);
 #ifdef _DEBUG
 			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId)
 				 << ", ISREADY: " << data.IsReady 
@@ -152,14 +153,20 @@ void ProcessClient(ThreadSocket sock)
 			auto& data = sPlayers[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
-			Data::SendDataAndType<StageData>(clientSock, data);
+			uint8 mainPlayerRecord = 9;
+			uint8 mainPlayerIndex = 0;
+			for (const auto& player : sPlayers) {
+				if (player.second.mStageData.Record < mainPlayerRecord) {
+					mainPlayerRecord = player.second.mStageData.Record;
+					mainPlayerIndex = player.second.mThreadId;
+				}
+			}
 
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadId == threadId)
-			//		continue;
+			Physics::MoveStagePlayer(sPlayers[mainPlayerIndex].mStageData, DELTA_TIME);
 
-			//	SendData<StageData>(clientSock, player.mStageData);
-			//}
+			for (const auto& player : sPlayers) {
+				Data::SendDataAndType<StageData>(clientSock, data);
+			}
 
 #ifdef _DEBUG
 			cout << "RECORD: " << data.Record << endl;

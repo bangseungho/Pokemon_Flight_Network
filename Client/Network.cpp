@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Network.h"
+#include "scene.h"
 
 DECLARE_SINGLE(Network);
+extern SceneManager* sceneManager;
 
 Network::Network()
 {
@@ -97,14 +99,20 @@ void Network::ClientReceiver()
 
 			// 인덱스가 해당 클라이언트 인덱스일 경우에는 자신의 데이터에 이동
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
-			if (mClientIndex == recvData.PlayerIndex) {
-				mTownData = move(recvData);
-			}
-			else {
-				auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-				if (findIt != mRecvMemberMap.end())
-					mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
-			}
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+		}
+#pragma endregion
+#pragma region Stage
+		else if (dataType == DataType::STAGE_DATA) {
+			// 패킷을 수신할 임시 객체
+			StageData recvData;
+			ZeroMemory(&recvData, sizeof(StageData));
+
+			// 패킷 수신
+			Data::RecvData<StageData>(mClientSock, recvData);
+			mRecvStageData = move(recvData);
 		}
 #pragma endregion
 	}

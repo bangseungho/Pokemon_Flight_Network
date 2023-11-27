@@ -74,13 +74,8 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	switch (crntScene)
 	{
 	case Scene::Intro:
-		KillTimer(hWnd, TIMERID_CLOUD);
-		KillTimer(hWnd, TIMERID_LOGO);
-		KillTimer(hWnd, TIMERID_ANIMATION);
-		KillTimer(hWnd, TIMERID_TWINKLEEMOTION);
 		break;
 	case Scene::Town:
-		KillTimer(hWnd, TIMERID_TPANIMATION);
 		KillTimer(hWnd, TIMERID_TPANIMATION_DIR);
 		KillTimer(hWnd, TIMERID_NPCMOTION);
 		break;
@@ -130,7 +125,6 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	case Scene::Town:
 	{
 		town.Init(rectWindow, hWnd);
-
 		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
 		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
 	}

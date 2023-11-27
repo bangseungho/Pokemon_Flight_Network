@@ -23,3 +23,28 @@ void Physics::MoveTownPlayer(TownData& townData, float elapsedTime)
 		break;
 	}
 }
+
+void Physics::MoveStagePlayer(StageData& stageData, float elapsedTime)
+{
+	switch (stageData.InputKey)
+	{
+	case VK_LEFT:
+		stageData.RectDraw.left -= 10;
+		stageData.RectDraw.right -= 10;
+		break;
+	case VK_RIGHT:
+		stageData.RectDraw.left += 10;
+		stageData.RectDraw.right += 10;
+		break;
+	case VK_UP:
+		stageData.RectDraw.top -= 10;
+		stageData.RectDraw.bottom -= 10;
+		break;
+	case VK_DOWN:
+		stageData.RectDraw.top += 10;
+		stageData.RectDraw.bottom += 10;
+		break;
+	default:
+		break;
+	}
+}

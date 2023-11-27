@@ -26,8 +26,8 @@ public:
 	uint8 GetClientIndex() const { return mClientIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
-	TownData& GetTownData() { return mTownData; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
+	StageData& GetStageData() { return mRecvStageData; }
 
 private:
 	bool			mConnected;
@@ -36,8 +36,8 @@ private:
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
 
-	TownData		mTownData;
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
+	StageData		mRecvStageData;
 };
 
 template<typename T>

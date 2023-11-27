@@ -49,7 +49,7 @@
 #define FOURTHCLOUD_Y				187
 #pragma endregion
 #pragma region Town Define
-#define TPLAYER_SPEED				4
+#define TPLAYER_SPEED				200
 #pragma endregion
 #pragma region Loading Define
 #define LOADING_BAR_X				182

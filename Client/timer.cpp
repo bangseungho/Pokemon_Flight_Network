@@ -87,7 +87,8 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 
 		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
 		{
-			sceneManager->MoveScene(hWnd, Scene::Town);
+			//sceneManager->MoveScene(hWnd, Scene::Town);
+			sceneManager->MoveScene(hWnd, Scene::Stage);
 		}
 		else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 		{

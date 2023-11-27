@@ -26,7 +26,7 @@ Town::Town()
 void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 {
 	mHwnd = hWnd;
-	mAdjValue = POINT{ 0, 0 };
+	mAdjValue = Vector2{ 0, 0 };
 
 	// 타운에 존재하는 건물들의 충돌 처리를 위한 충s돌 박스 위치 설정
 	for (int i = 0; i < TOWN_OBJECT_NUM; ++i) {
@@ -84,8 +84,8 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 	}
 	else if (sceneManager->GetPrevScene() == Scene::Stage)
 	{
-		mPlayer->_Pos.x = rectWindow.right / 2;
-		mPlayer->_Pos.y = rectWindow.bottom / 2;
+		mPlayer->_Pos.x = 100;
+		mPlayer->_Pos.y = 232;
 		mPlayer->_dir = Dir::Down;
 	}
 
@@ -125,9 +125,9 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	// 그릴때만 여러 번 그리기
 	mPlayer->img.Draw(hdc,
 		mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, 40, 40,
-		mPlayer->_rectImage.left, 
-		mPlayer->_rectImage.top, 
-		mPlayer->_rectImage.right, 
+		mPlayer->_rectImage.left,
+		mPlayer->_rectImage.top,
+		mPlayer->_rectImage.right,
 		mPlayer->_rectImage.bottom);
 
 	TCHAR ID[1000];
@@ -185,10 +185,8 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 			wsprintf(Posx, L"X : %d", newPos.x);
 			wsprintf(Posy, L"Y : %d", newPos.y);
 
-			newPos = newPos + mAdjValue;
-
-			TextOut(hdc, newPos.x - 25, newPos.y + 30, Posx, lstrlen(Posx));
-			TextOut(hdc, newPos.x - 25, newPos.y + 50, Posy, lstrlen(Posy));
+			TextOut(hdc, newPos.x - 25 + mAdjValue.x, newPos.y + 30, Posx, lstrlen(Posx));
+			TextOut(hdc, newPos.x - 25 + mAdjValue.x, newPos.y + 50, Posy, lstrlen(Posy));
 		};
 
 		SelectObject(hdc, oldBrush);
@@ -211,7 +209,6 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		SelectObject(hdc, oldFont);
 		DeleteObject(hFont);
 	}
-
 }
 
 Vector2 abs(const Vector2& point)
@@ -265,46 +262,50 @@ void Town::Update(float elapedTime)
 		}
 	}
 
-	int inputKey = 0;
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-		inputKey = VK_LEFT;
-	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-		inputKey = VK_RIGHT;
-	else if (GetAsyncKeyState(VK_UP) & 0x8000)
-		inputKey = VK_UP;
-	else if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-		inputKey = VK_DOWN;
-	else if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit) {
-		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
-		PostQuitMessage(0);
+	if (mPlayer->_Pos.x + 20 >= rectWindow.right)
+	{
+		mCanNextScene = true;
+		mPlayer->_Pos.x -= 1;
+		mPlayer->aboutMapPos.x -= 1;
 	}
-	else
-		inputKey = 0;
-
-	// 방향키가 눌러졌다면 패킷 송신
-	if (inputKey != 0) {
-		TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
-		TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mCanNextScene, inputKey };
-		GET_SINGLE(Network)->SendDataAndType(townData);
+	else if (mPlayer->_Pos.x - 20 <= rectWindow.left)
+	{
+		sceneManager->StartLoading(sceneManager->GetHwnd());
+		_nextFlow = Scene::Intro;
+		mAdjValue = Vector2{ 0, 0 };
 	}
 
-	auto& recvData = GET_SINGLE(Network)->GetTownData();
-	if (recvData.InputKey == 0)
-		return;
+	bool bCanNextScene = true;
+	const auto& members = GET_SINGLE(Network)->GetMemberMap();
+	for (const auto& member : members) {
+		if (member.second.mTownData.IsReady == false) {
+			bCanNextScene = false;
+			break;
+		}
+	}
 
-	Vector2 interval = recvData.PlayerData.Pos - mPlayer->aboutMapPos;
-	mPlayer->aboutMapPos += interval;
-	mAdjValue += interval;
+	if (mCanNextScene)
+	{
+		if (bCanNextScene == true) {
+			sceneManager->StartLoading(sceneManager->GetHwnd());
+			_nextFlow = Scene::Stage;
+			mAdjValue = Vector2{ 0, 0 };
+			mCanNextScene = false;
+		}
+	}
 
-	if (recvData.InputKey == VK_LEFT) {
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
 		_exit = false;
+		mCanNextScene = false;
 		mPlayer->_dir = Dir::Left;
+		Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
+		mPlayer->aboutMapPos += interval;
 
-		//// 만약 플레이어를 찍고 있는 카메라 왼쪽 위치 값이 윈도우 화면의 왼쪽에 닿으면 오브젝트는 반대로 이동시킨다.
 		if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 10)
 		{
 			_rectImage.right += interval.x;
 			_rectImage.left += interval.x;
+			mAdjValue -= interval;
 
 			for (auto& townObject : mObjects) {
 				townObject->mPos -= interval;
@@ -320,14 +321,17 @@ void Town::Update(float elapedTime)
 			mPlayer->_Pos += interval;
 		}
 	}
-	else if (recvData.InputKey == VK_RIGHT) {
+	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
 		_exit = false;
 		mPlayer->_dir = Dir::Right;
+		Vector2 interval = { TPLAYER_SPEED * elapedTime, 0 };
+		mPlayer->aboutMapPos += interval;
 
 		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
 		{
 			_rectImage.right += interval.x;
 			_rectImage.left += interval.x;
+			mAdjValue -= interval;
 
 			for (auto& townObject : mObjects) {
 				townObject->mPos -= interval;
@@ -342,51 +346,38 @@ void Town::Update(float elapedTime)
 		else
 			mPlayer->_Pos += interval;
 	}
-	else if (recvData.InputKey == VK_UP) {
+	else if (GetAsyncKeyState(VK_UP) & 0x8000) {
+		Vector2 interval = { 0, -TPLAYER_SPEED * elapedTime };
+		mCanNextScene = false;
+		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Up;
 		mPlayer->_Pos += interval;
 	}
-	else if (recvData.InputKey == VK_DOWN) {
+	else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		_exit = false;
+		mCanNextScene = false;
+		Vector2 interval = { 0, TPLAYER_SPEED * elapedTime };
+		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Down;
 		mPlayer->_Pos += interval;
 	}
+	else if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit) {
+		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+		PostQuitMessage(0);
+	}
+	else {
+		InvalidateRect(sceneManager->GetHwnd(), NULL, false);
+		return;
+	}
 
-	mPlayer->_cam = FRECT{
-		mPlayer->_Pos.x - CAMSIZE_X, 0,
-		mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom
-	};
+	// 방향키가 눌러졌다면 패킷 송신
+	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
+	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mCanNextScene, 0 };
+	GET_SINGLE(Network)->SendDataAndType(townData);
 
+	mPlayer->_cam = FRECT{ mPlayer->_Pos.x - CAMSIZE_X, 0, mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom };
 	mPlayer->_rectDraw = FRECT{ mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, mPlayer->_Pos.x + 20, mPlayer->_Pos.y + 20 };
-
-	if (mPlayer->_Pos.x + 20 >= rectWindow.right)
-	{
-		mCanNextScene = true;
-		bool bCanNextScene = true;
-		const auto& members = GET_SINGLE(Network)->GetMemberMap();
-		for (const auto& member : members) {
-			if (member.second.mTownData.IsReady == false) {
-				bCanNextScene = false;
-				break;
-			}
-		}
-
-		if (bCanNextScene == true) {
-			sceneManager->StartLoading(sceneManager->GetHwnd());
-			_nextFlow = Scene::Stage;
-		}
-	}
-	else if (mPlayer->_Pos.x - 20 <= rectWindow.left)
-	{
-		sceneManager->StartLoading(sceneManager->GetHwnd());
-		_nextFlow = Scene::Intro;
-	}
-	else 
-		mCanNextScene = false;
-
-	recvData.InputKey = 0;
 	mPlayer->_keepGoing = true;
-
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
