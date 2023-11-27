@@ -14,6 +14,7 @@
 #include "stage.h"
 #include "phase.h"
 #include "battle.h"
+#include "gameTimer.h"
 
 #define CLOUD_NUM 4
 #define FIRSTCLOUD_X 125
@@ -33,7 +34,6 @@ extern GUIManager* gui;
 extern Boss* boss;
 extern SoundManager* soundManager;
 
-
 extern Intro intro;
 extern Loading loading;
 extern Town town;
@@ -41,9 +41,6 @@ extern Stage stage;
 extern PhaseManager phase;
 extern Battle battle;
 
-extern Cloud cloud[4];
-extern Logo logo;
-extern Menu menu;
 extern CImage glowing_black;
 
 extern bool flag = false;
@@ -128,43 +125,21 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	switch (crntScene)
 	{
 	case Scene::Intro:
-		SetTimer(hWnd, TIMERID_CLOUD, ELAPSE_CLOUD, T_MoveCloud); // 구름 이동 타이머
-		SetTimer(hWnd, TIMERID_LOGO, ELAPSE_LOGO, T_MoveLogo); // 로고 움직임 타이머
-		SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 인트로 화면 핑거 컨트롤러 타이머
-		SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡거리는 효과 타이머
-
-		soundManager->StopBGMSound();
-		soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
+		intro.Init();
 		break;
 	case Scene::Town:
 	{
 		town.Init(rectWindow, hWnd);
 
-		TownData::TownPlayerData playerData{ town.mPlayer->aboutMapPos, town.mPlayer->_rectDraw, town.mPlayer->_rectImage };
-		TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false };
-		GET_SINGLE(Network)->SendDataAndType(sendData);
-
-		SetTimer(hWnd, TIMERID_TPANIMATION, ELAPSE_TPANIMATION, T_TPAnimation); // 플레이어 움직임 타이머
 		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
 		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
-
-		soundManager->StopBGMSound();
-		const int randBgm = rand() % 2;
-		if (randBgm == 0)
-		{
-			soundManager->PlayBGMSound(BGMSound::Town1, 1.0f, true);
-		}
-		else
-		{
-			soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
-		}
 	}
 		break;
 	case Scene::Stage:
 		stage.Init(rectWindow);
 		SetTimer(hWnd, TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
 		SetTimer(hWnd, TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
-		SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡이는 효과 타이머
+		//SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡이는 효과 타이머
 
 		if (prevScene != Scene::PhaseManager)
 		{
@@ -180,7 +155,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		}
 		break;
 	case Scene::PhaseManager:
-		SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
+		//SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
 		phase.Init();
 		
 		if (prevScene == Scene::Battle)
@@ -245,10 +220,7 @@ SceneManager::SceneManager()
 	soundManager = new SoundManager();
 
 	crntScene = Scene::Intro;
-	cloud[0].Init(L"images\\intro\\Instruction_Cloud1.bmp", FIRSTCLOUD_X, FIRSTCLOUD_Y);
-	cloud[1].Init(L"images\\intro\\Instruction_Cloud2.bmp", SECONDCLOUD_X, SECONDCLOUD_Y);
-	cloud[2].Init(L"images\\intro\\Instruction_Cloud3.bmp", THIRDCLOUD_X, THIRDCLOUD_Y);
-	cloud[3].Init(L"images\\intro\\Instruction_Cloud4.bmp", FOURTHCLOUD_X, FOURTHCLOUD_Y);
+
 }
 
 // 스크린 사이즈를 받아오고 crntScene(현재 씬)에 따라서 씬을 로드한다.
@@ -256,40 +228,59 @@ void SceneManager::Init(const HWND& hWnd)
 {
 	GetClientRect(hWnd, &rectWindow);
 	rectDisplay = rectWindow;
+	mHwnd = hWnd;
 
+	GET_SINGLE(GameTimer)->Init();
+	GET_SINGLE(GameTimer)->Start();
 	GET_SINGLE(Network)->Init("127.0.0.1");
 
 	LoadScene(hWnd);
 }
 
+void SceneManager::Update()
+{
+	GET_SINGLE(GameTimer)->Update();
+
+	switch (crntScene){
+	case Scene::Intro:
+		intro.Update(DELTA_TIME);
+		break;
+	case Scene::Town:
+		town.Update(DELTA_TIME);
+		break;
+	//case Scene::Stage:
+	//	stage.Update();
+	//	break;
+	//case Scene::PhaseManager:
+	//	phase.Update();
+	//	break;
+	//case Scene::Battle:
+	//	battle.Update();
+	//	break;
+	}
+
+	Paint();
+}
+
 // 현재 씬을 렌더링한다.
-void SceneManager::Paint(const HWND& hWnd)
+void SceneManager::Paint()
 {
 	PAINTSTRUCT ps;
 	HDC hdc, memDC;
 	HBITMAP hBitmap;
 
-	StartPaint(hWnd, ps, hdc, memDC, hBitmap, rectWindow);
+	StartPaint(mHwnd, ps, hdc, memDC, hBitmap, rectWindow);
 
 	switch (crntScene)
 	{
 	case Scene::Intro:
-		intro.Paint(memDC, rectWindow);
-
-		for (int i = 0; i < CLOUD_NUM; i++)
-		{
-			cloud[i].Paint(memDC, rectWindow);
-		}
-
-		logo.Paint(memDC);
-
-		menu.Paint(memDC, hWnd);
+		intro.Paint(memDC);
 		break;
 	case Scene::Town:
 		town.Paint(memDC, rectWindow);
 		break;
 	case Scene::Stage:
-		stage.Paint(memDC, rectWindow, menu);
+		stage.Paint(memDC, rectWindow);
 		break;
 	case Scene::PhaseManager:
 		phase.Paint(memDC, rectWindow, stage.GetStage());
@@ -308,10 +299,10 @@ void SceneManager::Paint(const HWND& hWnd)
 	// 씬 매니저는 isLoading 값을 가지고 있으며 true이면 로딩 화면을 렌더링한다.
 	if (IsLoading() == true)
 	{
-		loading.Paint(memDC, hWnd, rectWindow);
+		loading.Paint(memDC, mHwnd, rectWindow);
 	}
 
-	FinishPaint(hWnd, ps, hdc, memDC, hBitmap, rectWindow);
+	FinishPaint(mHwnd, ps, hdc, memDC, hBitmap, rectWindow);
 }
 
 // 씬 인자값을 받아서 이전 씬과 현재 씬을 업데이트 하고 현재 씬을 로드한다.
@@ -347,7 +338,7 @@ Loading::Loading()
 	_loding_pokemon_rectImage = { 0, 0, LOADING_POKEMON_X, LOADING_POKEMON_Y };
 	_loding_pokemon_rectDraw = { HALF_RECTWINDOW_X, HALF_RECTWINDOW_Y, LOADING_POKEMON_X, LOADING_POKEMON_Y };
 
-	_glowing_black.Load(L"images\\loading\\Loading_Black_background.bmp");
+	mGlowingBlack.Load(L"images\\loading\\Loading_Black_background.bmp");
 	_loading_pokemon.Load(L"images\\loading\\Loading_pokemon.png");
 	_loading_bar[0].Load(L"images\\loading\\Loading_bar1.bmp");
 	_loading_bar[1].Load(L"images\\loading\\Loading_bar2.bmp");
@@ -359,7 +350,7 @@ Loading::Loading()
 // 로딩 화면을 렌더링
 void Loading::Paint(HDC hdc, HWND hWnd, const RECT& rectWindow)
 {
-	_glowing_black.AlphaBlend(hdc, rectWindow, rectWindow, SALPHA);
+	mGlowingBlack.AlphaBlend(hdc, rectWindow, rectWindow, SALPHA);
 	_loading_pokemon.Draw(hdc, HALF_RECTWINDOW_X, HALF_RECTWINDOW_Y - 19, LOADING_POKEMON_X, LOADING_POKEMON_Y,
 		_loding_pokemon_rectImage.left, _loding_pokemon_rectImage.top, _loding_pokemon_rectImage.right, _loding_pokemon_rectImage.bottom);
 

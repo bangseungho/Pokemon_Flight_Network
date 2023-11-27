@@ -13,6 +13,8 @@
 #include <stdlib.h> 
 #include <string.h>
 #include <iostream>
+#include <vector>
+#include <mutex>
 
 #pragma comment(lib, "ws2_32") 
 
@@ -25,9 +27,31 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+// 싱글턴 객체로 클래스 내부에서 사용
+#define SINGLETON(type)								\
+public:												\
+	static type* GetInstance()						\
+	{												\
+		if (!instance) instance = new type();		\
+		return instance;							\
+	}												\
+	static void Destroy()							\
+	{												\
+		if (instance) delete instance;				\
+		instance = nullptr;							\
+	}												\
+													\
+private:											\
+	static type* instance;							\
+
+#define GET_SINGLE(type)			type::GetInstance()
+#define DESTROY_SINGLE(type)		type::Destroy()
+#define DECLARE_SINGLE(type)		type* type::instance = nullptr;
+
 enum class DataType : int
 {
 	NONE_DATA,
+	TIMER_DATA,
 	INTRO_DATA,
 	TOWN_DATA,
 	STAGE_DATA,
@@ -36,6 +60,341 @@ enum class DataType : int
 	SCENE_DATA,
 	END_PROCESSING,
 };
+
+enum class Difficulty { Easy = 0, Normal, Hard };
+enum class Scene : uint8 { Intro = 0, Town, Stage, PhaseManager, Battle };
+enum class Action { Idle = 0, Attack, Hurt, Death };
+
+enum class Pokemon { Null = 0, Moltres, Articuno, Thunder };
+enum class SubPokemon { Null = 0, Pikachu = 0, Squirtle, Charmander };
+enum class Type { Empty = 0, Fire, Elec, Water, Dark };
+enum class Skill { Empty = 0, Identity, Sector, Circle };
+
+enum class StageElement { Water = 0, Fire, Elec, Dark, Town, Null };
+
+enum class Dir { Empty = 0, Left, Right, Up, Down, LD, LU, RD, RU }; // 총 방향은 8개이다.
+
+// Direction 연산자 오버로딩
+// ex) Left - LD = LD - Left = Down
+//     Left + Up = LU
+constexpr Dir operator-(Dir lhs, Dir rhs)
+{
+	if (lhs == rhs)
+	{
+		return Dir::Empty;
+	}
+	else if (lhs < rhs)
+	{
+		Dir temp = lhs;
+		lhs = rhs;
+		rhs = temp;
+	}
+
+	Dir result = Dir::Empty;
+	switch (lhs)
+	{
+	case Dir::LD:
+		if (rhs == Dir::Left)
+		{
+			result = Dir::Down;
+		}
+		else if (rhs == Dir::Down)
+		{
+			result = Dir::Left;
+		}
+		break;
+	case Dir::LU:
+		if (rhs == Dir::Left)
+		{
+			result = Dir::Up;
+		}
+		else if (rhs == Dir::Up)
+		{
+			result = Dir::Left;
+		}
+		break;
+	case Dir::RD:
+		if (rhs == Dir::Right)
+		{
+			result = Dir::Down;
+		}
+		else if (rhs == Dir::Down)
+		{
+			result = Dir::Right;
+		}
+		break;
+	case Dir::RU:
+		if (rhs == Dir::Right)
+		{
+			result = Dir::Up;
+		}
+		else if (rhs == Dir::Up)
+		{
+			result = Dir::Right;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return result;
+}
+constexpr Dir operator+(Dir lhs, Dir rhs)
+{
+	if (lhs == rhs)
+	{
+		return lhs;
+	}
+	else if (lhs < rhs)
+	{
+		Dir temp = lhs;
+		lhs = rhs;
+		rhs = temp;
+	}
+
+	switch (rhs)
+	{
+	case Dir::Left:
+	{
+		switch (lhs)
+		{
+		case Dir::Up:	return Dir::LU;
+		case Dir::Down:	return Dir::LD;
+		}
+	}
+	case Dir::Right:
+	{
+		switch (lhs)
+		{
+		case Dir::Up:	return Dir::RU;
+		case Dir::Down:	return Dir::RD;
+		}
+	}
+	case Dir::Up:
+	{
+		switch (lhs)
+		{
+		case Dir::Left:		return Dir::LU;
+		case Dir::Right:	return Dir::RU;
+		}
+	}
+	case Dir::Down:
+	{
+		switch (lhs)
+		{
+		case Dir::Left:		return Dir::LD;
+		case Dir::Right:	return Dir::RD;
+		}
+	}
+	}
+
+	return Dir::Empty;
+}
+
+// POINT 연산자 오버로딩
+// ex) POINT a,b;
+// possible : a - b, a + b;
+inline constexpr POINT operator-(const POINT& lhs, const POINT& rhs)
+{
+	return { lhs.x - rhs.x, lhs.y - rhs.y };
+}
+inline constexpr POINT operator+(const POINT& lhs, const POINT& rhs)
+{
+	return { lhs.x + rhs.x, lhs.y + rhs.y };
+}
+
+struct Vector2 {
+	float x = 0;
+	float y = 0;
+
+	inline constexpr Vector2 operator+(const Vector2& rhs) const
+	{
+		return { x + rhs.x, y + rhs.y };
+	}
+	inline constexpr Vector2 operator-(const Vector2& rhs) const
+	{
+		return { x - rhs.x, y - rhs.y };
+	}
+	inline constexpr Vector2 operator*(const float& rhs) const
+	{
+		return { x * rhs, y * rhs };
+	}
+	inline constexpr Vector2 operator/(const float& rhs) const
+	{
+		return { x / rhs, y / rhs };
+	}
+	inline constexpr operator POINT () const
+	{
+		return { (LONG)x, (LONG)y };
+	}
+	inline constexpr Vector2& operator+=(const Vector2& rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		return *this;
+	}
+	inline constexpr Vector2& operator-=(const Vector2& rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		return *this;
+	}
+	inline constexpr Vector2 operator=(const POINT& rhs)
+	{
+		return { static_cast<float>(rhs.x), static_cast<float>(rhs.y) };
+	}
+	inline constexpr bool operator==(const Vector2& rhs) const
+	{
+		return (x == rhs.x && y == rhs.y) ? true : false;
+	}
+	inline constexpr bool operator!=(const Vector2& rhs) const
+	{
+		return (x != rhs.x || y != rhs.y) ? true : false;
+	}
+
+	inline Vector2 Normalized() const
+	{
+		return *this / GetNorm(*this);
+	}
+	inline float Norm() const
+	{
+		return sqrtf(x * x + y * y);
+	}
+	static inline float GetNorm(Vector2 v)
+	{
+		return sqrtf(v.x * v.x + v.y * v.y);
+	}
+	static inline constexpr float Dot(const Vector2& lhs, const Vector2& rhs)
+	{
+		return (lhs.x * rhs.x) + (lhs.y * rhs.y);
+	}
+	static inline constexpr float GetZAxis(const Vector2& lhs, const Vector2& rhs)
+	{
+		return (lhs.x * rhs.y) - (rhs.x - lhs.y);
+	}
+	static inline float GetTheta(const Vector2& lhs, const Vector2& rhs)
+	{
+		float dot = Vector2::Dot(lhs, rhs);
+		return acos(dot / (Vector2::GetNorm(lhs) * Vector2::GetNorm(rhs)));
+	}
+
+	static inline constexpr Vector2 Up()
+	{
+		return { 0, -1 };
+	}
+	static inline constexpr Vector2 Down()
+	{
+		return { 0, 1 };
+	}
+	static inline constexpr Vector2 Left()
+	{
+		return { -1, 0 };
+	}
+	static inline constexpr Vector2 Right()
+	{
+		return { 1, 0 };
+	}
+	static inline constexpr Vector2 Zero()
+	{
+		return { 0, 0 };
+	}
+	static inline constexpr Vector2 GetDest(Vector2 posCenter, Vector2 vector, float speed = 1)
+	{
+		return posCenter + (vector * speed);
+	}
+	static Vector2 Lerp(const Vector2& src, const Vector2& dst, float alpha)
+	{
+		Vector2 transform;
+		transform.x = (src.x * (1 - alpha)) + (dst.x * alpha);
+		transform.y = (src.y * (1 - alpha)) + (dst.y * alpha);
+		return transform;
+	}
+	// Linear transform to find the orthogonal vector of the edge
+	static Vector2 Get_Normalized_Proj_Axis(const Vector2& crntPoint, const Vector2& nextPoint)
+	{
+		const float axisX = -(nextPoint.y - crntPoint.y);
+		const float axisY = nextPoint.x - crntPoint.x;
+		const float magnitude = hypot(axisX, axisY);
+
+		Vector2 axisNormalized = { 0, };
+		axisNormalized.x = axisX / magnitude;
+		axisNormalized.y = axisY / magnitude;
+
+		return axisNormalized;
+	}
+};
+
+typedef struct FRECT {
+	float left = 0;
+	float top = 0;
+	float right = 0;
+	float bottom = 0;
+
+	inline constexpr operator RECT () const
+	{
+		return { (LONG)left, (LONG)top, (LONG)right, (LONG)bottom };
+	}
+	inline constexpr FRECT operator=(const RECT& rhs)
+	{
+		return { (float)rhs.left, (float)rhs.right, (float)rhs.top, (float)rhs.bottom };
+	}
+	inline FRECT operator+(const FRECT& rhs)
+	{
+		FRECT res;
+		res.left = left + rhs.left;
+		res.top = top + rhs.top;
+		res.right = right + rhs.right;
+		res.bottom = bottom + rhs.bottom;
+		return res;
+	}
+	inline FRECT& operator+=(const FRECT& rhs)
+	{
+		left = left + rhs.left;
+		top = top + rhs.top;
+		right = right + rhs.right;
+		bottom = bottom + rhs.bottom;
+		return *this;
+	}
+	inline FRECT operator-(const FRECT& rhs)
+	{
+		FRECT res;
+		res.left = left - rhs.left;
+		res.top = top - rhs.top;
+		res.right = right - rhs.right;
+		res.bottom = bottom - rhs.bottom;
+		return res;
+	}
+	inline FRECT& operator-=(const FRECT& rhs)
+	{
+		left = left - rhs.left;
+		top = top - rhs.top;
+		right = right - rhs.right;
+		bottom = bottom - rhs.bottom;
+		return *this;
+	}
+
+}FRECT;
+
+Vector2 Rotate(Vector2 vector, float degree);
+void Rotate(const Vector2& vSrc, const Vector2& vDst, Vector2& vector, float t);
+bool OutOfRange(const RECT& rect, const RECT& rectRange);
+void GetRotationPos(const RECT& rect, const Vector2& unitVector, Vector2 basisVector, Vector2 vPoints[4]);
+RECT GetRotatedBody(const Vector2 vPoints[4]);
+void PaintHitbox(HDC hdc, RECT rectBody);
+void SetRectByWindow(RECT& rect);
+void CheckOverflowAdd(BYTE& lhs, const BYTE& rhs);
+void CheckOverflowSub(BYTE& lhs, const BYTE& rhs);
+bool SATIntersect(const FRECT& rectSrc, const Vector2 vSrc[4]);
+void ScaleRect(FRECT& rect, float scaleX, float scaleY);
+FRECT GetRect(const Vector2& posCenter, float radius);
+bool IntersectRect2(const RECT& rect1, const RECT& rect2);
+float CalculateDamage(float damage, Type destType, Type srcType);
+
+template <typename T>
+inline constexpr int GetSign(T num)
+{
+	return num / abs(num);
+}
 
 struct ThreadSocket
 {
@@ -52,7 +411,7 @@ struct TownData
 {
 	struct TownPlayerData
 	{
-		POINT	Pos;
+		Vector2	Pos;
 		RECT	RectDraw;
 		RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
 	};
@@ -60,6 +419,7 @@ struct TownData
 	uint8			PlayerIndex = 0;
 	TownPlayerData	PlayerData;
 	bool			IsReady;
+	int				InputKey;
 };
 
 struct StageData

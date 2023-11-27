@@ -12,7 +12,7 @@ public:
 	~Network();
 
 public:
-	void Receiver();
+	void ClientReceiver();
 
 public:
 	void Init(string ipAddr);
@@ -26,15 +26,17 @@ public:
 	uint8 GetClientIndex() const { return mClientIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
+	TownData& GetTownData() { return mTownData; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
 private:
 	bool			mConnected;
 	uint8			mClientIndex;
-	thread			mRecvThread;
+	thread			mRecvClientThread;
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
 
+	TownData		mTownData;
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
 

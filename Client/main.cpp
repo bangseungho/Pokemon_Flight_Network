@@ -19,6 +19,24 @@
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+Intro intro;
+Loading loading;
+Town town;
+Stage stage;
+PhaseManager phase;
+Battle battle;
+
+CImage glowing_black;
+
+GameData gameData;
+Player* mPlayer = nullptr;
+EnemyController* enemies = nullptr;
+EffectManager* effects = nullptr;
+GUIManager* gui = nullptr;
+Boss* boss = nullptr;
+SceneManager* sceneManager = nullptr;
+SoundManager* soundManager = nullptr;
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow){
 	srand((unsigned int)time(NULL));
 
@@ -50,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	hWnd = CreateWindow(lpszClass,
 		lpszWindowName,
 		WS_OVERLAPPED,
-		300,
+		1500,
 		300,
 		WINDOWSIZE_X,
 		WINDOWSIZE_Y,
@@ -62,38 +80,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	while (GetMessage(&Message, 0, 0, 0))
+	while (true)
 	{
-		TranslateMessage(&Message);
-		DispatchMessage(&Message);
+		if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
+		{
+			if (Message.message == WM_QUIT)
+				break;
+
+			if (!TranslateAccelerator(Message.hwnd, 0, &Message))
+			{
+				TranslateMessage(&Message);
+				DispatchMessage(&Message);
+			}
+		}
+
+		sceneManager->Update();
 	}
 
 	DESTROY_SINGLE(Network);
 	Gdiplus::GdiplusShutdown(gdiplusToken);
 	return Message.wParam;
 }
-
-
-Intro intro;
-Loading loading;
-Town town;
-Stage stage;
-PhaseManager phase;
-Battle battle;
-
-Cloud cloud[4];
-Logo logo;
-Menu menu;
-CImage glowing_black;
-
-GameData gameData;
-Player* mPlayer = nullptr;
-EnemyController* enemies = nullptr;
-EffectManager* effects = nullptr;
-GUIManager* gui = nullptr;
-Boss* boss = nullptr;
-SceneManager* sceneManager = nullptr;
-SoundManager* soundManager = nullptr;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -107,14 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_ERASEBKGND:
 		return FALSE;
-	case WM_PAINT:
-	{
-		sceneManager->Paint(hWnd);
-	}
 	break;
-	case WM_ACTIVATE:
-		if (wParam == WA_INACTIVE) town.mActive = false;
-		break;
 	case WM_KEYDOWN:
 		CheckKeyDown(hWnd, wParam);
 		break;

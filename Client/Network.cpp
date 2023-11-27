@@ -11,8 +11,8 @@ Network::Network()
 
 Network::~Network()
 {
-	if (mRecvThread.joinable())
-		mRecvThread.join();
+	if (mRecvClientThread.joinable())
+		mRecvClientThread.join();
 
 	closesocket(mClientSock);
 	WSACleanup();
@@ -22,7 +22,7 @@ Network::~Network()
 #endif 
 }
 
-void Network::Receiver()
+void Network::ClientReceiver()
 {
 	while (1) {
 		DataType dataType;
@@ -95,10 +95,16 @@ void Network::Receiver()
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
 
+			// 인덱스가 해당 클라이언트 인덱스일 경우에는 자신의 데이터에 이동
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
-			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+			if (mClientIndex == recvData.PlayerIndex) {
+				mTownData = move(recvData);
+			}
+			else {
+				auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+				if (findIt != mRecvMemberMap.end())
+					mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
+			}
 		}
 #pragma endregion
 	}
@@ -155,5 +161,5 @@ void Network::Connect()
 	Network::SendDataAndType(IntroData{ mClientIndex });
 
 	// Recv 스레드 생성
-	mRecvThread = thread(&Network::Receiver, this);
+	mRecvClientThread = thread(&Network::ClientReceiver, this);
 }

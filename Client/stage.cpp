@@ -9,6 +9,7 @@
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
 extern GameData gameData;
+extern Intro intro;
 
 // 스테이지에 필요한 이미지 모두 로드
 Stage::Stage()
@@ -21,7 +22,7 @@ Stage::Stage()
 	target->_img.Load(L"images\\stage\\target.png");
 	target->_select_img.Load(L"images\\stage\\select_target.png");
 	_dialog_bar.Load(L"images\\dialog\\Dialog_bar.png");
-	_glowing_black.Load(L"images\\loading\\Loading_Black_background.bmp");
+	mGlowingBlack.Load(L"images\\loading\\Loading_Black_background.bmp");
 
 	_select_Pikachu.Load(L"images\\stage\\_select_Pikachu.png");
 	_select_Charmander.Load(L"images\\stage\\_select_Charmander.png");
@@ -70,11 +71,11 @@ void Stage::SelectPokemonInit()
 	_ready_Air_pokemon = false;
 	_ready_Land_pokemon = false;
 	_enter_select = false;
-	_finger = 0;
+	mFingerCount = 0;
 }
 
 // 스테이지 렌더링
-void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
+void Stage::Paint(HDC hdc, const RECT& rectWindow)
 {
 	// 현재 해금된 스테이지에 따라서 스테이지 렌더링
 	switch (_clearStage)
@@ -137,7 +138,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 	// 스테이지를 선택하여 포켓몬 선택창이 열린 경우 포켓몬 선택창을 렌더링
 	if (_select_pokemon)
 	{
-		_glowing_black.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
+		mGlowingBlack.AlphaBlend(hdc, 0, 0, 500, 750, 0, 0, 500, 750, ALPHA);
 
 		_select_Zapados.TransparentBlt(hdc, 28, 359, SELECTPOKEMONSIZE, SELECTPOKEMONSIZE, 0, 0, 200, 200, RGB(10, 10, 10));
 		_select_Moltres.TransparentBlt(hdc, 175, 360, SELECTPOKEMONSIZE, SELECTPOKEMONSIZE, 0, 0, 200, 200, RGB(10, 10, 10));
@@ -161,7 +162,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		TextOut(hdc, 195, 530, L"Charmander", 10);
 		TextOut(hdc, 349, 530, L"Squirtle", 8);
 
-		switch (_finger)
+		switch (mFingerCount)
 		{
 		case 0:
 			_fingerPos.x = 88;
@@ -224,14 +225,14 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		HFONT hFont2 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ARCADECLASSIC"));
 		HFONT oldFont2 = (HFONT)SelectObject(hdc, hFont2);
 
-		if (!_ready_Land_pokemon && menu._finger_twinkle_cnt % 3 != 0)
-			TextOut(hdc, _fingerPos.x, _fingerPos.y, L"▲", 1);
+		//if (!_ready_Land_pokemon && (int)intro.GetMenu().GetTwinkleCnt() % 3 != 0)
+		//	TextOut(hdc, _fingerPos.x, _fingerPos.y, L"▲", 1);
 
 		HFONT hFont3 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
 		HFONT oldFont3 = (HFONT)SelectObject(hdc, hFont3);
 
-		if (_ready_Air_pokemon && _ready_Land_pokemon && menu._finger_twinkle_cnt % 2 != 0)
-			TextOut(hdc, 35, 50, L"PRESS ENTER KEY TO CONTINUE", 28);
+		//if (_ready_Air_pokemon && _ready_Land_pokemon && (int)intro.GetMenu().GetTwinkleCnt() % 2 != 0)
+		//	TextOut(hdc, 35, 50, L"PRESS ENTER KEY TO CONTINUE", 28);
 
 		SelectObject(hdc, oldFont);
 		SelectObject(hdc, oldFont2);
@@ -392,14 +393,14 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 		_ready_Air_pokemon = false;
 		_ready_Land_pokemon = false;
 		_enter_select = false;
-		_finger = 0;
+		mFingerCount = 0;
 	}
 	if (GetAsyncKeyState(VK_R) & 0x0001)
 	{
 		_ready_Air_pokemon = false;
 		_ready_Land_pokemon = false;
 		_enter_select = true;
-		_finger = 0;
+		mFingerCount = 0;
 	}
 
 }
@@ -413,8 +414,8 @@ void Stage::fingerController(const HWND& hWnd)
 		{
 			if (!_ready_Air_pokemon)
 			{
-				_play_Air_pokemon = _finger;
-				_finger = 3;
+				_play_Air_pokemon = mFingerCount;
+				mFingerCount = 3;
 				_ready_Air_pokemon = true;
 
 				switch (_play_Air_pokemon)
@@ -438,7 +439,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (!_ready_Land_pokemon)
 			{
-				_play_Land_pokemon = _finger;
+				_play_Land_pokemon = mFingerCount;
 				_ready_Land_pokemon = true;
 
 				switch (_play_Land_pokemon)
@@ -480,17 +481,17 @@ void Stage::fingerController(const HWND& hWnd)
 
 		if (!_ready_Air_pokemon)
 		{
-			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && _finger > 0)
-				_finger -= 1;
-			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && _finger < 2)
-				_finger += 1;
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 0)
+				mFingerCount -= 1;
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 2)
+				mFingerCount += 1;
 		}
 		else if (!_ready_Land_pokemon)
 		{
-			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && _finger > 3)
-				_finger -= 1;
-			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && _finger < 5)
-				_finger += 1;
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 3)
+				mFingerCount -= 1;
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
+				mFingerCount += 1;
 		}
 	}
 }
