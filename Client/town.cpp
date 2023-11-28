@@ -4,6 +4,7 @@
 #include "Network.h"
 #include "gameTimer.h"
 #include "sound.h"
+#include "timer.h"
 
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
@@ -23,9 +24,10 @@ Town::Town()
 }
 
 // 타운에서 필요한 초기화 작업
-void Town::Init(const RECT& rectWindow, const HWND& hWnd)
+void Town::Init()
 {
-	mHwnd = hWnd;
+	mHwnd = sceneManager->GetHwnd();
+	const RECT& rectWindow = sceneManager->GetRectWindow();
 	mAdjValue = Vector2{ 0, 0 };
 
 	// 타운에 존재하는 건물들의 충돌 처리를 위한 충s돌 박스 위치 설정
@@ -108,6 +110,9 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 	{
 		soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
 	}
+
+	SetTimer(mHwnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
+	SetTimer(mHwnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
 }
 
 // 타운 화면 렌더링
@@ -350,7 +355,7 @@ void Town::Update(float elapedTime)
 		mPlayer->_dir = Dir::Down;
 		mPlayer->_Pos += interval;
 	}
-	else if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit) {
+	else if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _exit) {
 		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 		PostQuitMessage(0);
 	}

@@ -62,7 +62,7 @@ public:
 	POINT _npc2Move = { 0, };
 
 	Town();
-	void Init(const RECT& rectWindow, const HWND& hWnd);
+	void Init();
 	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(float elapedTime);
 	void StopPlayer();

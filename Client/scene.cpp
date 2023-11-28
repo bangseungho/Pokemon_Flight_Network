@@ -82,10 +82,8 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	case Scene::Stage:
 		KillTimer(hWnd, TIMERID_TARGETMOVE);
 		KillTimer(hWnd, TIMERID_SelectPokemonMove);
-		KillTimer(hWnd, TIMERID_TWINKLEEMOTION);
 		break;
 	case Scene::PhaseManager:
-		KillTimer(hWnd, TIMERID_ANIMATION);
 		break;
 	case Scene::Battle: // 배틀 씬에서는 타이머 삭제뿐만 아니라 생성된 모든 객체들을 제거한다.
 		KillTimer(hWnd, TIMERID_BATTLE_INVALIDATE);
@@ -123,49 +121,17 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		intro.Init();
 		break;
 	case Scene::Town:
-	{
-		town.Init(rectWindow, hWnd);
-		SetTimer(hWnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
-		SetTimer(hWnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
-	}
+		town.Init();
 		break;
 	case Scene::Stage:
-		stage.Init(rectWindow);
-		SetTimer(hWnd, TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
-		SetTimer(hWnd, TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
-		//SetTimer(hWnd, TIMERID_TWINKLEEMOTION, ELAPSE_TWINKLEEMOTION, T_TwinkleEmotion); // 핑거 컨트롤러 깜빡이는 효과 타이머
-
-		if (prevScene != Scene::PhaseManager)
-		{
-			soundManager->StopBGMSound();
-			if (isEnding == true)
-			{
-				soundManager->PlayBGMSound(BGMSound::Ending, 1.0f, true);
-			}
-			else
-			{
-				soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
-			}
-		}
+		stage.Init();
 		break;
 	case Scene::PhaseManager:
-		//SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
 		phase.Init();
-		
-		if (prevScene == Scene::Battle)
-		{
-			soundManager->StopBGMSound();
-			if (isEnding == true)
-			{
-				soundManager->PlayBGMSound(BGMSound::Ending, 1.0f, true);
-			}
-			else
-			{
-				soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
-			}
-		}
 		break;
 	case Scene::Battle: 
+		battle.Init();
+
 		gameData.stage = stage.GetStage();
 
 		// 스테이지 씬(캐릭터 창)에서 고른 포켓몬 정보를 가져와서 해당 포켓몬으로 플레이어를 생성한다.
@@ -206,6 +172,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), static_cast<uint8>(crntScene), gameData.ClearRecord };
 		GET_SINGLE(Network)->SendDataAndType(sendData);
 	}
+	InvalidateRect(mHwnd, NULL, false);
 }
 
 // 씬 매니저 생성자에서는 사운드 매니저를 생성하고 현재 씬에서 필요한 이미지를 로드한다.
@@ -245,12 +212,12 @@ void SceneManager::Update()
 	case Scene::Stage:
 		stage.Update(DELTA_TIME);
 		break;
-	//case Scene::PhaseManager:
-	//	phase.Update();
-	//	break;
-	//case Scene::Battle:
-	//	battle.Update();
-	//	break;
+	case Scene::PhaseManager:
+		phase.Update(DELTA_TIME);
+		break;
+	case Scene::Battle:
+		//battle.Update(DELTA_TIME);
+		break;
 	}
 
 	Paint();

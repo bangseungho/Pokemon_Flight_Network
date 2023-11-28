@@ -53,8 +53,7 @@ void ProcessClient(ThreadSocket sock)
 		DataType dataType;
 		dataType = Data::RecvType(clientSock);
 		if (dataType == DataType::NONE_DATA)
-			break;
-		//continue;
+			continue;
 
 		// 클라이언트 종료했을 경우 모든 클라이언트에게 자신의 종료 신호를 송신한다.
 		if (dataType == DataType::END_PROCESSING) {

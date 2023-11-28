@@ -47,6 +47,7 @@ private:
 	CImage _ready_Pikachu[2];
 	CImage _ready_Charmander[2];
 	CImage _ready_Squirtle[2];
+
 	CImage _ready_Zapados[2];
 	CImage _ready_Moltres[2];
 	CImage _ready_Articuno[2];
@@ -67,7 +68,7 @@ public:
 	int _select_pokemon_move = 0;
 
 	Stage();
-	void Init(const RECT& rectWindow);
+	void Init();
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(float elapsedTime);

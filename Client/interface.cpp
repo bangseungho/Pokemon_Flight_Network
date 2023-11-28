@@ -129,6 +129,7 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			mPlayer->SetMove(hWnd, TIMERID_BATTLE_MOVE_PLAYER, ELAPSE_BATTLE_MOVE_PLAYER, T_Battle_MovePlayer);
 		}
 	}
+	//InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
 // 키 업 인풋 함수

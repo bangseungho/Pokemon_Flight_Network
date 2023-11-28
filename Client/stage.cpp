@@ -5,6 +5,7 @@
 #include "sound.h"
 #include "Network.h"
 #include "interface.h"
+#include "timer.h"
 
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
@@ -50,8 +51,9 @@ Stage::Stage()
 }
 
 // 각 스테이지 충돌 박스 크기 및 위치 설정
-void Stage::Init(const RECT& rectWindow)
+void Stage::Init()
 {
+	const RECT& rectWindow = sceneManager->GetRectWindow();
 	target->_rectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
 	mRectTarget = target->_rectDraw;
@@ -64,6 +66,19 @@ void Stage::Init(const RECT& rectWindow)
 
 	StageData stageData = { GET_SINGLE(Network)->GetClientIndex(), static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
+
+	soundManager->StopBGMSound();
+	if (sceneManager->GetIsEnding())
+	{
+		soundManager->PlayBGMSound(BGMSound::Ending, 1.0f, true);
+	}
+	else
+	{
+		soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
+	}
+
+	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
+	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
 }
 
 // 선택 초기화
@@ -258,7 +273,6 @@ void Stage::Update(float elapsedTime)
 	auto rectWindow = sceneManager->GetRectWindow();
 
 	target->_select = false;
-	target->_select_index = StageElement::Null;
 
 	int inputKey = 0;
 	if (!_select_pokemon) {
@@ -269,7 +283,9 @@ void Stage::Update(float elapsedTime)
 			{
 				target->_select = true;
 				target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
+				break;
 			}
+			target->_select_index = StageElement::Null;
 		}
 
 		// 타겟 이동
@@ -316,26 +332,17 @@ void Stage::Update(float elapsedTime)
 		{
 			inputKey = VK_RETURN;
 		}
-		else if (GetAsyncKeyState(VK_BACK) & 0x0001)
-		{
-			inputKey = VK_BACK;
-		}
 	}
 
-	StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, mRectTarget };
-	Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+	if (inputKey != 0) {
+		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, mRectTarget };
+		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+	}
 
 	auto& recvData = GET_SINGLE(Network)->GetStageData();
 	if (recvData.InputKey != 0) {
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
-	}
-	if (recvData.InputKey == VK_BACK) {
-		_select_pokemon = false;
-		_ready_Air_pokemon = false;
-		_ready_Land_pokemon = false;
-		_enter_select = false;
-		mFingerCount = 0;	
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
@@ -417,7 +424,6 @@ void Stage::Update(float elapsedTime)
 		mFingerCount = 0;
 	}
 
-	target->_rectDraw = recvData.RectDraw;
 	recvData.InputKey = 0;
 	target->_cam = { target->_rectDraw.left - CAMSIZE_X, (float)rectWindow.top, target->_rectDraw.right + CAMSIZE_X, (float)rectWindow.bottom };
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
@@ -511,6 +517,8 @@ void Stage::fingerController(const HWND& hWnd)
 			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
 				mFingerCount += 1;
 		}
+		if (GetAsyncKeyState(VK_BACK) & 0x0001)
+			SelectPokemonInit();
 	}
 }
 

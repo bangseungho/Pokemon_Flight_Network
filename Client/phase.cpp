@@ -54,6 +54,16 @@ void PhaseManager::Init()
 	rectDraw_melee = { 270, 490, 420, 640 };
 	rectDraw_range = { 50, 320, 200, 470 };
 	rectDraw_boss = { 180, 20, 430, 270 };
+
+	//SetTimer(hWnd, TIMERID_ANIMATION, ELAPSE_ANIMATION, T_Animation); // 페이즈 화면 핑거 컨트롤러 타이머
+}
+
+void PhaseManager::Update(float elapsedTime)
+{
+	if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+	{
+		sceneManager->StartLoading(sceneManager->GetHwnd());
+	}
 }
 
 // 페이즈 클리어 횟수에 따라서 페이즈에 표시해야 할 이미지들 렌더링
@@ -174,10 +184,7 @@ void PhaseManager::Paint(HDC hdc, const RECT& rectWindow, StageElement _select_i
 // 페이즈에서는 핑거 컨트롤러는 단지 엔터키를 누르면 다음 씬으로 넘어가는 역할
 void PhaseManager::fingerController(const HWND& hWnd)
 {
-	if (GetAsyncKeyState(VK_RETURN) & 0x8000)
-	{
-		sceneManager->StartLoading(hWnd);
-	}
+
 }
 
 // 페이즈를 클리어하였을 경우 현재 페이즈 값 증가 1스테이지당 총 3페이즈까지 존재
