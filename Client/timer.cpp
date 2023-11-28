@@ -82,7 +82,7 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	// 로딩 모두 끝날 시 타이머 정지
 	if (loading.IsLoaded() == true)
 	{
-		// 로딩 화면이 끝날때마다 타운 모두 초기화
+		// 로딩 화면이 끝날때마다 모두 초기화
 		stage.SelectPokemonInit();
 
 		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
@@ -230,9 +230,6 @@ void CALLBACK T_NpcMotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 // 스테이지에서 타겟을 움직이는 함수
 void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	const RECT rectWindow = sceneManager->GetRectWindow();
-	const Scene scene = sceneManager->GetScene();
-
 	stage.fingerController(hWnd);
 	if (sceneManager->IsLoading() == false)
 	{

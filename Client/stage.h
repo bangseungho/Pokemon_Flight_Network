@@ -53,11 +53,11 @@ private:
 
 	POINT _fingerPos = { 0, };
 
-	int mFingerCount = 0;
-	int mTwinkleCnt = 0;
+	float mTwinkleCnt = 0;
 	float moveX = 300;
 	int _play_Air_pokemon = 0;
 	int _play_Land_pokemon = 0;
+	int mFingerCount;
 
 	Type airPokemon = Type::Empty;
 	Type landPokemon = Type::Empty;
