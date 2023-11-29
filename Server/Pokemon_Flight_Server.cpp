@@ -70,17 +70,21 @@ void ProcessClient(ThreadSocket sock)
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			// 모든 클라이언트들에게 자신의 정보를 담은 패킷 송신
-			uint8 minRecord = 9;
-			for (const auto& player : sPlayers) {
+			uint8 minRecord = 99;
+			for (auto& player : sPlayers) {
 				if (minRecord > player.second.mSceneData.Record) {
 					minRecord = player.second.mSceneData.Record;
 					mainPlayerIndex = player.second.mThreadId;
 				}
+			}
 
+			for (auto& player : sPlayers) {
 				data.MainPlayerIndex = mainPlayerIndex;
+				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
 				// 현재 클라이언트의 씬 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<SceneData>(player.second.mSock, data);
+
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
@@ -151,12 +155,6 @@ void ProcessClient(ThreadSocket sock)
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
 			LeaveCriticalSection(&cs);
-//#ifdef _DEBUG
-//			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId)
-//				 << ", ISREADY: " << data.IsReady 
-//				 << ", POSX: " << data.PlayerData.Pos.x 
-//				 << ", POSY: " << data.PlayerData.Pos.y << endl;
-//#endif 
 		}
 #pragma endregion
 #pragma region Stage
@@ -164,38 +162,19 @@ void ProcessClient(ThreadSocket sock)
 			auto& data = sPlayers[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
-#ifdef _DEBUG
-			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId) << ", AIR: " << (uint32)data.AirPokemon << ", LAND: " << (uint32)data.LandPokemon << endl;
-#endif
-			bool allPlayerReady = true;
-			for (const auto& player : sPlayers) {
-				if (player.second.mStageData.IsReady == false) {
-					allPlayerReady = false;
-					break;
-				}
-			}
-
-			// 모든 플레이어가 준비 완료 되었다면 현재 플레이어와 모든 플레이어와 정보 공유
-			if (allPlayerReady) {
-				for (const auto& player : sPlayers) {
-					if (player.second.mThreadId == threadId)
-						continue;
-
-					// 현재 클라이언트의 인트로 정보를 모든 클라이언트로 송신한다.
-					Data::SendDataAndType<StageData>(player.second.mSock, data);
-
-					// 모든 클라이언트의 인트로 정보를 현재 클라이언트로 송신한다.
-					Data::SendDataAndType<StageData>(clientSock, player.second.mStageData);
-				}
-			}
-
-			if (mainPlayerIndex != threadId)
+			// 메인 플레이어일 경우에만 스테이지 데이터를 다른 플레이어에게 송신
+			if (threadId != mainPlayerIndex)
 				continue;
 
-			if (data.InputKey == 0)
-				continue;
+			// 모든 플레이어의 준비 상태 확인
+			bool allReady = all_of(sPlayers.begin(), sPlayers.end(), [](const auto& a) {
+				return a.second.mStageData.IsReady == 1; });
 
-			// 메인 플레이어 기준 화면 동시 송출
+			// 모든 플레이어가 준비되었다면 메인 플레이어의 다음 씬 플래그를 true로 설정
+			if (allReady)
+				sPlayers[mainPlayerIndex].mStageData.CanGoNextScene = true;
+
+			// 메인 플레이어의 화면 동시 송출
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[mainPlayerIndex].mStageData);
 			}
@@ -205,27 +184,12 @@ void ProcessClient(ThreadSocket sock)
 		else if (dataType == DataType::PHASE_DATA) {
 			auto& data = sPlayers[threadId].mPhaseData;
 			Data::RecvData<PhaseData>(clientSock, data);
-#ifdef _DEBUG
-			cout << "ISREADY: " << data.IsReady << endl;
-#endif
 		}
 #pragma endregion
 #pragma region Battle
 		else if (dataType == DataType::BATTLE_DATA) {
 			auto& data = sPlayers[threadId].mBattleData;
 			Data::RecvData<BattleData>(clientSock, data);
-
-			//for (const auto& player : sPlayers) {
-			//	if (player.mThreadId == threadId)
-			//		continue;
-
-			//	SendData<BattleData>(clientSock, player.mBattleData);
-			//}
-#ifdef _DEBUG
-			cout << "ISCOLLIDER: " << data.IsCollider 
-				 << ", POSX: " << data.PosX 
-				 << ", POSY: " << data.PosY << endl;
-#endif
 		}
 #pragma endregion
 	}

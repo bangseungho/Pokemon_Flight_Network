@@ -77,6 +77,12 @@ void Stage::Init()
 		soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
 	}
 
+	for (auto& member : GET_MEMBER_MAP) {
+		member.second.mStageData.IsReady = false;
+		member.second.mStageData.AirPokemon = Type::Empty;
+		member.second.mStageData.LandPokemon = Type::Empty;
+	}
+
 	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
 	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
 }
@@ -347,12 +353,10 @@ void Stage::Update(float elapsedTime)
 
 	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
-		bool allReady = all_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& a) {
-			return a.second.mStageData.IsReady == 1;
-			});
-
-		moveX = 300;
-		sceneManager->StartLoading(sceneManager->GetHwnd());
+		if (recvData.CanGoNextScene == true) {
+			moveX = 300;
+			sceneManager->StartLoading(sceneManager->GetHwnd());
+		}
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.

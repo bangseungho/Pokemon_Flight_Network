@@ -59,6 +59,7 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::SCENE_DATA) {
 			// 패킷을 수신할 임시 객체
 			SceneData recvData;
+
 			ZeroMemory(&recvData, sizeof(SceneData));
 
 			// 패킷 수신
@@ -66,6 +67,7 @@ void Network::ClientReceiver()
 
 			// 메인 플레이어 인덱스
 			mMainPlayerIndex = recvData.MainPlayerIndex;
+			cout << (uint32)mMainPlayerIndex << endl;
 
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);

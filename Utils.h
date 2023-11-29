@@ -434,6 +434,7 @@ struct StageData
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;
 	bool	IsReady = false;
+	bool	CanGoNextScene = false;
 };
 
 struct PhaseData
