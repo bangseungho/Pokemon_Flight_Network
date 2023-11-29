@@ -17,7 +17,7 @@
 #define TIMERID_BATTLE_GUI 905
 #define ELAPSE_BATTLE_GUI 10
 
-void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
+void T_Battle_Invalidate();
 void CALLBACK T_Battle_Animate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
 void CALLBACK T_Battle_AnimateBoss(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
 void CALLBACK T_Battle_MovePlayer(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);

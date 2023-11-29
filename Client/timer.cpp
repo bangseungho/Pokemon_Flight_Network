@@ -16,9 +16,9 @@ extern GUIManager* gui;
 extern SceneManager* sceneManager;
 
 // 배틀화면에서 필요한 타이머
-void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Battle_Invalidate()
 {
-	InvalidateRect(hWnd, NULL, FALSE);
+	InvalidateRect(sceneManager->GetHwnd(), NULL, FALSE);
 	mPlayer->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 	enemies->CreateCheckMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
 	enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
@@ -87,8 +87,8 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 
 		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
 		{
-			sceneManager->MoveScene(hWnd, Scene::Town);
-			//sceneManager->MoveScene(hWnd, Scene::Stage);
+			//sceneManager->MoveScene(hWnd, Scene::Town);
+			sceneManager->MoveScene(hWnd, Scene::Stage);
 		}
 		else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 		{

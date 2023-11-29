@@ -428,6 +428,8 @@ struct StageData
 	int		Record;
 	int		InputKey;
 	FRECT	RectDraw;
+	Type	AirPokemon = Type::Empty;
+	Type	LandPokemon = Type::Empty;
 };
 
 struct PhaseData

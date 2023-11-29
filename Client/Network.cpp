@@ -118,7 +118,15 @@ void Network::ClientReceiver()
 
 			// 패킷 수신
 			Data::RecvData<StageData>(mClientSock, recvData);
-			mRecvStageData = move(recvData);
+
+			// 자신의 패킷이라면 자신의 정보에 넣어줌
+			if (mClientIndex == recvData.PlayerIndex)
+				mRecvStageData = move(recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
 		}
 #pragma endregion
 	}

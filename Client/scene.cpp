@@ -155,7 +155,6 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		rectDisplay = gui->GetRectDisplay();
 
 		SetTimer(hWnd, TIMERID_BATTLEMAPMOVE, ELAPSE_BATTLEMAPMOVE, T_Battle_MapMove); // 종스크롤 맵 움직임 타이머
-		SetTimer(hWnd, TIMERID_BATTLE_INVALIDATE, ELAPSE_BATTLE_INVALIDATE, T_Battle_Invalidate); // 충돌처리 또는 위치 이동 타이머
 		SetTimer(hWnd, TIMERID_BATTLE_ANIMATION, ELAPSE_BATTLE_ANIMATION, T_Battle_Animate); // 플레이어, 적, 보스 스킬 애니메이션 타이머
 		SetTimer(hWnd, TIMERID_BATTLE_EFFECT, ELAPSE_BATTLE_EFFECT, T_Battle_Effect); // 전투 이펙트 효과 타이머
 		SetTimer(hWnd, TIMERID_BATTLE_GUI, ELAPSE_BATTLE_GUI, T_Battle_GUI); // GUI 타이머
@@ -216,7 +215,7 @@ void SceneManager::Update()
 		phase.Update(DELTA_TIME);
 		break;
 	case Scene::Battle:
-		//battle.Update(DELTA_TIME);
+		battle.Update(DELTA_TIME);
 		break;
 	}
 

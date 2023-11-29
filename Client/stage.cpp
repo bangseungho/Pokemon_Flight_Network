@@ -345,6 +345,12 @@ void Stage::Update(float elapsedTime)
 		_dialogflag = false;
 	}
 
+	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
+	{
+		moveX = 300;
+		sceneManager->StartLoading(sceneManager->GetHwnd());
+	}
+
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
 	if (recvData.InputKey == VK_RETURN && target->_select == true)
 	{
@@ -498,8 +504,8 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				moveX = 300;
-				sceneManager->StartLoading(hWnd);
+				StageData sendData = { GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon };
+				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
 
