@@ -140,9 +140,11 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 30, ID, lstrlen(ID));
 
 	// 현재 멤버들의 정보를 가져오기
-	const auto& members = GET_SINGLE(Network)->GetMemberMap();
-
+	const auto& members = GET_MEMBER_MAP;
 	for (const auto& member : members) {
+		if (member.first == MY_INDEX)
+			continue;
+
 		// 현재 멤버가 타운 씬에 없다면 그리지 않는다.
 		if (member.second.mSceneData.Scene != static_cast<uint8>(Scene::Town))
 			continue;
@@ -186,6 +188,9 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 		TextOut(hdc, mPlayer->_Pos.x - 25, mPlayer->_Pos.y + 50, Posy, lstrlen(Posy));
 
 		for (const auto& member : members) {
+			if (member.first == MY_INDEX)
+				continue;
+
 			POINT newPos = member.second.mTownData.PlayerData.Pos;
 			wsprintf(Posx, L"X : %d", newPos.x);
 			wsprintf(Posy, L"Y : %d", newPos.y);
@@ -230,7 +235,7 @@ void Town::Update(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
-	if (GET_SINGLE(Network)->GetTownData().IsReady == true)
+	if (MEMBER_MAP(MY_INDEX).mTownData.IsReady == true)
 	{
 		sceneManager->StartLoading(sceneManager->GetHwnd());
 		_nextFlow = Scene::Stage;

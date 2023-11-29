@@ -6,6 +6,9 @@
 #define TPLAYER_IMAGESIZE_X 64
 #define TPLAYER_IMAGESIZE_Y 64
 
+#define WINDOWSIZE_X 500
+#define WINDOWSIZE_Y 750
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
 #include <tchar.h>
@@ -427,7 +430,7 @@ struct StageData
 	uint8	PlayerIndex = 0;
 	int		Record;
 	int		InputKey;
-	FRECT	RectDraw;
+	FRECT	RectDraw = { (float)(WINDOWSIZE_X / 2 - 40), (float)(WINDOWSIZE_Y / 2 - 40), (float)(WINDOWSIZE_X / 2 + 40), (float)(WINDOWSIZE_Y / 2 + 40) };
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;
 };
@@ -449,6 +452,7 @@ struct BattleData
 struct SceneData
 {
 	uint8	PlayerIndex = 0;
+	uint8	MainPlayerIndex = 0;
 	uint8	Scene = 0;
 	int		Record = 0;
 };

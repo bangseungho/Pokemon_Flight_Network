@@ -335,11 +335,11 @@ void Stage::Update(float elapsedTime)
 	}
 
 	if (inputKey != 0) {
-		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, mRectTarget };
+		StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
 		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
 	}
 
-	auto& recvData = GET_SINGLE(Network)->GetStageData();
+	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
 	if (recvData.InputKey != 0) {
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
@@ -504,7 +504,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}

@@ -77,9 +77,7 @@ void ProcessClient(ThreadSocket sock)
 					mainPlayerIndex = player.second.mThreadId;
 				}
 
-				// 플레이어가 자신이라면 패킷을 전송하지 않는다.
-				if (player.second.mThreadId == threadId)
-					continue;
+				data.MainPlayerIndex = mainPlayerIndex;
 
 				// 현재 클라이언트의 씬 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<SceneData>(player.second.mSock, data);
