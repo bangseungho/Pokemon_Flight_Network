@@ -433,6 +433,7 @@ struct StageData
 	FRECT	RectDraw = { (float)(WINDOWSIZE_X / 2 - 40), (float)(WINDOWSIZE_Y / 2 - 40), (float)(WINDOWSIZE_X / 2 + 40), (float)(WINDOWSIZE_Y / 2 + 40) };
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;
+	bool	IsReady = false;
 };
 
 struct PhaseData

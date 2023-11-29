@@ -169,8 +169,7 @@ void ProcessClient(ThreadSocket sock)
 #endif
 			bool allPlayerReady = true;
 			for (const auto& player : sPlayers) {
-				if (player.second.mStageData.AirPokemon == Type::Empty ||
-					player.second.mStageData.LandPokemon == Type::Empty) {
+				if (player.second.mStageData.IsReady == false) {
 					allPlayerReady = false;
 					break;
 				}
