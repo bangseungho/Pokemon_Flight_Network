@@ -427,7 +427,9 @@ struct StageData
 	uint8	PlayerIndex = 0;
 	int		Record;
 	int		InputKey;
-	RECT	RectDraw;
+	FRECT	RectDraw;
+	Type	AirPokemon = Type::Empty;
+	Type	LandPokemon = Type::Empty;
 };
 
 struct PhaseData
@@ -448,6 +450,7 @@ struct SceneData
 {
 	uint8	PlayerIndex = 0;
 	uint8	Scene = 0;
+	int		Record = 0;
 };
 
 struct EndProcessing

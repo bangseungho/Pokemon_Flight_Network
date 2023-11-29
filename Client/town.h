@@ -35,7 +35,6 @@ private:
 	CImage _exits;
 	CImage mGlowingBlack;
 	bool _exit = false;
-	bool mCanNextScene = false;
 
 public:
 	class Player
@@ -48,6 +47,7 @@ public:
 		RECT _rectImage = { 0, };
 		FRECT _cam = { 0, };
 		Dir _dir = Dir::Down;
+		bool mCanNextScene = false;
 		bool _keepGoing = false;
 	};
 
@@ -62,7 +62,7 @@ public:
 	POINT _npc2Move = { 0, };
 
 	Town();
-	void Init(const RECT& rectWindow, const HWND& hWnd);
+	void Init();
 	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(float elapedTime);
 	void StopPlayer();

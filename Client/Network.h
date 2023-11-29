@@ -28,6 +28,7 @@ public:
 	SOCKET& GetSocket() { return mClientSock; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 	StageData& GetStageData() { return mRecvStageData; }
+	TownData& GetTownData() { return mRecvTownData; }
 
 private:
 	bool			mConnected;
@@ -38,6 +39,7 @@ private:
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 	StageData		mRecvStageData;
+	TownData		mRecvTownData;
 };
 
 template<typename T>

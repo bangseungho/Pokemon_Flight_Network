@@ -4,6 +4,7 @@
 #include "Network.h"
 #include "gameTimer.h"
 #include "sound.h"
+#include "timer.h"
 
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
@@ -23,9 +24,10 @@ Town::Town()
 }
 
 // 타운에서 필요한 초기화 작업
-void Town::Init(const RECT& rectWindow, const HWND& hWnd)
+void Town::Init()
 {
-	mHwnd = hWnd;
+	mHwnd = sceneManager->GetHwnd();
+	const RECT& rectWindow = sceneManager->GetRectWindow();
 	mAdjValue = Vector2{ 0, 0 };
 
 	// 타운에 존재하는 건물들의 충돌 처리를 위한 충s돌 박스 위치 설정
@@ -108,6 +110,9 @@ void Town::Init(const RECT& rectWindow, const HWND& hWnd)
 	{
 		soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
 	}
+
+	SetTimer(mHwnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
+	SetTimer(mHwnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
 }
 
 // 타운 화면 렌더링
@@ -225,6 +230,14 @@ void Town::Update(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
+	if (GET_SINGLE(Network)->GetTownData().IsReady == true)
+	{
+		sceneManager->StartLoading(sceneManager->GetHwnd());
+		_nextFlow = Scene::Stage;
+		mAdjValue = Vector2{ 0, 0 };
+		mPlayer->mCanNextScene = false;
+	}
+
 	const RECT rectWindow = sceneManager->GetRectWindow();
 
 	// 문 도착시 게임 종료
@@ -264,7 +277,7 @@ void Town::Update(float elapedTime)
 
 	if (mPlayer->_Pos.x + 20 >= rectWindow.right)
 	{
-		mCanNextScene = true;
+		mPlayer->mCanNextScene = true;
 		mPlayer->_Pos.x -= 1;
 		mPlayer->aboutMapPos.x -= 1;
 	}
@@ -275,28 +288,9 @@ void Town::Update(float elapedTime)
 		mAdjValue = Vector2{ 0, 0 };
 	}
 
-	bool bCanNextScene = true;
-	const auto& members = GET_SINGLE(Network)->GetMemberMap();
-	for (const auto& member : members) {
-		if (member.second.mTownData.IsReady == false) {
-			bCanNextScene = false;
-			break;
-		}
-	}
-
-	if (mCanNextScene)
-	{
-		if (bCanNextScene == true) {
-			sceneManager->StartLoading(sceneManager->GetHwnd());
-			_nextFlow = Scene::Stage;
-			mAdjValue = Vector2{ 0, 0 };
-			mCanNextScene = false;
-		}
-	}
-
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
 		_exit = false;
-		mCanNextScene = false;
+		mPlayer->mCanNextScene = false;
 		mPlayer->_dir = Dir::Left;
 		Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
 		mPlayer->aboutMapPos += interval;
@@ -348,20 +342,20 @@ void Town::Update(float elapedTime)
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000) {
 		Vector2 interval = { 0, -TPLAYER_SPEED * elapedTime };
-		mCanNextScene = false;
+		mPlayer->mCanNextScene = false;
 		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Up;
 		mPlayer->_Pos += interval;
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		_exit = false;
-		mCanNextScene = false;
+		mPlayer->mCanNextScene = false;
 		Vector2 interval = { 0, TPLAYER_SPEED * elapedTime };
 		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Down;
 		mPlayer->_Pos += interval;
 	}
-	else if (GetAsyncKeyState(VK_RETURN) & 0x8000 && _exit) {
+	else if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _exit) {
 		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
 		PostQuitMessage(0);
 	}
@@ -372,7 +366,7 @@ void Town::Update(float elapedTime)
 
 	// 방향키가 눌러졌다면 패킷 송신
 	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mCanNextScene, 0 };
+	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mPlayer->mCanNextScene, 0 };
 	GET_SINGLE(Network)->SendDataAndType(townData);
 
 	mPlayer->_cam = FRECT{ mPlayer->_Pos.x - CAMSIZE_X, 0, mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom };

@@ -27,6 +27,7 @@ public:
 	void StopLoading(const HWND& hWnd);
 
 	HWND GetHwnd() const { return mHwnd; }
+	bool GetIsEnding() const { return isEnding; }
 	
 	inline bool constexpr IsLoading()
 	{

@@ -8,11 +8,11 @@ private:
 	class Target
 	{
 	public:
-		RECT _rectDraw = { 0, };
+		FRECT _rectDraw = { 0, };
 		RECT _rectImage = { 0, };
 		CImage _img;
 		CImage _select_img;
-		RECT _cam = { 0, };
+		FRECT _cam = { 0, };
 		bool _select = false;
 		StageElement _select_index;
 	};
@@ -21,7 +21,7 @@ private:
 
 	RECT _rectDraw = { 0, };
 	RECT _rectImage = { 0, };
-	RECT rectStage[5] = { 0, };
+	FRECT rectStage[5] = { 0, };
 	CImage _water;
 	CImage _fire;
 	CImage _electronic;
@@ -29,6 +29,8 @@ private:
 	CImage _dialog_bar;
 	CImage mGlowingBlack;
 	Target* target;
+	FRECT mRectTarget;
+	FRECT mRectBack;
 	bool _dialogflag = false; // 해금되지 않은 스테이지를 선택한 경우 true
 	bool _select_pokemon = false; // 포켓몬 선택창이 열린 경우 true
 	bool _ready_Air_pokemon = false;
@@ -45,17 +47,18 @@ private:
 	CImage _ready_Pikachu[2];
 	CImage _ready_Charmander[2];
 	CImage _ready_Squirtle[2];
+
 	CImage _ready_Zapados[2];
 	CImage _ready_Moltres[2];
 	CImage _ready_Articuno[2];
 
 	POINT _fingerPos = { 0, };
 
-	int mFingerCount = 0;
-	int mTwinkleCnt = 0;
-	int moveX = 300;
+	float mTwinkleCnt = 0;
+	float moveX = 300;
 	int _play_Air_pokemon = 0;
 	int _play_Land_pokemon = 0;
+	int mFingerCount;
 
 	Type airPokemon = Type::Empty;
 	Type landPokemon = Type::Empty;
@@ -65,10 +68,10 @@ public:
 	int _select_pokemon_move = 0;
 
 	Stage();
-	void Init(const RECT& rectWindow);
+	void Init();
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow);
-	void Update(const HWND& hWnd, const RECT& rectWindow);
+	void Update(float elapsedTime);
 	void fingerController(const HWND& hWnd);
 	inline constexpr StageElement GetStage()
 	{

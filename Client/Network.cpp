@@ -7,8 +7,11 @@ extern SceneManager* sceneManager;
 
 Network::Network()
 {
+	auto rectWindow = sceneManager->GetRectWindow();
+
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
+	mRecvStageData.RectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 }
 
 Network::~Network()
@@ -97,6 +100,9 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
 
+			if (mClientIndex == recvData.PlayerIndex)
+				mRecvTownData = move(recvData);
+
 			// 인덱스가 해당 클라이언트 인덱스일 경우에는 자신의 데이터에 이동
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
@@ -112,7 +118,15 @@ void Network::ClientReceiver()
 
 			// 패킷 수신
 			Data::RecvData<StageData>(mClientSock, recvData);
-			mRecvStageData = move(recvData);
+
+			// 자신의 패킷이라면 자신의 정보에 넣어줌
+			if (mClientIndex == recvData.PlayerIndex)
+				mRecvStageData = move(recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
 		}
 #pragma endregion
 	}
@@ -147,6 +161,10 @@ void Network::Connect()
 	retVal = connect(mClientSock, (SOCKADDR*)&mServerAddr, sizeof(mServerAddr));
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
+
+	// 네이글 알고리즘 해제
+	int delayZeroOpt = 1;
+	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
 
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;
