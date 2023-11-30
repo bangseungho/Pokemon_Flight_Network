@@ -126,6 +126,10 @@ void Player::Init()
 	skillManager = new SkillManager();
 }
 
+void Player::PartnerPaint(HDC hdc, Dir inputKey) {
+	SetDirection(inputKey);
+}
+
 // 플레이어 렌더링
 void Player::Paint(HDC hdc)
 {
@@ -167,6 +171,10 @@ void Player::Paint(HDC hdc)
 	}
 
 	img_subPokemon.Paint(rectDest, hdc);
+
+	//파트너 랜더링 부분
+
+
 }
 
 // 스킬 매니저를 통해서 스킬 렌더링

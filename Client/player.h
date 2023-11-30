@@ -57,6 +57,7 @@ public:
 	Player(Type type, Type subType);
 	~Player();
 	void Init();
+	void PartnerPaint(HDC hdc, Dir inputKey);
 	void Paint(HDC hdc);
 	void PaintSkill(HDC hdc);
 

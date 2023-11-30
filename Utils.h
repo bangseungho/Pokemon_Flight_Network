@@ -94,9 +94,11 @@ struct BattleData
 		bool isRotateImg = false; // 회전 이미지인지
 
 	};
+
+	Dir		inputDir;
 	uint8	PlayerIndex = 0;
-	float	PosX;
-	float	PosY;
+	BattleBullet bullet;
+	
 	bool	IsCollider;
 };
 

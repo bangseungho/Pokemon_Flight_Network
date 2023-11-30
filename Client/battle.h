@@ -27,4 +27,7 @@ public:
 		_shakeCount = shakeCount * 10;
 		isShake = true;
 	}
+
+
+	Player* mPlayer;
 };

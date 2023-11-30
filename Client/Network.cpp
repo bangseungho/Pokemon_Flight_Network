@@ -102,7 +102,7 @@ void Network::Receiver()
 				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
 		}
 
-#pragma region stage
+#pragma region Stage
 		else if (dataType == DataType::STAGE_DATA) {
 			// 패킷을 수신할 임시 객체
 			StageData recvData;
@@ -118,20 +118,21 @@ void Network::Receiver()
 		}
 #pragma endregion
 
-#pragma region Stage
-		else if (dataType == DataType::STAGE_DATA) {
+#pragma region Battle
+		else if (dataType == DataType::BATTLE_DATA) {
 			// 패킷을 수신할 임시 객체
-			StageData recvData;
-			ZeroMemory(&recvData, sizeof(StageData));
+			BattleData recvData;
+			ZeroMemory(&recvData, sizeof(BattleData));
 
 			// 패킷 수신
-			Data::RecvData<StageData>(mClientSock, recvData);
+			Data::RecvData<BattleData>(mClientSock, recvData);
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mStageData= move(recvData);
+				mRecvMemberMap[recvData.PlayerIndex].mBattleData= move(recvData);
 
 		}
+#pragma endregion
 	}
 }
 
