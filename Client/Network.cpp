@@ -9,6 +9,7 @@ Network::Network()
 {
 	auto rectWindow = sceneManager->GetRectWindow();
 	InitializeCriticalSection(&mPrintCS);
+	InitializeCriticalSection(&mRecvCS);
 
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
@@ -17,6 +18,7 @@ Network::Network()
 Network::~Network()
 {
 	DeleteCriticalSection(&mPrintCS);
+	DeleteCriticalSection(&mRecvCS);
 
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
@@ -39,7 +41,6 @@ void Network::ClientReceiver()
 		if (dataType == DataType::END_PROCESSING) {
 			// 종료 클라이언트 인덱스를 수신
 			EndProcessing recvData;
-			ZeroMemory(&recvData, sizeof(EndProcessing));
 
 			// 패킷 수신
 			Data::RecvData<EndProcessing>(mClientSock, recvData);
@@ -63,8 +64,6 @@ void Network::ClientReceiver()
 			// 패킷을 수신할 임시 객체
 			SceneData recvData;
 
-			ZeroMemory(&recvData, sizeof(SceneData));
-
 			// 패킷 수신
 			Data::RecvData<SceneData>(mClientSock, recvData);
 
@@ -79,6 +78,9 @@ void Network::ClientReceiver()
 #ifdef _DEBUG
 			EnterCriticalSection(&mPrintCS);
 			for (const auto& member : mRecvMemberMap) {
+				if (mClientIndex == member.second.mSceneData.PlayerIndex)
+					continue;
+
 				string airPokemonStr;
 				switch (member.second.mSceneData.AirPokemon)
 				{
@@ -124,7 +126,6 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::INTRO_DATA) {
 			// 패킷을 수신할 임시 객체
 			IntroData recvData;
-			ZeroMemory(&recvData, sizeof(IntroData));
 
 			// 패킷 수신
 			Data::RecvData<IntroData>(mClientSock, recvData);
@@ -144,7 +145,6 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::TOWN_DATA) {
 			// 패킷을 수신할 임시 객체
 			TownData recvData;
-			ZeroMemory(&recvData, sizeof(TownData));
 
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
@@ -159,15 +159,30 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::STAGE_DATA) {
 			// 패킷을 수신할 임시 객체
 			StageData recvData;
-			ZeroMemory(&recvData, sizeof(StageData));
 
 			// 패킷 수신
+			EnterCriticalSection(&mRecvCS);
 			Data::RecvData<StageData>(mClientSock, recvData);
 
 			// 멤버의 패킷이라면 맴버 맵에 넣어줌
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
+			LeaveCriticalSection(&mRecvCS);
+		}
+#pragma endregion
+#pragma region Phase
+		else if (dataType == DataType::PHASE_DATA) {
+			// 패킷을 수신할 임시 객체
+			PhaseData recvData;
+
+			// 패킷 수신
+			Data::RecvData<PhaseData>(mClientSock, recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
 		}
 #pragma endregion
 	}

@@ -347,7 +347,9 @@ void Stage::Update(float elapsedTime)
 		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
 	}
 
+	GET_SINGLE(Network)->EnterRecvCS();
 	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
+	GET_SINGLE(Network)->LeaveRecvCS();
 	if (recvData.InputKey != 0) {
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;

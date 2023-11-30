@@ -79,9 +79,6 @@ void ProcessClient(ThreadSocket sock)
 			}
 
 			for (auto& player : sPlayers) {
-				if (threadId == player.second.mSceneData.PlayerIndex)
-					continue;
-
 				data.MainPlayerIndex = mainPlayerIndex;
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
@@ -181,6 +178,8 @@ void ProcessClient(ThreadSocket sock)
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[mainPlayerIndex].mStageData);
 			}
+
+			data.InputKey = 0;
 		}
 #pragma endregion
 #pragma region Phase

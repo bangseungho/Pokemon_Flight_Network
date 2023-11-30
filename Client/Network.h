@@ -29,6 +29,9 @@ public:
 	SOCKET& GetSocket() { return mClientSock; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
+	void EnterRecvCS() { EnterCriticalSection(&mRecvCS); };
+	void LeaveRecvCS() { LeaveCriticalSection(&mRecvCS); };
+
 private:
 	bool				mConnected;
 	uint8				mClientIndex;
@@ -37,6 +40,7 @@ private:
 	SOCKET				mClientSock;
 	SOCKADDR_IN			mServerAddr;
 	CRITICAL_SECTION	mPrintCS;
+	CRITICAL_SECTION	mRecvCS;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
