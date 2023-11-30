@@ -89,10 +89,12 @@ void ProcessClient(ThreadSocket sock)
 				// 모든 플레이어에게 자신의 데이터 송신
 				Data::SendDataAndType<SceneData>(player.second.mSock, sPlayers[threadId].mSceneData);
 				Data::SendDataAndType<TownData>(player.second.mSock, sPlayers[threadId].mTownData);
+				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[threadId].mStageData);
 
 				// 자신에게 모든 플레이어 데이터 송신
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
+				Data::SendDataAndType<StageData>(clientSock, player.second.mStageData);
 			}
 
 #ifdef _DEBUG
@@ -133,9 +135,6 @@ void ProcessClient(ThreadSocket sock)
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			for (const auto& player : sPlayers) {
-				if (player.second.mThreadId == threadId)
-					continue;
-
 				// 현재 클라이언트의 인트로 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(player.second.mSock, data);
 
@@ -156,6 +155,9 @@ void ProcessClient(ThreadSocket sock)
 					return a.second.mTownData.IsReady == 1;
 				});
 			data.CanGoNextScene = allReady;
+
+			if (data.CanGoNextScene == true)
+				int a = 3;
 
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
