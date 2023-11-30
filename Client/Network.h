@@ -30,12 +30,13 @@ public:
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
 private:
-	bool			mConnected;
-	uint8			mClientIndex;
-	uint8			mMainPlayerIndex;
-	thread			mRecvClientThread;
-	SOCKET			mClientSock;
-	SOCKADDR_IN		mServerAddr;
+	bool				mConnected;
+	uint8				mClientIndex;
+	uint8				mMainPlayerIndex;
+	thread				mRecvClientThread;
+	SOCKET				mClientSock;
+	SOCKADDR_IN			mServerAddr;
+	CRITICAL_SECTION	mPrintCS;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
@@ -53,6 +54,7 @@ inline void Network::SendDataAndType(const T& data)
 #ifdef _DEBUG
 	string dataTypeStr;
 	DataType dataType = Data::GetDataType<T>();
+	EnterCriticalSection(&mPrintCS);
 	if (retVal) {
 		cout << "[ Successed Send ";
 		switch (dataType)
@@ -98,5 +100,6 @@ inline void Network::SendDataAndType(const T& data)
 	}
 	else
 		cout << "[ Failed Send Data ]" << endl;
+	LeaveCriticalSection(&mPrintCS);
 #endif 
 }

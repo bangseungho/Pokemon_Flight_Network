@@ -79,6 +79,9 @@ void ProcessClient(ThreadSocket sock)
 			}
 
 			for (auto& player : sPlayers) {
+				if (threadId == player.second.mSceneData.PlayerIndex)
+					continue;
+
 				data.MainPlayerIndex = mainPlayerIndex;
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
@@ -184,6 +187,10 @@ void ProcessClient(ThreadSocket sock)
 		else if (dataType == DataType::PHASE_DATA) {
 			auto& data = sPlayers[threadId].mPhaseData;
 			Data::RecvData<PhaseData>(clientSock, data);
+
+			for (const auto& player : sPlayers) {
+				Data::SendDataAndType<PhaseData>(player.second.mSock, sPlayers[mainPlayerIndex].mPhaseData);
+			}
 		}
 #pragma endregion
 #pragma region Battle

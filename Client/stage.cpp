@@ -64,7 +64,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
 
-	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, Type::Empty, Type::Empty, false };
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	soundManager->StopBGMSound();
@@ -79,9 +79,10 @@ void Stage::Init()
 
 	for (auto& member : GET_MEMBER_MAP) {
 		member.second.mStageData.IsReady = false;
-		member.second.mStageData.AirPokemon = Type::Empty;
-		member.second.mStageData.LandPokemon = Type::Empty;
 	}
+
+	airPokemon = Type::Empty;
+	landPokemon = Type::Empty;
 
 	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
 	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
@@ -272,6 +273,7 @@ void Stage::Update(float elapsedTime)
 {
 	if (sceneManager->IsLoading())
 		return;
+
 	if(_select_pokemon)
 		mTwinkleCnt += elapsedTime * 3.f;
 
@@ -334,7 +336,7 @@ void Stage::Update(float elapsedTime)
 				mRectTarget.bottom += 200 * elapsedTime;
 			}
 		}
-		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+		else if (GetAsyncKeyState(VK_RETURN) & 0x8001)
 		{
 			inputKey = VK_RETURN;
 		}
@@ -512,7 +514,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon, true };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}

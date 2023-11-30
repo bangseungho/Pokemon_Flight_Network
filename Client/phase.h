@@ -43,7 +43,6 @@ public:
 	void Init();
 	void Update(float elapsedTime);
 	void Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index);
-	void fingerController(const HWND& hWnd);
 
 	void ClearPhase();
 	int GetPhase();

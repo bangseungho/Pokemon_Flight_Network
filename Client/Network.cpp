@@ -8,6 +8,7 @@ extern SceneManager* sceneManager;
 Network::Network()
 {
 	auto rectWindow = sceneManager->GetRectWindow();
+	InitializeCriticalSection(&mPrintCS);
 
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
@@ -15,6 +16,8 @@ Network::Network()
 
 Network::~Network()
 {
+	DeleteCriticalSection(&mPrintCS);
+
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
 
@@ -67,12 +70,54 @@ void Network::ClientReceiver()
 
 			// 메인 플레이어 인덱스
 			mMainPlayerIndex = recvData.MainPlayerIndex;
-			cout << (uint32)mMainPlayerIndex << endl;
 
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
+
+#ifdef _DEBUG
+			EnterCriticalSection(&mPrintCS);
+			for (const auto& member : mRecvMemberMap) {
+				string airPokemonStr;
+				switch (member.second.mSceneData.AirPokemon)
+				{
+				case Type::Empty:
+					airPokemonStr = "EMPTY";
+					break;
+				case Type::Fire:
+					airPokemonStr = "MOLTRES";
+					break;
+				case Type::Elec:
+					airPokemonStr = "THUNDER";
+					break;
+				case Type::Water:
+					airPokemonStr = "ARTICUNO";
+					break;
+				}
+
+				string landPokemonStr;
+				switch (member.second.mSceneData.LandPokemon)
+				{
+				case Type::Empty:
+					landPokemonStr = "EMPTY";
+					break;
+				case Type::Fire:
+					landPokemonStr = "CHARMANDER";
+					break;
+				case Type::Elec:
+					landPokemonStr = "PIKACHU";
+					break;
+				case Type::Water:
+					landPokemonStr = "SQUIRTLE";
+					break;
+				}
+
+				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", " 
+					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
+			}
+			LeaveCriticalSection(&mPrintCS);
+#endif 
 		}
 #pragma endregion
 #pragma region Intro
