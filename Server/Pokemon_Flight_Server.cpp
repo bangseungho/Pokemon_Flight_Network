@@ -17,6 +17,7 @@ using namespace std;
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 static unordered_map<uint8, NetworkPlayerData> sPlayers;
 CRITICAL_SECTION cs;
+std::mutex sPlayersMutex;
 
 void ProcessTimer()
 {
@@ -66,6 +67,7 @@ void ProcessClient(ThreadSocket sock)
 		else if (dataType == DataType::SCENE_DATA) {
 			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
 			auto& data = sPlayers[threadId].mSceneData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
 			Data::RecvData<SceneData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
@@ -79,12 +81,16 @@ void ProcessClient(ThreadSocket sock)
 			}
 
 			for (auto& player : sPlayers) {
-				data.MainPlayerIndex = mainPlayerIndex;
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
-				// 현재 클라이언트의 씬 정보를 모든 클라이언트로 송신한다.
-				Data::SendDataAndType<SceneData>(player.second.mSock, data);
+				if (threadId == player.first)
+					continue;
 
+				// 모든 플레이어에게 자신의 데이터 송신
+				Data::SendDataAndType<SceneData>(player.second.mSock, sPlayers[threadId].mSceneData);
+				Data::SendDataAndType<TownData>(player.second.mSock, sPlayers[threadId].mTownData);
+
+				// 자신에게 모든 플레이어 데이터 송신
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
@@ -121,10 +127,11 @@ void ProcessClient(ThreadSocket sock)
 #pragma region Intro
 		else if (dataType == DataType::INTRO_DATA) {
 			auto& data = sPlayers[threadId].mIntroData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
 			Data::RecvData<IntroData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			EnterCriticalSection(&cs);
 			for (const auto& player : sPlayers) {
 				if (player.second.mThreadId == threadId)
 					continue;
@@ -135,31 +142,31 @@ void ProcessClient(ThreadSocket sock)
 				// 모든 클라이언트의 인트로 정보를 현재 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(clientSock, player.second.mIntroData);
 			}
-			LeaveCriticalSection(&cs);
 		}
 #pragma endregion
 #pragma region Town
 		else if (dataType == DataType::TOWN_DATA) {
 			auto& data = sPlayers[threadId].mTownData;
-			Data::RecvData<TownData>(clientSock, data);
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
 
+			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			EnterCriticalSection(&cs);
 			bool allReady = all_of(sPlayers.begin(), sPlayers.end(), [](const auto& a) {
 					return a.second.mTownData.IsReady == 1;
 				});
-			data.IsReady = allReady;
+			data.CanGoNextScene = allReady;
 
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 			}
-			LeaveCriticalSection(&cs);
 		}
 #pragma endregion
 #pragma region Stage
 		else if (dataType == DataType::STAGE_DATA) {
 			auto& data = sPlayers[threadId].mStageData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
 			Data::RecvData<StageData>(clientSock, data);
 
 			// 메인 플레이어일 경우에만 스테이지 데이터를 다른 플레이어에게 송신
@@ -179,16 +186,24 @@ void ProcessClient(ThreadSocket sock)
 				Data::SendDataAndType<StageData>(player.second.mSock, sPlayers[mainPlayerIndex].mStageData);
 			}
 
-			data.InputKey = 0;
+			for ( auto& player : sPlayers) {
+				player.second.mStageData.InputKey = 0;
+			}
 		}
 #pragma endregion
 #pragma region Phase
 		else if (dataType == DataType::PHASE_DATA) {
 			auto& data = sPlayers[threadId].mPhaseData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
 			Data::RecvData<PhaseData>(clientSock, data);
 
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<PhaseData>(player.second.mSock, sPlayers[mainPlayerIndex].mPhaseData);
+			}
+
+			for (auto& player : sPlayers) {
+				player.second.mStageData.InputKey = 0;
 			}
 		}
 #pragma endregion

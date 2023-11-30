@@ -27,10 +27,8 @@ public:
 	uint8 GetMainPlayerIndex() const { return mMainPlayerIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
+	mutex& GetMemberMapMutex() { return mMemberMapMutex; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
-
-	void EnterRecvCS() { EnterCriticalSection(&mRecvCS); };
-	void LeaveRecvCS() { LeaveCriticalSection(&mRecvCS); };
 
 private:
 	bool				mConnected;
@@ -39,8 +37,7 @@ private:
 	thread				mRecvClientThread;
 	SOCKET				mClientSock;
 	SOCKADDR_IN			mServerAddr;
-	CRITICAL_SECTION	mPrintCS;
-	CRITICAL_SECTION	mRecvCS;
+	mutex				mMemberMapMutex;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
@@ -56,9 +53,9 @@ inline void Network::SendDataAndType(const T& data)
 	int retVal = Data::SendDataAndType(mClientSock, data);
 
 #ifdef _DEBUG
+	std::lock_guard<std::mutex> lock(mMemberMapMutex);
 	string dataTypeStr;
 	DataType dataType = Data::GetDataType<T>();
-	EnterCriticalSection(&mPrintCS);
 	if (retVal) {
 		cout << "[ Successed Send ";
 		switch (dataType)
@@ -104,6 +101,5 @@ inline void Network::SendDataAndType(const T& data)
 	}
 	else
 		cout << "[ Failed Send Data ]" << endl;
-	LeaveCriticalSection(&mPrintCS);
 #endif 
 }

@@ -64,15 +64,18 @@ void PhaseManager::Update(float elapsedTime)
 
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000)
 	{
-		PhaseData sendData = { MY_INDEX, VK_RETURN };
-		GET_SINGLE(Network)->SendDataAndType<PhaseData>(sendData);
+		if (MY_INDEX == MP_INDEX) {
+			PhaseData sendData = { MY_INDEX, VK_RETURN };
+			GET_SINGLE(Network)->SendDataAndType<PhaseData>(sendData);
+		}
 	}
 
 	auto& recvData = MEMBER_MAP(MP_INDEX).mPhaseData;
 	if (recvData.InputKey == VK_RETURN) {
 		sceneManager->StartLoading(sceneManager->GetHwnd());
-		recvData.InputKey = 0;
 	}
+
+	recvData.InputKey = 0;
 }
 
 // 페이즈 클리어 횟수에 따라서 페이즈에 표시해야 할 이미지들 렌더링

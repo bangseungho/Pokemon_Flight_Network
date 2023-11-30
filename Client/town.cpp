@@ -235,7 +235,7 @@ void Town::Update(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
-	if (MEMBER_MAP(MY_INDEX).mTownData.IsReady == true)
+	if (MEMBER_MAP(MY_INDEX).mTownData.CanGoNextScene == true)
 	{
 		sceneManager->StartLoading(sceneManager->GetHwnd());
 		_nextFlow = Scene::Stage;

@@ -280,10 +280,10 @@ void Stage::Update(float elapsedTime)
 	RECT rect;
 	auto rectWindow = sceneManager->GetRectWindow();
 
-	target->_select = false;
-
 	int inputKey = 0;
 	if (!_select_pokemon) {
+		target->_select = false;
+
 		// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
 		for (int i = 0; i < STAGE_NUM; i++)
 		{
@@ -336,20 +336,20 @@ void Stage::Update(float elapsedTime)
 				mRectTarget.bottom += 200 * elapsedTime;
 			}
 		}
-		else if (GetAsyncKeyState(VK_RETURN) & 0x8001)
+		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 		{
 			inputKey = VK_RETURN;
 		}
 	}
 
 	if (inputKey != 0) {
-		StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
-		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+		if (MY_INDEX == MP_INDEX) {
+			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
+		}
 	}
 
-	GET_SINGLE(Network)->EnterRecvCS();
 	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
-	GET_SINGLE(Network)->LeaveRecvCS();
 	if (recvData.InputKey != 0) {
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
@@ -516,7 +516,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
@@ -535,7 +535,7 @@ void Stage::fingerController(const HWND& hWnd)
 			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
 				mFingerCount += 1;
 		}
-		if (GetAsyncKeyState(VK_BACK) & 0x0001)
+		if (GetAsyncKeyState(VK_BACK) & 0x8000)
 			SelectPokemonInit();
 	}
 }

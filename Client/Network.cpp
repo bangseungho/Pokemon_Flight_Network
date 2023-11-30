@@ -8,8 +8,6 @@ extern SceneManager* sceneManager;
 Network::Network()
 {
 	auto rectWindow = sceneManager->GetRectWindow();
-	InitializeCriticalSection(&mPrintCS);
-	InitializeCriticalSection(&mRecvCS);
 
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
@@ -17,9 +15,6 @@ Network::Network()
 
 Network::~Network()
 {
-	DeleteCriticalSection(&mPrintCS);
-	DeleteCriticalSection(&mRecvCS);
-
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
 
@@ -76,7 +71,7 @@ void Network::ClientReceiver()
 				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
 
 #ifdef _DEBUG
-			EnterCriticalSection(&mPrintCS);
+			std::lock_guard<std::mutex> lock(mMemberMapMutex);
 			for (const auto& member : mRecvMemberMap) {
 				if (mClientIndex == member.second.mSceneData.PlayerIndex)
 					continue;
@@ -118,7 +113,6 @@ void Network::ClientReceiver()
 				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", " 
 					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
 			}
-			LeaveCriticalSection(&mPrintCS);
 #endif 
 		}
 #pragma endregion
@@ -161,14 +155,12 @@ void Network::ClientReceiver()
 			StageData recvData;
 
 			// 패킷 수신
-			EnterCriticalSection(&mRecvCS);
 			Data::RecvData<StageData>(mClientSock, recvData);
 
 			// 멤버의 패킷이라면 맴버 맵에 넣어줌
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
-			LeaveCriticalSection(&mRecvCS);
 		}
 #pragma endregion
 #pragma region Phase
@@ -218,9 +210,9 @@ void Network::Connect()
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
 
-	// 네이글 알고리즘 해제
-	int delayZeroOpt = 1;
-	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
+	//// 네이글 알고리즘 해제
+	//int delayZeroOpt = 1;
+	//setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
 
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;

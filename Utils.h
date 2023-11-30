@@ -426,6 +426,7 @@ struct TownData
 	TownPlayerData	PlayerData;
 	bool			IsReady;
 	int				InputKey;
+	bool			CanGoNextScene = false;
 };
 
 struct StageData
