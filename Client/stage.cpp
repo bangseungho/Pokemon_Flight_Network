@@ -64,7 +64,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
 
-	StageData stageData = { GET_SINGLE(Network)->GetClientIndex(), static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw };
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, Type::Empty, Type::Empty, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	soundManager->StopBGMSound();
@@ -75,6 +75,12 @@ void Stage::Init()
 	else
 	{
 		soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
+	}
+
+	for (auto& member : GET_MEMBER_MAP) {
+		member.second.mStageData.IsReady = false;
+		member.second.mStageData.AirPokemon = Type::Empty;
+		member.second.mStageData.LandPokemon = Type::Empty;
 	}
 
 	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
@@ -335,11 +341,11 @@ void Stage::Update(float elapsedTime)
 	}
 
 	if (inputKey != 0) {
-		StageData sendData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, inputKey, mRectTarget };
+		StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
 		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
 	}
 
-	auto& recvData = GET_SINGLE(Network)->GetStageData();
+	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
 	if (recvData.InputKey != 0) {
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
@@ -347,8 +353,10 @@ void Stage::Update(float elapsedTime)
 
 	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
-		moveX = 300;
-		sceneManager->StartLoading(sceneManager->GetHwnd());
+		if (recvData.CanGoNextScene == true) {
+			moveX = 300;
+			sceneManager->StartLoading(sceneManager->GetHwnd());
+		}
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
@@ -504,7 +512,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon, true };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
