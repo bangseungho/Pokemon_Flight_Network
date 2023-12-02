@@ -24,8 +24,6 @@
 #include <unordered_map>
 
 #pragma region Window Define
-#define WINDOWSIZE_X				500
-#define WINDOWSIZE_Y				750
 #define MSEC						1000
 #pragma endregion
 #pragma region Intro Define

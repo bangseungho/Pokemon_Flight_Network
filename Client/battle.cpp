@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "battle.h"
+#include "timer.h"
 
 // 배틀 화면에 필요한 이미지 모두 로드
 Battle::Battle()
@@ -18,6 +19,11 @@ void Battle::Init()
 	_shakeCount = 0;
 	_shakeWindow = 0;
 	_mapSpeed = 5;
+}
+
+void Battle::Update(float elapsedStime)
+{
+	T_Battle_Invalidate();
 }
 
 // 배틀 화면 렌더링 두 개의 이미지를 세로로 이어 붙여 하나의 이미지가 종 스크롤을 통해 모두 스크롤되면 다시 다른 이미지 위로 올라감

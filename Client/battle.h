@@ -21,6 +21,7 @@ public:
 public:
 	Battle();
 	void Init();
+	void Update(float elapsedStime);
 	void Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index);
 	inline constexpr void ShakeMap(int shakeCount = 5)
 	{
@@ -29,5 +30,5 @@ public:
 	}
 
 
-	Player* mPlayer;
+	//Player* mPlayer;
 };

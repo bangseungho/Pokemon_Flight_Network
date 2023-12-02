@@ -19,10 +19,15 @@ private:
 public:
 	SceneManager();
 	void Init(const HWND& hWnd);
-	void Paint(const HWND& hWnd);
+	void Update();
+	void Paint();
 	void MoveScene(const HWND& hWnd, Scene scene);
 	void StartLoading(const HWND& hWnd);
 	void StopLoading(const HWND& hWnd);
+
+	HWND GetHwnd() const { return mHwnd; }
+	bool GetIsEnding() const { return isEnding; }
+	
 	inline bool constexpr IsLoading()
 	{
 		return isLoading;
@@ -54,7 +59,7 @@ public:
 class Loading
 {
 private:
-	CImage _glowing_black;
+	CImage mGlowingBlack;
 	CImage _loading_pokemon;
 	CImage _loading_bar[5];
 	int _loading_bar_cnt = 0;

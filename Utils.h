@@ -6,8 +6,8 @@
 #define TPLAYER_IMAGESIZE_X 64
 #define TPLAYER_IMAGESIZE_Y 64
 
-
-
+#define WINDOWSIZE_X 500
+#define WINDOWSIZE_Y 750
 
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
@@ -28,9 +28,31 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+// 싱글턴 객체로 클래스 내부에서 사용
+#define SINGLETON(type)								\
+public:												\
+	static type* GetInstance()						\
+	{												\
+		if (!instance) instance = new type();		\
+		return instance;							\
+	}												\
+	static void Destroy()							\
+	{												\
+		if (instance) delete instance;				\
+		instance = nullptr;							\
+	}												\
+													\
+private:											\
+	static type* instance;							\
+
+#define GET_SINGLE(type)			type::GetInstance()
+#define DESTROY_SINGLE(type)		type::Destroy()
+#define DECLARE_SINGLE(type)		type* type::instance = nullptr;
+
 enum class DataType : int
 {
 	NONE_DATA,
+	TIMER_DATA,
 	INTRO_DATA,
 	TOWN_DATA,
 	STAGE_DATA,
@@ -55,7 +77,7 @@ struct TownData
 {
 	struct TownPlayerData
 	{
-		POINT	Pos;
+		Vector2	Pos;
 		RECT	RectDraw;
 		RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
 	};
@@ -63,19 +85,18 @@ struct TownData
 	uint8			PlayerIndex = 0;
 	TownPlayerData	PlayerData;
 	bool			IsReady;
+	int				InputKey;
 };
 
-struct StageData
-{
-	struct StagePlayerData {
-		int		PickedCharacter;
-		bool	PickApproved = false;
-	};
+struct StageData{
 	uint8	PlayerIndex = 0;
-	StagePlayerData PlayerData;
-	bool	IsReady;
 	int		Record;
-	
+	int		InputKey;
+	FRECT	RectDraw = { (float)(WINDOWSIZE_X / 2 - 40), (float)(WINDOWSIZE_Y / 2 - 40), (float)(WINDOWSIZE_X / 2 + 40), (float)(WINDOWSIZE_Y / 2 + 40) };
+	Type	AirPokemon = Type::Empty;
+	Type	LandPokemon = Type::Empty;
+	bool	IsReady = false;
+	bool	CanGoNextScene = false;
 };
 
 struct PhaseData
@@ -84,28 +105,19 @@ struct PhaseData
 	bool	IsReady;
 };
 
-struct BattleData
-{
-	struct BattleBullet {
-		Dir dir = Dir::Empty; // 총알 방향
-		Vector2 unitVector; // 해당 탄막을 발사한 유닛의 위치
-		BulletData data; // 탄막 데이터
-		bool isSkillBullet = false; // 스킬 탄막인지
-		bool isRotateImg = false; // 회전 이미지인지
-
-	};
-
-	Dir		inputDir;
+struct BattleData{
 	uint8	PlayerIndex = 0;
-	BattleBullet bullet;
-	
+	float	PosX;
+	float	PosY;
 	bool	IsCollider;
 };
 
 struct SceneData
 {
 	uint8	PlayerIndex = 0;
+	uint8	MainPlayerIndex = 0;
 	uint8	Scene = 0;
+	int		Record = 0;
 };
 
 struct EndProcessing

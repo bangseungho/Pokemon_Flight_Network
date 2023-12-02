@@ -5,6 +5,8 @@ DECLARE_SINGLE(Network);
 
 Network::Network()
 {
+	auto rectWindow = sceneManager->GetRectWindow();
+
 	mConnected = false;
 	mRecvMemberMap.reserve(10);
 }
@@ -56,10 +58,15 @@ void Network::Receiver()
 		else if (dataType == DataType::SCENE_DATA) {
 			// 패킷을 수신할 임시 객체
 			SceneData recvData;
+
 			ZeroMemory(&recvData, sizeof(SceneData));
 
 			// 패킷 수신
 			Data::RecvData<SceneData>(mClientSock, recvData);
+
+			// 메인 플레이어 인덱스
+			mMainPlayerIndex = recvData.MainPlayerIndex;
+			cout << (uint32)mMainPlayerIndex << endl;
 
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
@@ -111,26 +118,10 @@ void Network::Receiver()
 			// 패킷 수신
 			Data::RecvData<StageData>(mClientSock, recvData);
 
-			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
-		}
-#pragma endregion
-
-#pragma region Battle
-		else if (dataType == DataType::BATTLE_DATA) {
-			// 패킷을 수신할 임시 객체
-			BattleData recvData;
-			ZeroMemory(&recvData, sizeof(BattleData));
-
-			// 패킷 수신
-			Data::RecvData<BattleData>(mClientSock, recvData);
-			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
-			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mBattleData= move(recvData);
-
 		}
 #pragma endregion
 	}
@@ -169,6 +160,10 @@ void Network::Connect()
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
 
+	// 네이글 알고리즘 해제
+	int delayZeroOpt = 1;
+	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
+
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;
 	int localAddrLength = sizeof(localAddr);
@@ -190,7 +185,5 @@ void Network::Connect()
 	Network::SendDataAndType(IntroData{ mClientIndex });
 
 	// Recv 스레드 생성
-	mRecvThread = thread(&Network::Receiver, this);
+	mRecvClientThread = thread(&Network::ClientReceiver, this);
 }
-
-

@@ -12,9 +12,7 @@ public:
 	~Network();
 
 public:
-	void Receiver();
-	bool Approval;
-	
+	void ClientReceiver();
 
 public:
 	void Init(string ipAddr);
@@ -26,6 +24,7 @@ public:
 
 public:
 	uint8 GetClientIndex() const { return mClientIndex; }
+	uint8 GetMainPlayerIndex() const { return mMainPlayerIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
@@ -33,13 +32,18 @@ public:
 private:
 	bool			mConnected;
 	uint8			mClientIndex;
-	thread			mRecvThread;
+	uint8			mMainPlayerIndex;
+	thread			mRecvClientThread;
 	SOCKET			mClientSock;
 	SOCKADDR_IN		mServerAddr;
-	
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
+
+#define GET_MEMBER_MAP GET_SINGLE(Network)->GetMemberMap()
+#define MEMBER_MAP(index) GET_SINGLE(Network)->GetMemberMap()[index]
+#define MY_INDEX GET_SINGLE(Network)->GetClientIndex()
+#define MP_INDEX GET_SINGLE(Network)->GetMainPlayerIndex()
 
 template<typename T>
 inline void Network::SendDataAndType(const T& data)

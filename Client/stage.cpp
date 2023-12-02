@@ -6,6 +6,7 @@
 #include "sound.h"
 #include "Network.h"
 #include "interface.h"
+#include "timer.h"
 
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
@@ -14,6 +15,7 @@ extern GameData gameData;
 // 스테이지에 필요한 이미지 모두 로드
 Stage::Stage()
 {
+	mFingerCount = 0;
 	target = new Target();
 	_water.Load(L"images\\stage\\Water_phase.bmp");
 	_fire.Load(L"images\\stage\\Fire_phase.bmp");
@@ -49,35 +51,50 @@ Stage::Stage()
 }
 
 // 각 스테이지 충돌 박스 크기 및 위치 설정
-void Stage::Init(const RECT& rectWindow)
+void Stage::Init()
 {
-	StageData stageData = { static_cast<uint32>(gameData.ClearRecord) };
-	GET_SINGLE(Network)->SendDataAndType(stageData);
-
-	target->_rectDraw = { (rectWindow.right / 2 - 40), (rectWindow.bottom / 2 - 40), rectWindow.right / 2 + 40,  (rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
+	const RECT& rectWindow = sceneManager->GetRectWindow();
+	target->_rectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
+	mRectTarget = target->_rectDraw;
 
 	rectStage[static_cast<int>(StageElement::Water)] = { 350, 570, 610, 720 };
 	rectStage[static_cast<int>(StageElement::Fire)] = { -230, 570, 30, 720 };
 	rectStage[static_cast<int>(StageElement::Elec)] = { 300, 20, 560, 160 };
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
+
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, Type::Empty, Type::Empty, false };
+	GET_SINGLE(Network)->SendDataAndType(stageData);
+
+	soundManager->StopBGMSound();
+	if (sceneManager->GetIsEnding())
+	{
+		soundManager->PlayBGMSound(BGMSound::Ending, 1.0f, true);
+	}
+	else
+	{
+		soundManager->PlayBGMSound(BGMSound::Stage, 1.0f, true);
+	}
+
+	for (auto& member : GET_MEMBER_MAP) {
+		member.second.mStageData.IsReady = false;
+		member.second.mStageData.AirPokemon = Type::Empty;
+		member.second.mStageData.LandPokemon = Type::Empty;
+	}
+
+	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
+	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
 }
 
 // 선택 초기화
 void Stage::SelectPokemonInit()
 {
-	if ((uint32)GET_SINGLE(Network)->GetClientIndex() == 0) {
-		_select_pokemon = false;
-		_ready_Air_pokemon = false;
-		_ready_Land_pokemon = false;
-		_enter_select = false;
-		_finger = 0;
-	}
-	else {
-		//받은 데이터 true 처리
-	}
-	
+	mFingerCount = 0;
+	_select_pokemon = false;
+	_ready_Air_pokemon = false;
+	_ready_Land_pokemon = false;
+	_enter_select = false;
 }
 
 // 스테이지 렌더링
@@ -231,13 +248,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 		HFONT hFont2 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ARCADECLASSIC"));
 		HFONT oldFont2 = (HFONT)SelectObject(hdc, hFont2);
 
-		if (!_ready_Land_pokemon && menu._finger_twinkle_cnt % 3 != 0)
+		if (!_ready_Land_pokemon && (int)mTwinkleCnt % 3 != 0)
 			TextOut(hdc, _fingerPos.x, _fingerPos.y, L"▲", 1);
 
 		HFONT hFont3 = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, VARIABLE_PITCH | FF_ROMAN, TEXT("ChubbyChoo-SemiBold"));
 		HFONT oldFont3 = (HFONT)SelectObject(hdc, hFont3);
 
-		if (_ready_Air_pokemon && _ready_Land_pokemon && menu._finger_twinkle_cnt % 2 != 0)
+		if (_ready_Air_pokemon && _ready_Land_pokemon && (int)mTwinkleCnt % 2 != 0)
 			TextOut(hdc, 35, 50, L"PRESS ENTER KEY TO CONTINUE", 28);
 
 		//1p 라면 대기, 화면(커서) 공유받기 || 2p 라면 대기 후 선택
@@ -253,85 +270,106 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow, Menu menu)
 }
 
 // 스테이지에서의 Update 함수
-void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
+void Stage::Update(float elapsedTime)
 {
+	if (sceneManager->IsLoading())
+		return;
+	if(_select_pokemon)
+		mTwinkleCnt += elapsedTime * 3.f;
+
 	RECT rect;
-	target->_cam = { target->_rectDraw.left - CAMSIZE_X, rectWindow.top, target->_rectDraw.right + CAMSIZE_X, rectWindow.bottom };
+	auto rectWindow = sceneManager->GetRectWindow();
 
 	target->_select = false;
-	target->_select_index = StageElement::Null;
 
-	// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
-	for (int i = 0; i < STAGE_NUM; i++)
-	{
-		if (IntersectRect(&rect, &rectStage[i], &target->_rectDraw))
+	int inputKey = 0;
+	if (!_select_pokemon) {
+		// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
+		for (int i = 0; i < STAGE_NUM; i++)
 		{
-			target->_select = true;
-			target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
-		}
-	}
-
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left && !_select_pokemon)
-	{
-		target->_rectDraw.left -= MAPSCROLL_SPEED;
-		target->_rectDraw.right -= MAPSCROLL_SPEED;
-		_dialogflag = false;
-
-		if (moveX > 0)
-		{
-			moveX -= 10;
-
-			for (int i = 0; i < STAGE_NUM; i++)
+			if (IntersectRect2(rectStage[i], target->_rectDraw))
 			{
-				rectStage[i].left += 10;
-				rectStage[i].right += 10;
+				target->_select = true;
+				target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
+				break;
+			}
+			target->_select_index = StageElement::Null;
+		}
+
+		// 타겟 이동
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
+		{
+			inputKey = VK_LEFT;
+
+			if (!_select_pokemon) {
+				mRectTarget.left -= 200 * elapsedTime;
+				mRectTarget.right -= 200 * elapsedTime;
 			}
 		}
-	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right && !_select_pokemon)
-	{
-		target->_rectDraw.left += MAPSCROLL_SPEED;
-		target->_rectDraw.right += MAPSCROLL_SPEED;
-		_dialogflag = false;
-
-		if (moveX < 450)
+		// 타겟 이동
+		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
 		{
-			moveX += 10;
+			inputKey = VK_RIGHT;
 
-			for (int i = 0; i < STAGE_NUM; i++)
-			{
-				rectStage[i].left -= 10;
-				rectStage[i].right -= 10;
+			if (!_select_pokemon) {
+				mRectTarget.left += 200 * elapsedTime;
+				mRectTarget.right += 200 * elapsedTime;
 			}
 		}
+		// 타겟 이동
+		else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
+		{
+			inputKey = VK_UP;
 
+			if (!_select_pokemon) {
+				mRectTarget.top -= 200 * elapsedTime;
+				mRectTarget.bottom -= 200 * elapsedTime;
+			}
+		}
+		// 타겟 이동
+		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
+		{
+			inputKey = VK_DOWN;
+
+			if (!_select_pokemon) {
+				mRectTarget.top += 200 * elapsedTime;
+				mRectTarget.bottom += 200 * elapsedTime;
+			}
+		}
+		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+		{
+			inputKey = VK_RETURN;
+		}
 	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top && !_select_pokemon)
-	{
-		target->_rectDraw.top -= MAPSCROLL_SPEED * 2;
-		target->_rectDraw.bottom -= MAPSCROLL_SPEED * 2;
+
+	if (inputKey != 0) {
+		StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
+		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+	}
+
+	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
+	if (recvData.InputKey != 0) {
+		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
 	}
-	// 타겟 이동
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom && !_select_pokemon)
+
+	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
-		target->_rectDraw.top += MAPSCROLL_SPEED * 2;
-		target->_rectDraw.bottom += MAPSCROLL_SPEED * 2;
-		_dialogflag = false;
+		if (recvData.CanGoNextScene == true) {
+			moveX = 300;
+			sceneManager->StartLoading(sceneManager->GetHwnd());
+		}
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
-	if (GetAsyncKeyState(VK_RETURN) & 0x0001 && target->_select == true)
+	if (recvData.InputKey == VK_RETURN && target->_select == true)
 	{
 		_enter_select = true;
 
 		if (target->_select_index == StageElement::Town)
 		{
 			moveX = 300;
-			sceneManager->StartLoading(hWnd);
+			sceneManager->StartLoading(sceneManager->GetHwnd());
 			return;
 		}
 
@@ -394,15 +432,6 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 
 		}
 	}
-
-	if (sceneManager->IsLoading() == false && GetAsyncKeyState(VK_BACK) & 0x0001)
-	{
-		_select_pokemon = false;
-		_ready_Air_pokemon = false;
-		_ready_Land_pokemon = false;
-		_enter_select = false;
-		_finger = 0;
-	}
 	if (GetAsyncKeyState(VK_R) & 0x0001)
 	{
 		_ready_Air_pokemon = false;
@@ -411,128 +440,101 @@ void Stage::Update(const HWND& hWnd, const RECT& rectWindow)
 		_finger = 0;
 	}
 
+	recvData.InputKey = 0;
+	target->_cam = { target->_rectDraw.left - CAMSIZE_X, (float)rectWindow.top, target->_rectDraw.right + CAMSIZE_X, (float)rectWindow.bottom };
+	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
 // 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러
 void Stage::fingerController(const HWND& hWnd)
-{	
-	
+{
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
-		
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
-		{	
-
-			
+		{
 			if (!_ready_Air_pokemon)
-			{	
-				while (1) {
-					_play_Air_pokemon = _finger;
-					_finger = 3;
-					StageData::StagePlayerData playerData;
-					if ((GetAsyncKeyState(VK_RETURN))) {
-						StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), playerData,false};						
-						playerData.PickedCharacter = _play_Air_pokemon;
-						GET_SINGLE(Network)->SendDataAndType(playerData);
-					}
-					
-					
-					if (playerData.PickApproved == true) {
-						
-						_ready_Air_pokemon = true;
-						switch (_play_Air_pokemon)
-						{
-						case 0:
-							airPokemon = Type::Elec;
-							soundManager->PlayHitSound(HitSound::Elec);
-							break;
-						case 1:
-							airPokemon = Type::Fire;
-							soundManager->PlayHitSound(HitSound::Fire);
-							break;
-						case 2:
-							airPokemon = Type::Water;
-							soundManager->PlayHitSound(HitSound::Water);
-							break;
-						default:
-							assert(0);
-							break;
-						}
-						break;
-					}
-					
-				}
-				
+			{
+				_play_Air_pokemon = mFingerCount;
+				mFingerCount = 3;
+				_ready_Air_pokemon = true;
 
-				
+				switch (_play_Air_pokemon)
+				{
+				case 0:
+					airPokemon = Type::Elec;
+					soundManager->PlayHitSound(HitSound::Elec);
+					break;
+				case 1:
+					airPokemon = Type::Fire;
+					soundManager->PlayHitSound(HitSound::Fire);
+					break;
+				case 2:
+					airPokemon = Type::Water;
+					soundManager->PlayHitSound(HitSound::Water);
+					break;
+				default:
+					assert(0);
+					break;
+				}
 			}
 			else if (!_ready_Land_pokemon)
 			{
-				while (1) {
-					_play_Land_pokemon = _finger;
-					_ready_Land_pokemon = true;
-					StageData::StagePlayerData playerData{ _play_Land_pokemon };
-					if ((GetAsyncKeyState(VK_RETURN) == true)) {
-						StageData stageData{ GET_SINGLE(Network)->GetClientIndex(), gameData.ClearRecord };
-						playerData.PickedCharacter = _play_Land_pokemon;
-						GET_SINGLE(Network)->SendDataAndType(stageData);
-					}
+				_play_Land_pokemon = mFingerCount;
+				_ready_Land_pokemon = true;
 
-					switch (_play_Land_pokemon)
-					{
-					case 3:
-					{
-						landPokemon = Type::Elec;
+				switch (_play_Land_pokemon)
+				{
+				case 3:
+				{
+					landPokemon = Type::Elec;
 
-						const int randSound = rand() % 2;
-						if (randSound != 0)
-						{
-							soundManager->PlaySelectSound(SelectSound::Pikachu1);
-						}
-						else
-						{
-							soundManager->PlaySelectSound(SelectSound::Pikachu2);
-						}
+					const int randSound = rand() % 2;
+					if (randSound != 0)
+					{
+						soundManager->PlaySelectSound(SelectSound::Pikachu1);
 					}
-						break;
-					case 4:
-						landPokemon = Type::Fire;
-						soundManager->PlaySelectSound(SelectSound::Charmander);
-						break;
-					case 5:
-						landPokemon = Type::Water;
-						soundManager->PlaySelectSound(SelectSound::Squirtle);
-						break;
-					default:
-						assert(0);
-						break;
+					else
+					{
+						soundManager->PlaySelectSound(SelectSound::Pikachu2);
 					}
 				}
-				
+				break;
+				case 4:
+					landPokemon = Type::Fire;
+					soundManager->PlaySelectSound(SelectSound::Charmander);
+					break;
+				case 5:
+					landPokemon = Type::Water;
+					soundManager->PlaySelectSound(SelectSound::Squirtle);
+					break;
+				default:
+					assert(0);
+					break;
+				}
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
-			{	
-				
-				moveX = 300;
-				//넘어가길 기다려야함
-				sceneManager->StartLoading(hWnd);
+			{
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon, true };
+				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
 
 		if (!_ready_Air_pokemon)
 		{
-			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && _finger > 0)
-				_finger -= 1;
-			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && _finger < 2)
-				_finger += 1;
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 0)
+				mFingerCount -= 1;
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 2)
+				mFingerCount += 1;
 		}
 		else if (!_ready_Land_pokemon)
 		{
-			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && _finger > 3)
-				_finger -= 1;
-			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && _finger < 5)
-				_finger += 1;
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 3)
+				mFingerCount -= 1;
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
+				mFingerCount += 1;
 		}
+		if (GetAsyncKeyState(VK_BACK) & 0x0001)
+			SelectPokemonInit();
 	}
 }
 

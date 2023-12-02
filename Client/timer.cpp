@@ -16,9 +16,9 @@ extern GUIManager* gui;
 extern SceneManager* sceneManager;
 
 // 배틀화면에서 필요한 타이머
-void CALLBACK T_Battle_Invalidate(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Battle_Invalidate()
 {
-	InvalidateRect(hWnd, NULL, FALSE);
+	InvalidateRect(sceneManager->GetHwnd(), NULL, FALSE);
 	mPlayer->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 	enemies->CreateCheckMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
 	enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
@@ -71,59 +71,7 @@ extern Stage stage;
 extern PhaseManager phase;
 extern Battle battle;
 
-extern Cloud cloud[4];
-extern Logo logo;
-extern Menu menu;
 extern CImage glowing_black;
-
-// 인트로에서 구름 움직이는 타이머
-void CALLBACK T_MoveCloud(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	const RECT rectWindow = sceneManager->GetRectDisplay();
-
-	// 구름마다 속도 다르게 제어
-	cloud[0].Update(4, 0, rectWindow);
-	cloud[1].Update(2, 0, rectWindow);
-	cloud[2].Update(1, 0, rectWindow);
-	cloud[3].Update(4, 0, rectWindow);
-}
-
-// POKEMON FLIGHT의 흔들거리는 움직임
-void CALLBACK T_MoveLogo(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	static bool thiscnt = false;
-
-	// 로고가 얼마나 움직였는지를 확인한 후 값에 따라 다시 반대로 움직이기
-	if (logo._logoMovingCnt > 10)
-		thiscnt = true;
-	else if (logo._logoMovingCnt == 0)
-		thiscnt = false;
-
-	if (thiscnt == true)
-		logo._logoMovingCnt--;
-	else
-		logo._logoMovingCnt++;
-}
-
-// 씬 정보를 받아와서 인트로이거나 페이즈일 경우 핑거 컨트롤러를 애니메이션 하는 함수
-void CALLBACK T_Animation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	const Scene scene = sceneManager->GetScene();
-	if (scene == Scene::Intro && sceneManager->IsLoading() == false)
-		menu.fingerController(hWnd);
-	else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
-	{
-		battle.Init();
-		phase.fingerController(hWnd);
-	}
-	InvalidateRect(hWnd, NULL, false);
-}
-
-// 화살표가 반짝일 수 있도록 하는 함수
-void CALLBACK T_TwinkleEmotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	menu._finger_twinkle_cnt++;
-}
 
 // sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
 void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -134,20 +82,19 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 	// 로딩 모두 끝날 시 타이머 정지
 	if (loading.IsLoaded() == true)
 	{
-		// 로딩 화면이 끝날때마다 타운 모두 초기화
-		town.Init(rectWindow, hWnd);
-
+		// 로딩 화면이 끝날때마다 모두 초기화
 		stage.SelectPokemonInit();
 
 		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
 		{
-			sceneManager->MoveScene(hWnd, Scene::Town);
+			//sceneManager->MoveScene(hWnd, Scene::Town);
+			sceneManager->MoveScene(hWnd, Scene::Stage);
 		}
 		else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 		{
 			town.mPlayer->_Pos.x = rectWindow.right / 2;
 			town.mPlayer->_Pos.y = rectWindow.bottom / 2;
-			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), rectWindow.bottom };
+			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), (float)rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), (float)rectWindow.bottom };
 			town._rectImage = rectWindow;
 
 			if (town._nextFlow == Scene::Stage)
@@ -194,35 +141,6 @@ void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 void CALLBACK T_Loadingbar(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
 	loading.Load(hWnd);
-}
-
-// 타운에 있는 플레이어 움직임 타이머
-void CALLBACK T_TPAnimation(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
-{
-	const RECT rectWindow = sceneManager->GetRectWindow();
-	const Scene scene = sceneManager->GetScene();
-
-	town.mPlayer->_rectDraw = { town.mPlayer->_Pos.x - 20, town.mPlayer->_Pos.y - 20, town.mPlayer->_Pos.x + 20, town.mPlayer->_Pos.y + 20 };
-	// 게임 플로우가 현재 타운일때와 장면이 끝남을 확인하는 변수가 참이 아닐 때 움직일 수 있도록 설정
-	if (scene == Scene::Town && sceneManager->IsLoading() == false)
-	{
-		town.Update(rectWindow);
-		InvalidateRect(hWnd, NULL, false);
-	}
-
-	// 일정 범위 (렉트 윈도우의 오른 쪽) 넘어갈시 다음 스테이지 진행
-	if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x + 20 >= rectWindow.right)
-	{
-		sceneManager->StartLoading(hWnd);
-
-		town._nextFlow = Scene::Stage;
-	}
-	// 일정 범위 (렉트 윈도우의 왼 쪽) 넘어갈시 전 메인화면으로 진행
-	else if (sceneManager->IsLoading() == false && town.mPlayer->_Pos.x - 20 <= rectWindow.left)
-	{
-		sceneManager->StartLoading(hWnd);
-		town._nextFlow = Scene::Intro;
-	}
 }
 
 // 타운에 있는 플레이어 움직임 방향
@@ -312,13 +230,9 @@ void CALLBACK T_NpcMotion(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 // 스테이지에서 타겟을 움직이는 함수
 void CALLBACK T_TargetMove(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
 {
-	const RECT rectWindow = sceneManager->GetRectWindow();
-	const Scene scene = sceneManager->GetScene();
-
 	stage.fingerController(hWnd);
 	if (sceneManager->IsLoading() == false)
 	{
-		stage.Update(hWnd, rectWindow);
 		InvalidateRect(hWnd, NULL, false);
 	}
 }
