@@ -138,6 +138,9 @@ void ProcessClient(ThreadSocket sock)
 				// 현재 클라이언트의 인트로 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(player.second.mSock, data);
 
+				if (threadId == player.first)
+					continue;
+
 				// 모든 클라이언트의 인트로 정보를 현재 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(clientSock, player.second.mIntroData);
 			}
@@ -155,9 +158,6 @@ void ProcessClient(ThreadSocket sock)
 					return a.second.mTownData.IsReady == 1;
 				});
 			data.CanGoNextScene = allReady;
-
-			if (data.CanGoNextScene == true)
-				int a = 3;
 
 			for (const auto& player : sPlayers) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);

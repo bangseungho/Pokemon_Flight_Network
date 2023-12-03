@@ -64,6 +64,8 @@ public:
 	Town();
 	void Init();
 	void Paint(HDC hdc, const RECT& rectWindow);
+	void Animate(float elpasedTime);
+	void AnimateNPC(float elpasedTime);
 	void Update(float elapedTime);
 	void StopPlayer();
 	int GetCamSizeX();

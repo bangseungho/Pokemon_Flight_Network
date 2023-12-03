@@ -65,14 +65,14 @@ private:
 
 public:
 	bool _allHide = false;
-	int _select_pokemon_move = 0;
+	float _select_pokemon_move = 0;
 
 	Stage();
 	void Init();
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow);
 	void Update(float elapsedTime);
-	void fingerController(const HWND& hWnd);
+	void fingerController(float elpasedTime);
 	inline constexpr StageElement GetStage()
 	{
 		return target->_select_index;
