@@ -282,7 +282,7 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 
 	if (IsMove() == false && alpha == 0)
 	{
-		SetTimer(hWnd, timerID, elpase, timerProc);
+		playerData.isCanGo = true;
 	}
 	else if (alpha > 0.5f)
 	{
@@ -294,6 +294,9 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 // 실제 플레이어의 이동을 수행한다.
 void Player::Update(const HWND& hWnd, int timerID)
 {
+	if (playerData.isCanGo == false)
+		return;
+
 	Vector2 posCenter = GetPosCenter();
 
 	// 선형 보간을 통해 부드럽게 다음 이동할 위치의 좌표를 얻는다.
@@ -318,17 +321,16 @@ void Player::Update(const HWND& hWnd, int timerID)
 
 			alpha = 0.5f;
 		}
-		else if (alpha > 1) // 어떠한 키도 누르지 않았을 경우 멈춘다. 업데이트 타이머도 삭제한다.
+		else if (alpha > 1)
 		{
 			vectorMove = { 0.0f, };
 			StopMove();
 			alpha = 0;
-			KillTimer(hWnd, timerID);
+			playerData.isCanGo = true;
 		}
 	}
 }
 
-// 이전 키와 같을 경우만 정지한다. 반대 방향키를 눌렀을 때 멈추지 않기 위함이다.
 void Player::Stop(Dir inputDir)
 {
 	switch (direction)
@@ -361,7 +363,7 @@ void Player::Stop(Dir inputDir)
 		break;
 	}
 
-	// 여기까지 온거면 어차피 이전 키와 같은 경우니까 결국 direction = 0(EMPTY)가 된다.
+	// direction이 inputDir과 같은 경우에만 Dir::Empty를 넣어준다.
 	direction = direction - inputDir;
 }
 

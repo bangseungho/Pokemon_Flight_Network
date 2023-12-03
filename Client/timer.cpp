@@ -58,9 +58,9 @@ void T_Battle_AnimateBoss()
 	boss->Animate(sceneManager->GetHwnd()); // 보스 스프라이트 이미지 애니메이션 함수
 }
 
-void CALLBACK T_Battle_MovePlayer(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Battle_MovePlayer()
 {
-	mPlayer->Update(sceneManager->GetHwnd(), TIMERID_BATTLE_MOVE_PLAYER); // 실제 플레이어의 이동을 수행하는 함수
+	mPlayer->Update(sceneManager->GetHwnd(), 0); // 실제 플레이어의 이동을 수행하는 함수
 }
 
 void T_Battle_Effect()
@@ -82,71 +82,90 @@ void T_Battle_MapMove()
 
 
 // sceneManager->StartLoading 함수만 부르면 현재 씬 정보를 가져와서 알아서 다음 씬을 정한다.
-void CALLBACK T_Loading(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Loading(float elapsedTime)
 {
-	const RECT rectWindow = sceneManager->GetRectWindow();
-	const Scene scene = sceneManager->GetScene();
+	if (sceneManager->IsLoading() == false)
+		return;
 
-	// 로딩 모두 끝날 시 타이머 정지
-	if (loading.IsLoaded() == true)
-	{
-		// 로딩 화면이 끝날때마다 모두 초기화
-		stage.SelectPokemonInit();
+	static float accTime = 0.f;
+	accTime += elapsedTime;
 
-		if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
+	if (accTime >= 0.08f) {
+		const RECT rectWindow = sceneManager->GetRectWindow();
+		const Scene scene = sceneManager->GetScene();
+
+		// 로딩 모두 끝날 시 타이머 정지
+		if (loading.IsLoaded() == true)
 		{
-			//sceneManager->MoveScene(hWnd, Scene::Town);
-			sceneManager->MoveScene(hWnd, Scene::Stage);
-		}
-		else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
-		{
-			town.mPlayer->_Pos.x = rectWindow.right / 2;
-			town.mPlayer->_Pos.y = rectWindow.bottom / 2;
-			town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), (float)rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), (float)rectWindow.bottom };
-			town._rectImage = rectWindow;
+			// 로딩 화면이 끝날때마다 모두 초기화
+			stage.SelectPokemonInit();
 
-			if (town._nextFlow == Scene::Stage)
+			if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
 			{
-				sceneManager->MoveScene(hWnd, Scene::Stage);
+				//sceneManager->MoveScene(hWnd, Scene::Town);
+				sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
 			}
-			if (town._nextFlow == Scene::Intro)
+			else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 			{
-				sceneManager->MoveScene(hWnd, Scene::Intro);
+				town.mPlayer->_Pos.x = rectWindow.right / 2;
+				town.mPlayer->_Pos.y = rectWindow.bottom / 2;
+				town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), (float)rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), (float)rectWindow.bottom };
+				town._rectImage = rectWindow;
+
+				if (town._nextFlow == Scene::Stage)
+				{
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
+				}
+				if (town._nextFlow == Scene::Intro)
+				{
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Intro);
+				}
 			}
-		}
-		else if (scene == Scene::Stage)
-		{
-			if (stage.GetStage() == StageElement::Town) // 타운 오브젝트 타겟
-				sceneManager->MoveScene(hWnd, Scene::Town);
-			else
-				sceneManager->MoveScene(hWnd, Scene::PhaseManager);
+			else if (scene == Scene::Stage)
+			{
+				if (stage.GetStage() == StageElement::Town) // 타운 오브젝트 타겟
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Town);
+				else
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::PhaseManager);
 
-		}
-		else if (scene == Scene::PhaseManager)
-		{
-			sceneManager->MoveScene(hWnd, Scene::Battle);
+			}
+			else if (scene == Scene::PhaseManager)
+			{
+				sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Battle);
+			}
+
+			else if (scene == Scene::Battle) // 게임 배틀 끝나고 스테이지 넘어가기
+			{
+				sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::PhaseManager);
+			}
+
+			sceneManager->StopLoading(sceneManager->GetHwnd());
 		}
 
-		else if (scene == Scene::Battle) // 게임 배틀 끝나고 스테이지 넘어가기
-		{
-			sceneManager->MoveScene(hWnd, Scene::PhaseManager);
-		}
+		loading._loding_pokemon_rectImage.left += LOADING_POKEMON_X;
 
-		sceneManager->StopLoading(hWnd);
+		if (loading._loding_pokemon_rectImage.left == LOADING_POKEMON_MAX_X)
+		{
+			loading._loding_pokemon_rectImage.left = 0;
+			loading._loading_pokemon_cnt++;
+		}
+		InvalidateRect(sceneManager->GetHwnd(), NULL, false);
+
+		accTime = 0.f;
 	}
-
-	loading._loding_pokemon_rectImage.left += LOADING_POKEMON_X;
-
-	if (loading._loding_pokemon_rectImage.left == LOADING_POKEMON_MAX_X)
-	{
-		loading._loding_pokemon_rectImage.left = 0;
-		loading._loading_pokemon_cnt++;
-	}
-	InvalidateRect(hWnd, NULL, false);
 }
 
 // 로딩 화면 업데이트 함수
-void CALLBACK T_Loadingbar(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void T_Loadingbar(float elapsedTime)
 {
-	loading.Load(hWnd);
+	if (sceneManager->IsLoading() == false)
+		return;
+
+	static float accTime = 0.f;
+	accTime += elapsedTime;
+
+	if (accTime >= 0.45f) {
+		loading.Load(sceneManager->GetHwnd());
+		accTime = 0.f;
+	}
 }

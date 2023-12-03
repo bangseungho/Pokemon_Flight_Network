@@ -126,7 +126,7 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 
 		if (isMove == true)
 		{
-			mPlayer->SetMove(hWnd, TIMERID_BATTLE_MOVE_PLAYER, ELAPSE_BATTLE_MOVE_PLAYER, T_Battle_MovePlayer);
+			mPlayer->SetMove(hWnd, 0, ELAPSE_BATTLE_MOVE_PLAYER, nullptr);
 		}
 	}
 	//InvalidateRect(sceneManager->GetHwnd(), NULL, false);

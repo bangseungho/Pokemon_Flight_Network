@@ -205,7 +205,7 @@ void ProcessClient(ThreadSocket sock)
 			}
 
 			for (auto& player : sPlayers) {
-				player.second.mStageData.InputKey = 0;
+				player.second.mPhaseData.InputKey = 0;
 			}
 		}
 #pragma endregion

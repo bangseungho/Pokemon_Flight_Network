@@ -30,14 +30,37 @@ void Battle::Init()
 
 void Battle::Update(float elapsedStime)
 {
-	T_Battle_Invalidate();
-	T_Battle_Animate();
-	T_Battle_AnimateBoss();
+	static float invalidateAccTime = 0.f;
+	static float animationAccTime = 0.f;
+	static float animationBossAccTime = 0.f;
+	static float effectAccTime = 0.f;
+	invalidateAccTime += elapsedStime;
+	animationAccTime += elapsedStime;
+	animationBossAccTime += elapsedStime;
+	effectAccTime += elapsedStime;
 
-	//T_Battle_MovePlayer();
-	T_Battle_Effect();
-	T_Battle_GUI();
-	T_Battle_MapMove();
+	if (invalidateAccTime > 0.016f) {
+		T_Battle_MovePlayer();
+		T_Battle_Invalidate();
+		T_Battle_MapMove();
+		T_Battle_GUI();
+		invalidateAccTime = 0.f;
+	}
+
+	if (animationAccTime > 0.05f) {
+		T_Battle_Animate();
+		animationAccTime = 0.f;
+	}
+
+	if (animationBossAccTime > 0.16f) {
+		T_Battle_AnimateBoss();
+		animationBossAccTime = 0.f;
+	}
+
+	if (effectAccTime > 0.05f) {
+		T_Battle_Effect();
+		effectAccTime = 0.f;
+	}
 }
 
 // 배틀 화면 렌더링 두 개의 이미지를 세로로 이어 붙여 하나의 이미지가 종 스크롤을 통해 모두 스크롤되면 다시 다른 이미지 위로 올라감

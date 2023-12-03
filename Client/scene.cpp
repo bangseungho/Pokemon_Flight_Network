@@ -82,13 +82,6 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	case Scene::PhaseManager:
 		break;
 	case Scene::Battle: // 배틀 씬에서는 타이머 삭제뿐만 아니라 생성된 모든 객체들을 제거한다.
-		//KillTimer(hWnd, TIMERID_BATTLE_INVALIDATE);
-		//KillTimer(hWnd, TIMERID_BATTLE_ANIMATION);
-		//KillTimer(hWnd, TIMERID_BATTLE_EFFECT);
-		//KillTimer(hWnd, TIMERID_BATTLE_GUI);
-		//KillTimer(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
-		//KillTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS);
-
 		delete mPlayer;
 		delete enemies;
 		delete effects;
@@ -149,13 +142,6 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		gui = new GUIManager(rectWindow);
 
 		rectDisplay = gui->GetRectDisplay();
-
-		//SetTimer(hWnd, TIMERID_BATTLEMAPMOVE, ELAPSE_BATTLEMAPMOVE, T_Battle_MapMove); // 종스크롤 맵 움직임 타이머
-		//SetTimer(hWnd, TIMERID_BATTLE_ANIMATION, ELAPSE_BATTLE_ANIMATION, T_Battle_Animate); // 플레이어, 적, 보스 스킬 애니메이션 타이머
-		//SetTimer(hWnd, TIMERID_BATTLE_EFFECT, ELAPSE_BATTLE_EFFECT, T_Battle_Effect); // 전투 이펙트 효과 타이머
-		//SetTimer(hWnd, TIMERID_BATTLE_GUI, ELAPSE_BATTLE_GUI, T_Battle_GUI); // GUI 타이머
-		//SetTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS, ELAPSE_BATTLE_ANIMATION_BOSS, T_Battle_AnimateBoss); // 보스 애니메이션 타이머
-
 		break;
 	}
 
@@ -171,9 +157,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 SceneManager::SceneManager()
 {
 	soundManager = new SoundManager();
-
 	crntScene = Scene::Intro;
-
 }
 
 // 스크린 사이즈를 받아오고 crntScene(현재 씬)에 따라서 씬을 로드한다.
@@ -211,6 +195,9 @@ void SceneManager::Update()
 		battle.Update(DELTA_TIME);
 		break;
 	}
+
+	T_Loading(DELTA_TIME);
+	T_Loadingbar(DELTA_TIME);
 
 	Paint();
 }
@@ -272,16 +259,12 @@ void SceneManager::StartLoading(const HWND& hWnd)
 {
 	isLoading = true;
 	loading.ResetLoading();
-	SetTimer(hWnd, TIMERID_LOADING, ELAPSE_LOADING, T_Loading);
-	SetTimer(hWnd, TIMERID_LOADINGBAR, ELAPSE_LOADINGBAR, T_Loadingbar);
 }
 
 // 로딩 화면을 끝내기 위한 함수로 로딩 화면에 필요한 애니메이션 타이머를 삭제한다.
 void SceneManager::StopLoading(const HWND& hWnd)
 {
 	isLoading = false;
-	KillTimer(hWnd, TIMERID_LOADING);
-	KillTimer(hWnd, TIMERID_LOADINGBAR);
 }
 
 
