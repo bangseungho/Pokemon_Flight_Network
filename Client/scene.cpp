@@ -168,7 +168,7 @@ void SceneManager::LoadScene(const HWND& hWnd)
 
 	// 네트워크에 연결이 되어 있다면 씬 정보를 송신한다.
 	if (GET_SINGLE(Network)->IsConnected()) {
-		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), 0, static_cast<uint8>(crntScene), gameData.ClearRecord };
+		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), 0, static_cast<uint8>(crntScene), gameData.ClearRecord, stage.GetAirPokemon(), stage.GetLandPokemon() };
 		GET_SINGLE(Network)->SendDataAndType(sendData);
 	}
 	InvalidateRect(mHwnd, NULL, false);

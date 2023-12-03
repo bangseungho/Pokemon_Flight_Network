@@ -235,12 +235,13 @@ void Town::Update(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
-	if (MEMBER_MAP(MY_INDEX).mTownData.IsReady == true)
-	{
+	mPlayer->mIsReady = false;
+
+	if (any_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& m) { return m.second.mTownData.CanGoNextScene == true; })) {
 		sceneManager->StartLoading(sceneManager->GetHwnd());
 		_nextFlow = Scene::Stage;
 		mAdjValue = Vector2{ 0, 0 };
-		mPlayer->mCanNextScene = false;
+		mPlayer->mIsReady = false;
 	}
 
 	const RECT rectWindow = sceneManager->GetRectWindow();
@@ -282,7 +283,7 @@ void Town::Update(float elapedTime)
 
 	if (mPlayer->_Pos.x + 20 >= rectWindow.right)
 	{
-		mPlayer->mCanNextScene = true;
+		mPlayer->mIsReady = true;
 		mPlayer->_Pos.x -= 1;
 		mPlayer->aboutMapPos.x -= 1;
 	}
@@ -295,7 +296,6 @@ void Town::Update(float elapedTime)
 
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
 		_exit = false;
-		mPlayer->mCanNextScene = false;
 		mPlayer->_dir = Dir::Left;
 		Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
 		mPlayer->aboutMapPos += interval;
@@ -347,14 +347,12 @@ void Town::Update(float elapedTime)
 	}
 	else if (GetAsyncKeyState(VK_UP) & 0x8000) {
 		Vector2 interval = { 0, -TPLAYER_SPEED * elapedTime };
-		mPlayer->mCanNextScene = false;
 		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Up;
 		mPlayer->_Pos += interval;
 	}
 	else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		_exit = false;
-		mPlayer->mCanNextScene = false;
 		Vector2 interval = { 0, TPLAYER_SPEED * elapedTime };
 		mPlayer->aboutMapPos += interval;
 		mPlayer->_dir = Dir::Down;
@@ -371,7 +369,7 @@ void Town::Update(float elapedTime)
 
 	// 방향키가 눌러졌다면 패킷 송신
 	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mPlayer->mCanNextScene, 0 };
+	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mPlayer->mIsReady, 0 };
 	GET_SINGLE(Network)->SendDataAndType(townData);
 
 	mPlayer->_cam = FRECT{ mPlayer->_Pos.x - CAMSIZE_X, 0, mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom };

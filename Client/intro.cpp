@@ -270,12 +270,6 @@ void Intro::Update(float elapsedTime)
 	mMenu->Update(elapsedTime);
 
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
-
-	//else if (scene == Scene::PhaseManager && sceneManager->IsLoading() == false)
-	//{
-	//	battle.Init();
-	//	phase.fingerController(sceneManager->GetHwnd());
-	//}
 }
 
 void Intro::Paint(HDC hdc)

@@ -47,7 +47,7 @@ public:
 		RECT _rectImage = { 0, };
 		FRECT _cam = { 0, };
 		Dir _dir = Dir::Down;
-		bool mCanNextScene = false;
+		bool mIsReady = false;
 		bool _keepGoing = false;
 	};
 

@@ -27,15 +27,17 @@ public:
 	uint8 GetMainPlayerIndex() const { return mMainPlayerIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
+	mutex& GetMemberMapMutex() { return mMemberMapMutex; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 
 private:
-	bool			mConnected;
-	uint8			mClientIndex;
-	uint8			mMainPlayerIndex;
-	thread			mRecvClientThread;
-	SOCKET			mClientSock;
-	SOCKADDR_IN		mServerAddr;
+	bool				mConnected;
+	uint8				mClientIndex;
+	uint8				mMainPlayerIndex;
+	thread				mRecvClientThread;
+	SOCKET				mClientSock;
+	SOCKADDR_IN			mServerAddr;
+	mutex				mMemberMapMutex;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 };
@@ -51,6 +53,7 @@ inline void Network::SendDataAndType(const T& data)
 	int retVal = Data::SendDataAndType(mClientSock, data);
 
 #ifdef _DEBUG
+	std::lock_guard<std::mutex> lock(mMemberMapMutex);
 	string dataTypeStr;
 	DataType dataType = Data::GetDataType<T>();
 	if (retVal) {
