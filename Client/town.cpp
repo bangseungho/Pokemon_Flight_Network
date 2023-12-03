@@ -110,9 +110,6 @@ void Town::Init()
 	{
 		soundManager->PlayBGMSound(BGMSound::Town2, 1.0f, true);
 	}
-
-	SetTimer(mHwnd, TIMERID_TPANIMATION_DIR, ELAPSE_TPANIMATION_DIR, T_TPAnimationDir); // 플레이어 방향 타이머
-	SetTimer(mHwnd, TIMERID_NPCMOTION, ELAPSE_NPCMOTION, T_NpcMotion); // NPC 움직임 타이머
 }
 
 // 타운 화면 렌더링
@@ -221,6 +218,97 @@ void Town::Paint(HDC hdc, const RECT& rectWindow)
 	}
 }
 
+void Town::Animate(float elpasedTime)
+{
+	static float accTime = 0.f;
+	accTime += elpasedTime;
+	
+	if (accTime >= 0.1f) {
+		if (mPlayer->_keepGoing == true)
+		{
+			mPlayer->_rectImage.left += TPLAYER_IMAGESIZE_X;
+
+			if (mPlayer->_rectImage.left == TPLAYER_MAX_IMAGESIZE_X)
+				mPlayer->_rectImage.left = 0;
+
+			switch (mPlayer->_dir)
+			{
+			case Dir::Left:
+				mPlayer->_rectImage.top = DIR_LEFT_IMAGE_Y;
+				break;
+			case Dir::Up:
+				mPlayer->_rectImage.top = DIR_UP_IMAGE_Y;
+				break;
+			case Dir::Right:
+				mPlayer->_rectImage.top = DIR_RIGHT_IMAGE_Y;
+				break;
+			case Dir::Down:
+				mPlayer->_rectImage.top = DIR_DOWN_IMAGE_Y;
+				break;
+			}
+		}
+		accTime = 0.f;
+	}
+}
+
+void Town::AnimateNPC(float elpasedTime)
+{
+	static float accTime = 0.f;
+	accTime += elpasedTime;
+
+	static int npc1cnt = 0;
+	static int npc2cnt = 0;
+
+	// npc2의 방향을 반대로 바꾸기 위한 변수
+	static int negative_number = 1;
+
+	if (accTime >= 0.1f) {
+
+		// npc1의 모션 주기
+		npc1cnt++;
+		// npc2의 모션 주기
+		npc2cnt++;
+
+		// npc1의 애니메이션
+		if (_npc1Move.x < 150) {
+			_npc1Move.x += 50;
+		}
+		if (npc1cnt == 100)
+		{
+			npc1cnt = 0;
+			_npc1Move.x = 0;
+		}
+
+		// npc2가 위치값이 1000이 넘을 경우 반대로 다시 걸어가기
+		if (_npc2Rect.top > 625)
+		{
+			negative_number = -1;
+			_npc2Move.y = 192;
+		}
+		if (_npc2Rect.top < 219)
+		{
+			negative_number = 1;
+			_npc2Move.y = 0;
+		}
+
+		// warking npc2의 cnt가 5의 배수가 될때마다 앞으로 한걸음
+		if (npc2cnt % 5 == 0)
+		{
+			mNpcs[1]->mPos.y += 5.f * negative_number;
+			mNpcs[1]->ConvertToFRECT();
+
+			_npc2Move.x += 64;
+			_npc2Rect.top += 6 * negative_number;
+		}
+		if (npc2cnt == 20 && _npc2Move.x > 192)
+		{
+			npc2cnt = 0;
+			_npc2Move.x = 0;
+		}
+		accTime = 0.f;
+	}
+}
+
 Vector2 abs(const Vector2& point)
 {
 	Vector2 ret;
@@ -232,6 +320,8 @@ Vector2 abs(const Vector2& point)
 
 void Town::Update(float elapedTime)
 {
+	AnimateNPC(elapedTime);
+
 	if (sceneManager->IsLoading() == true)
 		return;
 
@@ -371,6 +461,8 @@ void Town::Update(float elapedTime)
 	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
 	TownData townData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mPlayer->mIsReady, 0 };
 	GET_SINGLE(Network)->SendDataAndType(townData);
+
+	Animate(elapedTime);
 
 	mPlayer->_cam = FRECT{ mPlayer->_Pos.x - CAMSIZE_X, 0, mPlayer->_Pos.x + CAMSIZE_X, (float)rectWindow.bottom };
 	mPlayer->_rectDraw = FRECT{ mPlayer->_Pos.x - 20, mPlayer->_Pos.y - 20, mPlayer->_Pos.x + 20, mPlayer->_Pos.y + 20 };

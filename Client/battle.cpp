@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "battle.h"
 #include "timer.h"
+#include "sound.h"
+
+extern SoundManager* soundManager;
 
 // 배틀 화면에 필요한 이미지 모두 로드
 Battle::Battle()
@@ -19,11 +22,22 @@ void Battle::Init()
 	_shakeCount = 0;
 	_shakeWindow = 0;
 	_mapSpeed = 5;
+
+	soundManager->StopBGMSound();
+	soundManager->PlayBGMSound(BGMSound::Battle, 1.0f, true);
+	soundManager->PlayEffectSound(EffectSound::Shot, 0.5f, true);
 }
 
 void Battle::Update(float elapsedStime)
 {
 	T_Battle_Invalidate();
+	T_Battle_Animate();
+	T_Battle_AnimateBoss();
+
+	//T_Battle_MovePlayer();
+	T_Battle_Effect();
+	T_Battle_GUI();
+	T_Battle_MapMove();
 }
 
 // 배틀 화면 렌더링 두 개의 이미지를 세로로 이어 붙여 하나의 이미지가 종 스크롤을 통해 모두 스크롤되면 다시 다른 이미지 위로 올라감

@@ -83,9 +83,6 @@ void Stage::Init()
 
 	airPokemon = Type::Empty;
 	landPokemon = Type::Empty;
-
-	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
-	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
 }
 
 // 선택 초기화
@@ -219,13 +216,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 			switch (_play_Air_pokemon)
 			{
 			case 0:
-				_ready_Zapados[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Zapados[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			case 1:
-				_ready_Moltres[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Moltres[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			case 2:
-				_ready_Articuno[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Articuno[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			}
 		}
@@ -235,13 +232,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 			switch (_play_Land_pokemon)
 			{
 			case 3:
-				_ready_Pikachu[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Pikachu[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			case 4:
-				_ready_Charmander[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Charmander[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			case 5:
-				_ready_Squirtle[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Squirtle[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			}
 		}
@@ -355,6 +352,8 @@ void Stage::Update(float elapsedTime)
 		_dialogflag = false;
 	}
 
+	fingerController(elapsedTime);
+
 	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
 		if (recvData.CanGoNextScene == true) {
@@ -442,14 +441,19 @@ void Stage::Update(float elapsedTime)
 		mFingerCount = 0;
 	}
 
+
 	recvData.InputKey = 0;
 	target->_cam = { target->_rectDraw.left - CAMSIZE_X, (float)rectWindow.top, target->_rectDraw.right + CAMSIZE_X, (float)rectWindow.bottom };
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
 // 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러
-void Stage::fingerController(const HWND& hWnd)
+void Stage::fingerController(float elpasedTime)
 {
+	_select_pokemon_move += elpasedTime * 2.f;
+	if ((int)_select_pokemon_move == 2)
+		_select_pokemon_move = 0;
+
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
