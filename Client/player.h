@@ -22,6 +22,7 @@ typedef struct PlayerData {
 	float subDamage = 0;
 	float damage_Q = 0; // per sec
 
+	bool isCanGo = false;
 	bool isDeath = false;
 	bool isInvincible = false;
 }PlayerData;

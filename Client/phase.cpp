@@ -73,6 +73,7 @@ void PhaseManager::Update(float elapsedTime)
 	auto& recvData = MEMBER_MAP(MP_INDEX).mPhaseData;
 	if (recvData.InputKey == VK_RETURN) {
 		sceneManager->StartLoading(sceneManager->GetHwnd());
+		Sleep(10); // Release 모드에서 배틀이 끝난 후 자동으로 배틀이 또 다시 시작되는 버그 발견. sleep으로 해결
 	}
 
 	recvData.InputKey = 0;
