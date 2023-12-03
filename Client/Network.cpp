@@ -36,7 +36,6 @@ void Network::ClientReceiver()
 		if (dataType == DataType::END_PROCESSING) {
 			// 종료 클라이언트 인덱스를 수신
 			EndProcessing recvData;
-			ZeroMemory(&recvData, sizeof(EndProcessing));
 
 			// 패킷 수신
 			Data::RecvData<EndProcessing>(mClientSock, recvData);
@@ -60,26 +59,67 @@ void Network::ClientReceiver()
 			// 패킷을 수신할 임시 객체
 			SceneData recvData;
 
-			ZeroMemory(&recvData, sizeof(SceneData));
-
 			// 패킷 수신
 			Data::RecvData<SceneData>(mClientSock, recvData);
 
 			// 메인 플레이어 인덱스
 			mMainPlayerIndex = recvData.MainPlayerIndex;
-			cout << (uint32)mMainPlayerIndex << endl;
 
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
+
+#ifdef _DEBUG
+			std::lock_guard<std::mutex> lock(mMemberMapMutex);
+			for (const auto& member : mRecvMemberMap) {
+				if (mClientIndex == member.second.mSceneData.PlayerIndex)
+					continue;
+
+				string airPokemonStr;
+				switch (member.second.mSceneData.AirPokemon)
+				{
+				case Type::Empty:
+					airPokemonStr = "EMPTY";
+					break;
+				case Type::Fire:
+					airPokemonStr = "MOLTRES";
+					break;
+				case Type::Elec:
+					airPokemonStr = "THUNDER";
+					break;
+				case Type::Water:
+					airPokemonStr = "ARTICUNO";
+					break;
+				}
+
+				string landPokemonStr;
+				switch (member.second.mSceneData.LandPokemon)
+				{
+				case Type::Empty:
+					landPokemonStr = "EMPTY";
+					break;
+				case Type::Fire:
+					landPokemonStr = "CHARMANDER";
+					break;
+				case Type::Elec:
+					landPokemonStr = "PIKACHU";
+					break;
+				case Type::Water:
+					landPokemonStr = "SQUIRTLE";
+					break;
+				}
+
+				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", " 
+					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
+			}
+#endif 
 		}
 #pragma endregion
 #pragma region Intro
 		else if (dataType == DataType::INTRO_DATA) {
 			// 패킷을 수신할 임시 객체
 			IntroData recvData;
-			ZeroMemory(&recvData, sizeof(IntroData));
 
 			// 패킷 수신
 			Data::RecvData<IntroData>(mClientSock, recvData);
@@ -99,7 +139,6 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::TOWN_DATA) {
 			// 패킷을 수신할 임시 객체
 			TownData recvData;
-			ZeroMemory(&recvData, sizeof(TownData));
 
 			// 패킷 수신
 			Data::RecvData<TownData>(mClientSock, recvData);
@@ -114,7 +153,6 @@ void Network::ClientReceiver()
 		else if (dataType == DataType::STAGE_DATA) {
 			// 패킷을 수신할 임시 객체
 			StageData recvData;
-			ZeroMemory(&recvData, sizeof(StageData));
 
 			// 패킷 수신
 			Data::RecvData<StageData>(mClientSock, recvData);
@@ -123,6 +161,20 @@ void Network::ClientReceiver()
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
+		}
+#pragma endregion
+#pragma region Phase
+		else if (dataType == DataType::PHASE_DATA) {
+			// 패킷을 수신할 임시 객체
+			PhaseData recvData;
+
+			// 패킷 수신
+			Data::RecvData<PhaseData>(mClientSock, recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
 		}
 #pragma endregion
 	}
@@ -158,9 +210,9 @@ void Network::Connect()
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
 
-	// 네이글 알고리즘 해제
-	int delayZeroOpt = 1;
-	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
+	//// 네이글 알고리즘 해제
+	//int delayZeroOpt = 1;
+	//setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
 
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;

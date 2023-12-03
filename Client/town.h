@@ -47,7 +47,7 @@ public:
 		RECT _rectImage = { 0, };
 		FRECT _cam = { 0, };
 		Dir _dir = Dir::Down;
-		bool mCanNextScene = false;
+		bool mIsReady = false;
 		bool _keepGoing = false;
 	};
 
@@ -64,6 +64,8 @@ public:
 	Town();
 	void Init();
 	void Paint(HDC hdc, const RECT& rectWindow);
+	void Animate(float elpasedTime);
+	void AnimateNPC(float elpasedTime);
 	void Update(float elapedTime);
 	void StopPlayer();
 	int GetCamSizeX();

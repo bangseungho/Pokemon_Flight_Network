@@ -64,7 +64,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
 
-	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, Type::Empty, Type::Empty, false };
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	soundManager->StopBGMSound();
@@ -79,12 +79,10 @@ void Stage::Init()
 
 	for (auto& member : GET_MEMBER_MAP) {
 		member.second.mStageData.IsReady = false;
-		member.second.mStageData.AirPokemon = Type::Empty;
-		member.second.mStageData.LandPokemon = Type::Empty;
 	}
 
-	SetTimer(sceneManager->GetHwnd(), TIMERID_TARGETMOVE, ELAPSE_TARGETMOVE, T_TargetMove); // 스테이지를 고르기 위한 타겟의 움직임 타이머
-	SetTimer(sceneManager->GetHwnd(), TIMERID_SelectPokemonMove, ELAPSE_SelectPokemonMove, T_SelectPokemonMove); // 포켓몬 선택창 타이머
+	airPokemon = Type::Empty;
+	landPokemon = Type::Empty;
 }
 
 // 선택 초기화
@@ -218,13 +216,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 			switch (_play_Air_pokemon)
 			{
 			case 0:
-				_ready_Zapados[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Zapados[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			case 1:
-				_ready_Moltres[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Moltres[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			case 2:
-				_ready_Articuno[_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
+				_ready_Articuno[(int)_select_pokemon_move].Draw(hdc, 80, 130, 150, 150, 0, 0, 150, 150);
 				break;
 			}
 		}
@@ -234,13 +232,13 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 			switch (_play_Land_pokemon)
 			{
 			case 3:
-				_ready_Pikachu[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Pikachu[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			case 4:
-				_ready_Charmander[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Charmander[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			case 5:
-				_ready_Squirtle[_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
+				_ready_Squirtle[(int)_select_pokemon_move].Draw(hdc, 290, 160, 100, 100, 0, 0, 150, 150);
 				break;
 			}
 		}
@@ -272,16 +270,17 @@ void Stage::Update(float elapsedTime)
 {
 	if (sceneManager->IsLoading())
 		return;
+
 	if(_select_pokemon)
 		mTwinkleCnt += elapsedTime * 3.f;
 
 	RECT rect;
 	auto rectWindow = sceneManager->GetRectWindow();
 
-	target->_select = false;
-
 	int inputKey = 0;
 	if (!_select_pokemon) {
+		target->_select = false;
+
 		// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
 		for (int i = 0; i < STAGE_NUM; i++)
 		{
@@ -341,8 +340,10 @@ void Stage::Update(float elapsedTime)
 	}
 
 	if (inputKey != 0) {
-		StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
-		Data::SendDataAndType(GET_SINGLE(Network)->GetSocket(), sendData);
+		if (MY_INDEX == MP_INDEX) {
+			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
+		}
 	}
 
 	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
@@ -350,6 +351,8 @@ void Stage::Update(float elapsedTime)
 		target->_rectDraw = recvData.RectDraw;
 		_dialogflag = false;
 	}
+
+	fingerController(elapsedTime);
 
 	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
@@ -438,14 +441,19 @@ void Stage::Update(float elapsedTime)
 		mFingerCount = 0;
 	}
 
+
 	recvData.InputKey = 0;
 	target->_cam = { target->_rectDraw.left - CAMSIZE_X, (float)rectWindow.top, target->_rectDraw.right + CAMSIZE_X, (float)rectWindow.bottom };
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
 // 포켓몬 선택창이 열린 경우에 포켓몬을 선택하는 핑거 컨트롤러
-void Stage::fingerController(const HWND& hWnd)
+void Stage::fingerController(float elpasedTime)
 {
+	_select_pokemon_move += elpasedTime * 2.f;
+	if ((int)_select_pokemon_move == 2)
+		_select_pokemon_move = 0;
+
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
 		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
@@ -512,7 +520,7 @@ void Stage::fingerController(const HWND& hWnd)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, airPokemon, landPokemon, true };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
@@ -531,7 +539,7 @@ void Stage::fingerController(const HWND& hWnd)
 			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
 				mFingerCount += 1;
 		}
-		if (GetAsyncKeyState(VK_BACK) & 0x0001)
+		if (GetAsyncKeyState(VK_BACK) & 0x8000)
 			SelectPokemonInit();
 	}
 }

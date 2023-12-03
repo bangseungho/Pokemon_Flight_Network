@@ -76,22 +76,18 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	case Scene::Intro:
 		break;
 	case Scene::Town:
-		KillTimer(hWnd, TIMERID_TPANIMATION_DIR);
-		KillTimer(hWnd, TIMERID_NPCMOTION);
 		break;
 	case Scene::Stage:
-		KillTimer(hWnd, TIMERID_TARGETMOVE);
-		KillTimer(hWnd, TIMERID_SelectPokemonMove);
 		break;
 	case Scene::PhaseManager:
 		break;
 	case Scene::Battle: // 배틀 씬에서는 타이머 삭제뿐만 아니라 생성된 모든 객체들을 제거한다.
-		KillTimer(hWnd, TIMERID_BATTLE_INVALIDATE);
-		KillTimer(hWnd, TIMERID_BATTLE_ANIMATION);
-		KillTimer(hWnd, TIMERID_BATTLE_EFFECT);
-		KillTimer(hWnd, TIMERID_BATTLE_GUI);
-		KillTimer(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
-		KillTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS);
+		//KillTimer(hWnd, TIMERID_BATTLE_INVALIDATE);
+		//KillTimer(hWnd, TIMERID_BATTLE_ANIMATION);
+		//KillTimer(hWnd, TIMERID_BATTLE_EFFECT);
+		//KillTimer(hWnd, TIMERID_BATTLE_GUI);
+		//KillTimer(hWnd, TIMERID_BATTLE_MOVE_PLAYER);
+		//KillTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS);
 
 		delete mPlayer;
 		delete enemies;
@@ -154,21 +150,18 @@ void SceneManager::LoadScene(const HWND& hWnd)
 
 		rectDisplay = gui->GetRectDisplay();
 
-		SetTimer(hWnd, TIMERID_BATTLEMAPMOVE, ELAPSE_BATTLEMAPMOVE, T_Battle_MapMove); // 종스크롤 맵 움직임 타이머
-		SetTimer(hWnd, TIMERID_BATTLE_ANIMATION, ELAPSE_BATTLE_ANIMATION, T_Battle_Animate); // 플레이어, 적, 보스 스킬 애니메이션 타이머
-		SetTimer(hWnd, TIMERID_BATTLE_EFFECT, ELAPSE_BATTLE_EFFECT, T_Battle_Effect); // 전투 이펙트 효과 타이머
-		SetTimer(hWnd, TIMERID_BATTLE_GUI, ELAPSE_BATTLE_GUI, T_Battle_GUI); // GUI 타이머
-		SetTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS, ELAPSE_BATTLE_ANIMATION_BOSS, T_Battle_AnimateBoss); // 보스 애니메이션 타이머
+		//SetTimer(hWnd, TIMERID_BATTLEMAPMOVE, ELAPSE_BATTLEMAPMOVE, T_Battle_MapMove); // 종스크롤 맵 움직임 타이머
+		//SetTimer(hWnd, TIMERID_BATTLE_ANIMATION, ELAPSE_BATTLE_ANIMATION, T_Battle_Animate); // 플레이어, 적, 보스 스킬 애니메이션 타이머
+		//SetTimer(hWnd, TIMERID_BATTLE_EFFECT, ELAPSE_BATTLE_EFFECT, T_Battle_Effect); // 전투 이펙트 효과 타이머
+		//SetTimer(hWnd, TIMERID_BATTLE_GUI, ELAPSE_BATTLE_GUI, T_Battle_GUI); // GUI 타이머
+		//SetTimer(hWnd, TIMERID_BATTLE_ANIMATION_BOSS, ELAPSE_BATTLE_ANIMATION_BOSS, T_Battle_AnimateBoss); // 보스 애니메이션 타이머
 
-		soundManager->StopBGMSound();
-		soundManager->PlayBGMSound(BGMSound::Battle, 1.0f, true);
-		soundManager->PlayEffectSound(EffectSound::Shot, 0.5f, true);
 		break;
 	}
 
 	// 네트워크에 연결이 되어 있다면 씬 정보를 송신한다.
 	if (GET_SINGLE(Network)->IsConnected()) {
-		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), 0, static_cast<uint8>(crntScene), gameData.ClearRecord };
+		SceneData sendData{ GET_SINGLE(Network)->GetClientIndex(), 0, static_cast<uint8>(crntScene), gameData.ClearRecord, stage.GetAirPokemon(), stage.GetLandPokemon() };
 		GET_SINGLE(Network)->SendDataAndType(sendData);
 	}
 	InvalidateRect(mHwnd, NULL, false);
