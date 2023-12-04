@@ -177,6 +177,22 @@ void Network::ClientReceiver()
 				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
 		}
 #pragma endregion
+#pragma region Battle
+		else if (dataType == DataType::BATTLE_DATA) {
+			// 패킷을 수신할 임시 객체
+			BattleData recvData;
+
+			// 패킷 수신
+			Data::RecvData<BattleData>(mClientSock, recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mBattleData = move(recvData);
+
+			cout << mRecvMemberMap[MY_INDEX].mBattleData.PosX << endl;
+		}
+#pragma endregion
 	}
 }
 

@@ -618,11 +618,11 @@ public:
 	SOCKET		mSock;
 	uint8		mThreadId;
 
+	SceneData		mSceneData;
 	IntroData		mIntroData;
 	TownData		mTownData;
 	StageData		mStageData;
 	PhaseData		mPhaseData;
 	BattleData		mBattleData;
-	SceneData		mSceneData;
 	EndProcessing	mEndProcessing;
 };

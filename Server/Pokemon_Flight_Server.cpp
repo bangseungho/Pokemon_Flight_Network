@@ -19,14 +19,6 @@ static unordered_map<uint8, NetworkPlayerData> sPlayers;
 CRITICAL_SECTION cs;
 std::mutex sPlayersMutex;
 
-void ProcessTimer()
-{
-	//while (true) {
-	//	GET_SINGLE(Timer)->Update();
-	//	this_thread::sleep_for(chrono::milliseconds(16)); // 대략 60fps로 맞추기
-	//}
-}
-
 void ProcessClient(ThreadSocket sock)
 {
 	// ThreadSocket = Socket + threadId 
@@ -229,6 +221,28 @@ void ProcessClient(ThreadSocket sock)
 	return;
 }
 
+void ProcessBattle()
+{
+	while (true) {
+		GET_SINGLE(Timer)->Update();
+
+		if (sPlayers.empty())
+			continue;
+
+		// 모든 플레이어들이 배틀 화면에 있을 경우에만 배틀 프로세스를 진행한다.
+		bool isAllPlayerBattleScene = all_of(sPlayers.begin(), sPlayers.end(), [](const auto& a) {
+			return a.second.mSceneData.Scene == (uint8)Scene::Battle; });
+
+		if (!isAllPlayerBattleScene)
+			continue;
+
+		for (const auto& player : sPlayers) {
+			BattleData sendData{player.first, 2, 3, false};
+			Data::SendDataAndType<BattleData>(player.second.mSock, sendData);
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 {
 #pragma region Init
@@ -267,8 +281,8 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
-	thread processTimerThread{ ProcessTimer };
-	vector<thread> processClientThread;
+	thread logicThread{ ProcessBattle };
+	vector<thread> clientThread;
 	uint8 sPlayerCount{};
 
 	while (1) {
@@ -285,11 +299,12 @@ int main(int argc, char* argv[])
 		     << "번 클라이언트 접속] IP: " << inet_ntoa(clientaddr.sin_addr) 
 			 << ", PORT: " << ntohs(clientaddr.sin_port) << endl << endl;
 #endif 
-		processClientThread.emplace_back(ProcessClient, clientSock);
+		clientThread.emplace_back(ProcessClient, clientSock);
 	}
 #pragma endregion
 #pragma region Close
-	for (auto& clientThread : processClientThread) clientThread.join();
+	for (auto& clientThread : clientThread) clientThread.join();
+	logicThread.join();
 
 	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
