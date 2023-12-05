@@ -203,10 +203,13 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
 
-			switch (recvData.Type)
+			switch (recvData.Status)
 			{
 			case NetworkEnemyData::Status::CREATE:
-				enemies->CreateRecvMelee(recvData.Pos);
+				if (recvData.AttackType == NetworkEnemyData::AttackType::MELEE)
+					enemies->CreateRecvMelee(recvData.Pos);
+				else 
+					enemies->CreateRecvRange(recvData.Pos);
 				break;
 			case NetworkEnemyData::Status::MOVE:
 				enemies->SetRecvData(move(recvData));

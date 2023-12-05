@@ -568,13 +568,6 @@ void EnemyController::CreateCheckMelee()
 	}
 }
 
-// 송신받은 근거리 적 생성
-void EnemyController::CreateRecvMelee(Vector2 pos)
-{
-	Melee* enemy = new Melee(imgMelee, pos, meleeData);
-	enemies.emplace_back(enemy);
-}
-
 // 배틀 타이머당 생성되는 원거리 적 생성 함수
 void EnemyController::CreateCheckRange()
 {
@@ -603,6 +596,20 @@ void EnemyController::CreateCheckRange()
 		Range* enemy = new Range(imgRange, { xPos, yPos }, rangeData);
 		enemies.emplace_back(enemy);
 	}
+}
+
+// 수신받은 근거리 적 생성
+void EnemyController::CreateRecvMelee(Vector2 pos)
+{
+	Melee* enemy = new Melee(imgMelee, pos, meleeData);
+	enemies.emplace_back(enemy);
+}
+
+// 수신받은 원거리 적 생성
+void EnemyController::CreateRecvRange(Vector2 pos)
+{
+	Range* enemy = new Range(imgRange, pos, rangeData);
+	enemies.emplace_back(enemy);
 }
 
 // 적 객체들을 업데이트하고 렌더링 하는 함수들

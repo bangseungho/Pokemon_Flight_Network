@@ -108,8 +108,9 @@ public:
 	EnemyController();
 	~EnemyController();
 	void CreateCheckMelee();
-	void CreateRecvMelee(Vector2 pos);
 	void CreateCheckRange();
+	void CreateRecvMelee(Vector2 pos);
+	void CreateRecvRange(Vector2 pos);
 	void Paint(HDC hdc);
 	void Update();
 	void SetRecvData(NetworkEnemyData&& recvData);

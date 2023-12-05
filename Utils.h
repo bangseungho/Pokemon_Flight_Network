@@ -470,13 +470,20 @@ struct BattleData
 
 struct NetworkEnemyData
 {
+	enum class AttackType : uint8 {
+		NONE,
+		MELEE,
+		RANGE,
+	};
+
 	enum class Status : uint8 {
 		NONE,
 		CREATE,
 		MOVE,
 	};
 
-	Status		Type = Status::NONE;
+	AttackType	AttackType = AttackType::NONE;
+	Status		Status = Status::NONE;
 	uint8		ID = 0;
 	Vector2		Pos = { 0.f, 0.f };
 	int			SpriteRow = 0;
@@ -486,7 +493,7 @@ struct SceneData
 {
 	uint8	PlayerIndex = 0;
 	uint8	MainPlayerIndex = 0;
-	uint8	Scene = 0;
+	uint8	Scene = (uint8)Scene::Intro;
 	int		Record = 0;
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;

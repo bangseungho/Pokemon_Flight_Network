@@ -10,10 +10,9 @@ Battle::~Battle()
 {
 }
 
-void Battle::Init(NetworkPlayerData* playerMap)
+void Battle::Init()
 {
-	mPlayerMap = playerMap;
-	mEnemyController = make_unique<EnemyController>(playerMap);
+	mEnemyController = make_unique<EnemyController>();
 }
 
 void Battle::Update(float elapsedTime)
@@ -21,20 +20,16 @@ void Battle::Update(float elapsedTime)
 	static float accTime;
 	accTime += elapsedTime;
 
-	if (accTime > 0.016f) {
-		CreateEnemys(elapsedTime);
-		mEnemyController->Update();
+	if (accTime >= 0.0167f) {
+		Invalidata();
 		accTime = 0.f;
 	}
 }
 
-void Battle::CreateEnemys(float elapsedTime)
+void Battle::Invalidata()
 {
 	// 일정 타이머에 맞게 적 객체 생성
 	mEnemyController->CreateCheckMelee();
-	//mEnemyController->CreateCheckRange();
-
-#ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
-#endif
+	mEnemyController->CreateCheckRange();
+	mEnemyController->Update();
 }

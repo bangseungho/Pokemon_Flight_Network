@@ -8,15 +8,13 @@ public:
 	~Battle();
 
 public:
-	void Init(NetworkPlayerData* playerMap);
+	void Init();
 	void Update(float elapsedTime);
 
 private:
-	void CreateEnemys(float elapsedTime);
+	void Invalidata();
 
 private:
-	NetworkPlayerData* mPlayerMap;
 	unique_ptr<EnemyController> mEnemyController;
-	
 };
 

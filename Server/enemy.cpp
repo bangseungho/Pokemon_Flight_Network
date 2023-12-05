@@ -93,7 +93,7 @@ void Melee::SetPosDest()
 	}
 
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - Vector2{ sPlayerMap[0].mBattleData.PosX, sPlayerMap[0].mBattleData.PosY};
+	const Vector2 vectorToPlayer = posCenter - Vector2{ sPlayerMap[0].mBattleData.PosX, sPlayerMap[0].mBattleData.PosY };
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -119,7 +119,7 @@ void Range::SetPosDest()
 }
 
 // 최종적으로 위치를 이동
-void Enemy::Update()  
+void Enemy::Update()
 {
 	if (IsMove() == false)
 	{
@@ -130,6 +130,15 @@ void Enemy::Update()
 	SetPos(posDest);
 
 	// 클라이언트로 데이터 전송
+}
+
+Melee::Melee(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
+{
+	mSendData.AttackType = NetworkEnemyData::AttackType::MELEE;
+	mSendData.Status = NetworkEnemyData::Status::CREATE;
+	mSendData.ID = id;
+	mSendData.Pos = GetPosCenter();
+	mSendData.SpriteRow = GetSpriteRow();
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
@@ -149,10 +158,21 @@ void Melee::Update()
 	SetPosDest();
 	SetPos(posDest);
 
-	NetworkEnemyData sendData{ NetworkEnemyData::Status::MOVE, id, GetPosCenter(), GetSpriteRow() };
+	mSendData.Status = NetworkEnemyData::Status::MOVE;
+	mSendData.Pos = GetPosCenter();
+	mSendData.SpriteRow = GetSpriteRow();
 	for (const auto& player : sPlayerMap) {
-		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
 	}
+}
+
+Range::Range(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
+{
+	mSendData.AttackType = NetworkEnemyData::AttackType::RANGE;
+	mSendData.Status = NetworkEnemyData::Status::CREATE;
+	mSendData.ID = id;
+	mSendData.Pos = GetPosCenter();
+	mSendData.SpriteRow = GetSpriteRow();
 }
 
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
@@ -165,6 +185,13 @@ void Range::Update()
 
 	SetPosDest();
 	SetPos(posDest);
+
+	mSendData.Status = NetworkEnemyData::Status::MOVE;
+	mSendData.Pos = GetPosCenter();
+	mSendData.SpriteRow = GetSpriteRow();
+	for (const auto& player : sPlayerMap) {
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	}
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -295,10 +322,9 @@ int Enemy::GetSpriteRow()
 //}
 
 // 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
-EnemyController::EnemyController(NetworkPlayerData* playerMap)
+EnemyController::EnemyController()
 {
-	mPlayerMap = playerMap;
-	switch (playerMap->mStageData.Stage)
+	switch (sPlayerMap[0].mStageData.Stage)
 	{
 	case StageElement::Elec:
 		meleeData.type = Type::Elec;
@@ -450,7 +476,7 @@ EnemyController::EnemyController(NetworkPlayerData* playerMap)
 	const float randHP_Range = (float)(rand() % 6) / 10;
 	meleeData.hp += randHP_Melee;
 	rangeData.hp += randHP_Range;
-	
+
 	////bullets = new EnemyBullet();
 }
 EnemyController::~EnemyController()
@@ -478,7 +504,7 @@ void EnemyController::CreateCheckMelee()
 	//}
 
 	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
-	delay_Melee += ELAPSE_BATTLE_INVALIDATE; 
+	delay_Melee += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Melee < createDelay_Melee)
 	{
 		return;
@@ -491,14 +517,17 @@ void EnemyController::CreateCheckMelee()
 		float xPos = rand() % WINDOWSIZE_X;
 		float yPos = -(rand() % 100);
 
-		Melee* enemy = new Melee({ xPos, yPos }, meleeData, mPlayerMap);
+		Melee* enemy = new Melee({ xPos, yPos }, meleeData);
 		enemies.emplace_back(enemy);
-		
-		NetworkEnemyData sendData{ NetworkEnemyData::Status::CREATE, enemy->GetID(), enemy->GetPosCenter(), enemy->GetSpriteRow() };
+
 		for (const auto& player : sPlayerMap) {
-			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy->GetSendData());
 		}
 	}
+
+#ifdef _DEBUG 
+	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+#endif
 }
 
 // 배틀 타이머당 생성되는 원거리 적 생성 함수
@@ -528,7 +557,15 @@ void EnemyController::CreateCheckRange()
 
 		Range* enemy = new Range({ xPos, yPos }, rangeData);
 		enemies.emplace_back(enemy);
+
+		for (const auto& player : sPlayerMap) {
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy->GetSendData());
+		}
 	}
+
+#ifdef _DEBUG 
+	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+#endif
 }
 
 void EnemyController::Update()
@@ -541,11 +578,8 @@ void EnemyController::Update()
 
 void EnemyController::ShowEnemyCount() const
 {
-	if (enemies.empty())
-		return;
-
-	//cout << "enemy[0] - PosX: " << enemies[0]->GetPosCenter().x << ", PosY: " << enemies[0]->GetPosCenter().y << endl;
-	cout << "EnemyCount: " << enemies.size() << endl;
+	if (!enemies.empty())
+		cout << "EnemyCount: " << enemies.size() << endl;
 }
 
 //// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.

@@ -13,8 +13,8 @@
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 unordered_map<uint8, NetworkPlayerData> sPlayerMap;
-CRITICAL_SECTION cs;
 std::mutex sPlayersMutex;
+HANDLE hAllPlayerBattleSceneEvent;
 
 void ProcessClient(ThreadSocket sock)
 {
@@ -85,6 +85,13 @@ void ProcessClient(ThreadSocket sock)
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 				Data::SendDataAndType<StageData>(clientSock, player.second.mStageData);
 			}
+
+			// 모든 플레이어들이 배틀 화면에 있을 경우에만 배틀 프로세스를 진행한다.
+			bool isAllPlayerBattleScene = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+				return a.second.mSceneData.Scene == (uint8)Scene::Battle; });
+
+			if (isAllPlayerBattleScene)
+				SetEvent(hAllPlayerBattleSceneEvent);
 
 #ifdef _DEBUG
 			string sceneStr;
@@ -221,22 +228,13 @@ void ProcessClient(ThreadSocket sock)
 void ProcessBattle()
 {
 	while (true) {
-		if (sPlayerMap.empty())
-			continue;
-
-		// 모든 플레이어들이 배틀 화면에 있을 경우에만 배틀 프로세스를 진행한다.
-		bool isAllPlayerBattleScene = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
-			return a.second.mSceneData.Scene == (uint8)Scene::Battle; });
-
-		if (!isAllPlayerBattleScene)
-			continue;
-
+		// 모든 플레이어가 배틀 씬에 입장할 때까지 기다린다.
+		WaitForSingleObject(hAllPlayerBattleSceneEvent, INFINITE);
+	
 		Battle battle;
-		battle.Init(&sPlayerMap[0]);
-
+		battle.Init();
 		while (true) {
 			GET_SINGLE(Timer)->Update();
-
 			battle.Update(DELTA_TIME);
 		}
 	}
@@ -248,9 +246,9 @@ int main(int argc, char* argv[])
 	int retval;
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
-	InitializeCriticalSection(&cs);
 	GET_SINGLE(Timer)->Init();
 	GET_SINGLE(Timer)->Start();
+	hAllPlayerBattleSceneEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 #pragma endregion
 
 #pragma region Socket
@@ -304,8 +302,6 @@ int main(int argc, char* argv[])
 #pragma region Close
 	for (auto& clientThread : clientThread) clientThread.join();
 	logicThread.join();
-
-	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion

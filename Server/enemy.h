@@ -31,7 +31,8 @@ protected:
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
 	uint32 id;
-//
+	NetworkEnemyData mSendData;
+
 	Dir GetDir() const;
 	virtual void SetPosDest() abstract override;
 //
@@ -49,6 +50,7 @@ public:
 //	virtual void CheckAttackDelay() abstract;
 //
 	int GetSpriteRow();
+	NetworkEnemyData& GetSendData() { return mSendData; }
 //	bool Hit(float damage);
 //
 //	inline Type GetType() const
@@ -66,11 +68,10 @@ private:
 	void SetPosDest();
 	//bool CheckCollidePlayer();
 public:
-	Melee(const Vector2& pos, const EnemyData& data, NetworkPlayerData* target) : Enemy(pos, data), mTarget(target) {};
+	Melee(const Vector2& pos, const EnemyData& data);
 	void Update() override;
 
 private:
-	NetworkPlayerData* mTarget;
 //	void CheckAttackDelay() override;
 };
 
@@ -79,7 +80,7 @@ private:
 	void SetPosDest();
 //	void Fire();
 public:
-	Range(const Vector2& pos, const EnemyData& data) : Enemy(pos, data) {};
+	Range(const Vector2& pos, const EnemyData& data);
 	void Update() override;
 //	void CheckAttackDelay() override;
 };
@@ -102,7 +103,7 @@ private:
 
 	//void Pop(size_t& index);
 public:
-	EnemyController(NetworkPlayerData* playerMap);
+	EnemyController();
 	~EnemyController();
 	void CreateCheckMelee();
 	void CreateCheckRange();
@@ -129,7 +130,4 @@ public:
 
 public:
 	void ShowEnemyCount() const;
-
-private:
-	NetworkPlayerData* mPlayerMap;
 };
