@@ -127,13 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Physics.cpp" />
+    <ClCompile Include="..\Utils.cpp" />
+    <ClCompile Include="Battle.cpp" />
+    <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="object.cpp" />
     <ClCompile Include="Pokemon_Flight_Server.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils.h" />
-    <ClInclude Include="Physics.h" />
+    <ClInclude Include="Battle.h" />
+    <ClInclude Include="enemy.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
