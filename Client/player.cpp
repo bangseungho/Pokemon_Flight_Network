@@ -7,8 +7,8 @@
 #include "interface.h"
 #include "scene.h"
 #include "sound.h"
-
 #include "battle.h"
+#include "Network.h"
 
 extern GUIManager* gui;
 extern EffectManager* effects;
@@ -231,6 +231,9 @@ void Player::SetPosDest()
 	}
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
+
+	BattleData sendData{MY_INDEX, GetPosCenter().x, GetPosCenter().y, false};
+	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
 // 인자에 따라서 플레이어의 방향을 설정한다.

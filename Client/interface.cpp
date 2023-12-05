@@ -32,8 +32,6 @@ extern Town town;
 extern Stage stage;
 extern PhaseManager phase;
 
-// 인터페이스 부분은 잘 안봐도 됨
-
 // 키 다운 인풋 함수
 void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 {

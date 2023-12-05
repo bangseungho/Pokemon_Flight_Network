@@ -29,6 +29,7 @@ protected:
 	EnemyData data; // 적 데이터로 생성자에서 초기화
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
+	int mSpriteRow = 0;
 
 	void Paint(const HDC& hdc, int spriteRow);
 	Dir GetDir() const;
@@ -46,6 +47,7 @@ public:
 	Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data);
 	virtual void Paint(const HDC& hdc) abstract;
 	virtual void Update() override;
+	void SetSpriteRow(int spriteRow);
 	virtual void CheckAttackDelay() abstract;
 
 	int GetSpriteRow();
@@ -107,8 +109,11 @@ public:
 	~EnemyController();
 	void CreateCheckMelee();
 	void CreateCheckRange();
+	void CreateRecvMelee(Vector2 pos);
+	void CreateRecvRange(Vector2 pos);
 	void Paint(HDC hdc);
 	void Update();
+	void SetRecvData(NetworkEnemyData&& recvData);
 	void Animate();
 	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);

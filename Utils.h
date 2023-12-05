@@ -12,6 +12,17 @@
 #define RECT_WINDOW_WIDTH	484
 #define RECT_WINDOW_HEIGHT	711
 
+#define ELAPSE_BATTLE_INVALIDATE 10
+#define ELAPSE_BATTLE_ANIMATION 50
+#define ELAPSE_BATTLE_ANIMATION_BOSS 100
+#define ELAPSE_BATTLE_MOVE_PLAYER 10
+#define ELAPSE_BATTLE_EFFECT 50
+#define ELAPSE_BATTLE_GUI 10
+
+#define PI 3.141592
+#define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
+#define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
+
 #include <winsock2.h> 
 #include <ws2tcpip.h> 
 #include <tchar.h>
@@ -20,9 +31,11 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <mutex>
 
 #pragma comment(lib, "ws2_32") 
+using namespace std;
 
 using int8 = __int8;
 using int16 = __int16;
@@ -63,6 +76,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	ENEMY_OBJECT_DATA,
 	SCENE_DATA,
 	END_PROCESSING,
 };
@@ -437,6 +451,7 @@ struct StageData
 	FRECT	RectDraw = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
 	bool	IsReady = false;
 	bool	CanGoNextScene = false;
+	StageElement Stage = StageElement::Null;
 };
 
 struct PhaseData
@@ -453,11 +468,32 @@ struct BattleData
 	bool	IsCollider;
 };
 
+struct NetworkEnemyData
+{
+	enum class AttackType : uint8 {
+		NONE,
+		MELEE,
+		RANGE,
+	};
+
+	enum class Status : uint8 {
+		NONE,
+		CREATE,
+		MOVE,
+	};
+
+	AttackType	AttackType = AttackType::NONE;
+	Status		Status = Status::NONE;
+	uint8		ID = 0;
+	Vector2		Pos = { 0.f, 0.f };
+	int			SpriteRow = 0;
+};
+
 struct SceneData
 {
 	uint8	PlayerIndex = 0;
 	uint8	MainPlayerIndex = 0;
-	uint8	Scene = 0;
+	uint8	Scene = (uint8)Scene::Intro;
 	int		Record = 0;
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;
@@ -545,6 +581,8 @@ public:
 			return DataType::PHASE_DATA;
 		else if (std::is_same_v<T, BattleData>)
 			return DataType::BATTLE_DATA;
+		else if (std::is_same_v<T, NetworkEnemyData>)
+			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)
 			return DataType::SCENE_DATA;
 		else if (std::is_same_v<T, EndProcessing>)
@@ -618,11 +656,11 @@ public:
 	SOCKET		mSock;
 	uint8		mThreadId;
 
+	SceneData		mSceneData;
 	IntroData		mIntroData;
 	TownData		mTownData;
 	StageData		mStageData;
 	PhaseData		mPhaseData;
 	BattleData		mBattleData;
-	SceneData		mSceneData;
 	EndProcessing	mEndProcessing;
 };

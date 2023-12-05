@@ -29,6 +29,7 @@ public:
 	SOCKET& GetSocket() { return mClientSock; }
 	mutex& GetMemberMapMutex() { return mMemberMapMutex; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
+	unordered_map<uint8, NetworkEnemyData>& GetEnemyMap() { return mRecvEnemyMap; }
 
 private:
 	bool				mConnected;
@@ -40,9 +41,11 @@ private:
 	mutex				mMemberMapMutex;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
+	unordered_map<uint8, NetworkEnemyData> mRecvEnemyMap;
 };
 
 #define GET_MEMBER_MAP GET_SINGLE(Network)->GetMemberMap()
+#define GET_ENEMY_VEC GET_SINGLE(Network)->GetEnemyMap()
 #define MEMBER_MAP(index) GET_SINGLE(Network)->GetMemberMap()[index]
 #define MY_INDEX GET_SINGLE(Network)->GetClientIndex()
 #define MP_INDEX GET_SINGLE(Network)->GetMainPlayerIndex()

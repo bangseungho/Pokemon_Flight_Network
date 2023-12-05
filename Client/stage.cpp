@@ -520,7 +520,7 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}

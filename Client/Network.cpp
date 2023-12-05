@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "Network.h"
 #include "scene.h"
+#include "enemy.h"
 
 DECLARE_SINGLE(Network);
 extern SceneManager* sceneManager;
+extern EnemyController* enemies;
 
 Network::Network()
 {
@@ -175,6 +177,46 @@ void Network::ClientReceiver()
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
+		}
+#pragma endregion
+#pragma region Battle
+		else if (dataType == DataType::BATTLE_DATA) {
+			// 패킷을 수신할 임시 객체
+			BattleData recvData;
+
+			// 패킷 수신
+			Data::RecvData<BattleData>(mClientSock, recvData);
+
+			// 멤버의 패킷이라면 맴버 맵에 넣어줌
+			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
+			if (findIt != mRecvMemberMap.end())
+				mRecvMemberMap[recvData.PlayerIndex].mBattleData = move(recvData);
+
+			cout << mRecvMemberMap[MY_INDEX].mBattleData.PosX << endl;
+		}
+#pragma endregion
+#pragma region Enemy
+		else if (dataType == DataType::ENEMY_OBJECT_DATA) {
+			// 패킷을 수신할 임시 객체
+			NetworkEnemyData recvData;
+
+			// 패킷 수신
+			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
+
+			switch (recvData.Status)
+			{
+			case NetworkEnemyData::Status::CREATE:
+				if (recvData.AttackType == NetworkEnemyData::AttackType::MELEE)
+					enemies->CreateRecvMelee(recvData.Pos);
+				else 
+					enemies->CreateRecvRange(recvData.Pos);
+				break;
+			case NetworkEnemyData::Status::MOVE:
+				enemies->SetRecvData(move(recvData));
+				break;
+			default:
+				break;
+			}
 		}
 #pragma endregion
 	}
