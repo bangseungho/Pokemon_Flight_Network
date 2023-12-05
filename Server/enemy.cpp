@@ -1,3 +1,4 @@
+#pragma once
 #include "..\Utils.h"
 #include <assert.h>
 #include "enemy.h"
@@ -526,7 +527,7 @@ void EnemyController::CreateCheckMelee()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	//mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 
@@ -564,7 +565,7 @@ void EnemyController::CreateCheckRange()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	//mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 

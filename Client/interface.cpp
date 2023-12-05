@@ -22,6 +22,8 @@
 
 extern GameData gameData;
 extern Player* mPlayer;
+extern Player* mPartner;
+
 extern EnemyController* enemies;
 extern Boss* boss;
 extern GUIManager* gui;

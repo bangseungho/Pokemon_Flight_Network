@@ -462,10 +462,18 @@ struct PhaseData
 
 struct BattleData
 {
+	
+	struct BattlePlayerData
+	{
+		
+		RECT	RectDraw;
+		RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
+	};
 	uint8	PlayerIndex = 0;
 	float	PosX;
 	float	PosY;
 	bool	IsCollider;
+	BattlePlayerData PlayerData;
 };
 
 struct NetworkEnemyData
