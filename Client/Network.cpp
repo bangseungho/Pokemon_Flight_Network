@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "Network.h"
 #include "scene.h"
+#include "enemy.h"
 
 DECLARE_SINGLE(Network);
 extern SceneManager* sceneManager;
+extern EnemyController* enemies;
 
 Network::Network()
 {
@@ -191,6 +193,27 @@ void Network::ClientReceiver()
 				mRecvMemberMap[recvData.PlayerIndex].mBattleData = move(recvData);
 
 			cout << mRecvMemberMap[MY_INDEX].mBattleData.PosX << endl;
+		}
+#pragma endregion
+#pragma region Enemy
+		else if (dataType == DataType::ENEMY_OBJECT_DATA) {
+			// 패킷을 수신할 임시 객체
+			NetworkEnemyData recvData;
+
+			// 패킷 수신
+			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
+
+			switch (recvData.Type)
+			{
+			case NetworkEnemyData::Status::CREATE:
+				enemies->CreateRecvMelee(recvData.Pos);
+				break;
+			case NetworkEnemyData::Status::MOVE:
+				enemies->SetRecvData(move(recvData));
+				break;
+			default:
+				break;
+			}
 		}
 #pragma endregion
 	}

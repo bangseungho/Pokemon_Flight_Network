@@ -30,8 +30,9 @@ protected:
 	EnemyData data; // 적 데이터로 생성자에서 초기화
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
+	uint32 id;
 //
-//	Dir GetDir() const;
+	Dir GetDir() const;
 	virtual void SetPosDest() abstract override;
 //
 //	inline void ResetAttackDelay()
@@ -47,13 +48,17 @@ public:
 	virtual void Update() override;
 //	virtual void CheckAttackDelay() abstract;
 //
-//	int GetSpriteRow();
+	int GetSpriteRow();
 //	bool Hit(float damage);
 //
 //	inline Type GetType() const
 //	{
 //		return data.type;
 //	}
+	uint32 GetID() const { return id; }
+
+public:
+	static uint32 sId;
 };
 
 class Melee : public Enemy {

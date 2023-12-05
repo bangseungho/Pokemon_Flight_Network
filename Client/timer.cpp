@@ -34,7 +34,7 @@ void T_Battle_Invalidate()
 {
 	InvalidateRect(sceneManager->GetHwnd(), NULL, FALSE);
 	//mPlayer->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
-	enemies->CreateCheckMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
+	//enemies->CreateRecvMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
 	//enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
 	//enemies->CheckAttackDelay(); // 적이 공격을 하고 나서 딜레이를 주는 함수
 	boss->CheckActDelay(); // 보스의 움직임에 딜레이를 주는 함수
@@ -42,7 +42,7 @@ void T_Battle_Invalidate()
 
 	//mPlayer->MoveBullets(); // 플레이어 탄막 이동 함수
 	//enemies->MoveBullets(); // 적 탄막 이동 함수
-	enemies->Update(); // 적 이동 및 충돌 검사 함수
+	//enemies->Update(); // 적 이동 및 충돌 검사 함수
 	boss->Update(); // 보스 이동 및 충돌 검사 함수
 }
 

@@ -8,7 +8,6 @@
 
 #include "Timer.h"
 #include "Battle.h"
-using namespace std;
 
 #define MAX_BUFSIZE     1024
 

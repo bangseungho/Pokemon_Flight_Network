@@ -124,7 +124,7 @@ void Enemy::Paint(const HDC& hdc, int spriteRow)
 }
 void Melee::Paint(const HDC& hdc)
 {
-	const int spriteRow = GetSpriteRow(); // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
+	const int spriteRow = mSpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
 	Enemy::Paint(hdc, spriteRow);
 }
 void Range::Paint(const HDC& hdc)
@@ -143,6 +143,11 @@ void Enemy::Update()
 
 	SetPosDest();
 	SetPos(posDest);
+}
+
+void Enemy::SetSpriteRow(int spriteRow)
+{
+	mSpriteRow = spriteRow;
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
@@ -563,6 +568,13 @@ void EnemyController::CreateCheckMelee()
 	}
 }
 
+// 송신받은 근거리 적 생성
+void EnemyController::CreateRecvMelee(Vector2 pos)
+{
+	Melee* enemy = new Melee(imgMelee, pos, meleeData);
+	enemies.emplace_back(enemy);
+}
+
 // 배틀 타이머당 생성되는 원거리 적 생성 함수
 void EnemyController::CreateCheckRange()
 {
@@ -600,7 +612,7 @@ void EnemyController::Paint(HDC hdc)
 	{
 		enemy->Paint(hdc);
 	}
-	bullets->Paint(hdc);
+	//bullets->Paint(hdc);
 }
 void EnemyController::Update()
 {
@@ -608,6 +620,14 @@ void EnemyController::Update()
 	{
 		enemy->Update();
 	}
+}
+void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
+{
+	if (enemies[recvData.ID] != nullptr) {
+		enemies[recvData.ID]->SetPos(recvData.Pos);
+		enemies[recvData.ID]->SetSpriteRow(recvData.SpriteRow);
+	}
+	
 }
 void EnemyController::Animate()
 {

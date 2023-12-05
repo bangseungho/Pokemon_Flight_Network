@@ -32,7 +32,7 @@ void Battle::CreateEnemys(float elapsedTime)
 {
 	// 일정 타이머에 맞게 적 객체 생성
 	mEnemyController->CreateCheckMelee();
-	mEnemyController->CreateCheckRange();
+	//mEnemyController->CreateCheckRange();
 
 #ifdef _DEBUG 
 	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인

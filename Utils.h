@@ -76,6 +76,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	ENEMY_OBJECT_DATA,
 	SCENE_DATA,
 	END_PROCESSING,
 };
@@ -467,6 +468,20 @@ struct BattleData
 	bool	IsCollider;
 };
 
+struct NetworkEnemyData
+{
+	enum class Status : uint8 {
+		NONE,
+		CREATE,
+		MOVE,
+	};
+
+	Status		Type = Status::NONE;
+	uint8		ID = 0;
+	Vector2		Pos = { 0.f, 0.f };
+	int			SpriteRow = 0;
+};
+
 struct SceneData
 {
 	uint8	PlayerIndex = 0;
@@ -559,6 +574,8 @@ public:
 			return DataType::PHASE_DATA;
 		else if (std::is_same_v<T, BattleData>)
 			return DataType::BATTLE_DATA;
+		else if (std::is_same_v<T, NetworkEnemyData>)
+			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)
 			return DataType::SCENE_DATA;
 		else if (std::is_same_v<T, EndProcessing>)

@@ -15,7 +15,6 @@ protected:
 	GameObject() {};
 	GameObject(ObjectImage& image, const Vector2& pos);
 	void Init(ObjectImage& image, const Vector2& pos);
-	void SetPos(const Vector2& pos);
 
 	inline const ObjectImage& GetImage()
 	{
@@ -23,6 +22,7 @@ protected:
 	}
 
 public:
+	void SetPos(const Vector2& pos);
 	void Paint(const HDC& hdc, const RECT* rectImage = nullptr);
 	FRECT GetRectBody(const Vector2& pos) const;
 

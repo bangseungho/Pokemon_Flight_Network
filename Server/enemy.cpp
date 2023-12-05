@@ -11,76 +11,80 @@
 //extern Player* mPlayer;
 //extern Boss* boss;
 //extern EffectManager* effects;
-extern EnemyController* enemies;
+//extern EnemyController* enemies;
 //extern SoundManager* soundManager;
 //extern GUIManager* gui;
 //extern PhaseManager phase;
+extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
+
+uint32 Enemy::sId = 0;
 
 // 적 생성자 타입을 받아서 업데이트한다.
 Enemy::Enemy(const Vector2& pos, const EnemyData& data) : GameObject(pos, data.bodySize)
 {
+	id = sId++;
 	StartMove();
 	this->data = data;
 }
 
-//// 플레이어의 방향 벡터를 기준으로 적의 현재 방향을 구함
-//Dir Enemy::GetDir() const
-//{
-//	const float theta = atan2(unitVector.y, unitVector.x); // 플레이어를 향하는 방향 벡터의 라디안 값을 구한다.
-//	const float crntDegree = RADIAN_TO_DEGREE(theta); // 현재 라디안 값을 각도로 변환
-//
-//	constexpr int unitDegree = 45;
-//	float degree = (float)unitDegree / 2;
-//	if (crntDegree > 0)
-//	{
-//		if (crntDegree < degree) // 0 ~ 22.5
-//		{
-//			return Dir::Left;
-//		}
-//		else if (crntDegree < (degree += unitDegree)) // 22.5 ~ 67.5
-//		{
-//			return Dir::LU;
-//		}
-//		else if (crntDegree < (degree += unitDegree)) // 67.5 ~ 112.5
-//		{
-//			return Dir::Up;
-//		}
-//		else if (crntDegree < (degree += unitDegree)) // 112.5 ~ 157.5
-//		{
-//			return Dir::RU;
-//		}
-//		else // 157.5 ~ 180
-//		{
-//			return Dir::Right;
-//		}
-//	}
-//	else
-//	{
-//		degree = -((float)unitDegree / 2);
-//		if (crntDegree > degree)
-//		{
-//			return Dir::Left;
-//		}
-//		else if (crntDegree > (degree -= unitDegree))
-//		{
-//			return Dir::LD;
-//		}
-//		else if (crntDegree > (degree -= unitDegree))
-//		{
-//			return Dir::Down;
-//		}
-//		else if (crntDegree > (degree -= unitDegree))
-//		{
-//			return Dir::RD;
-//		}
-//		else
-//		{
-//			return Dir::Right;
-//		}
-//	}
-//}
-//
-//// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 플레이어쪽으로 이동하도록 한다.
+// 플레이어의 방향 벡터를 기준으로 적의 현재 방향을 구함
+Dir Enemy::GetDir() const
+{
+	const float theta = atan2(unitVector.y, unitVector.x); // 플레이어를 향하는 방향 벡터의 라디안 값을 구한다.
+	const float crntDegree = RADIAN_TO_DEGREE(theta); // 현재 라디안 값을 각도로 변환
+
+	constexpr int unitDegree = 45;
+	float degree = (float)unitDegree / 2;
+	if (crntDegree > 0)
+	{
+		if (crntDegree < degree) // 0 ~ 22.5
+		{
+			return Dir::Left;
+		}
+		else if (crntDegree < (degree += unitDegree)) // 22.5 ~ 67.5
+		{
+			return Dir::LU;
+		}
+		else if (crntDegree < (degree += unitDegree)) // 67.5 ~ 112.5
+		{
+			return Dir::Up;
+		}
+		else if (crntDegree < (degree += unitDegree)) // 112.5 ~ 157.5
+		{
+			return Dir::RU;
+		}
+		else // 157.5 ~ 180
+		{
+			return Dir::Right;
+		}
+	}
+	else
+	{
+		degree = -((float)unitDegree / 2);
+		if (crntDegree > degree)
+		{
+			return Dir::Left;
+		}
+		else if (crntDegree > (degree -= unitDegree))
+		{
+			return Dir::LD;
+		}
+		else if (crntDegree > (degree -= unitDegree))
+		{
+			return Dir::Down;
+		}
+		else if (crntDegree > (degree -= unitDegree))
+		{
+			return Dir::RD;
+		}
+		else
+		{
+			return Dir::Right;
+		}
+	}
+}
+
+// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 플레이어쪽으로 이동하도록 한다.
 void Melee::SetPosDest()
 {
 	if (IsMove() == false)
@@ -89,7 +93,7 @@ void Melee::SetPosDest()
 	}
 
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - Vector2{ mTarget->mBattleData.PosX, mTarget->mBattleData.PosY };
+	const Vector2 vectorToPlayer = posCenter - Vector2{ sPlayerMap[0].mBattleData.PosX, sPlayerMap[0].mBattleData.PosY};
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -124,6 +128,8 @@ void Enemy::Update()
 
 	SetPosDest();
 	SetPos(posDest);
+
+	// 클라이언트로 데이터 전송
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
@@ -142,6 +148,11 @@ void Melee::Update()
 
 	SetPosDest();
 	SetPos(posDest);
+
+	NetworkEnemyData sendData{ NetworkEnemyData::Status::MOVE, id, GetPosCenter(), GetSpriteRow() };
+	for (const auto& player : sPlayerMap) {
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
+	}
 }
 
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
@@ -156,45 +167,45 @@ void Range::Update()
 	SetPos(posDest);
 }
 
-//// 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
-//int Enemy::GetSpriteRow()
-//{
-//	int spriteRow = 0;
-//	switch (GetDir())
-//	{
-//	case Dir::Empty:
-//	case Dir::Up:
-//		spriteRow = 0;
-//		break;
-//	case Dir::Down:
-//		spriteRow = 1;
-//		break;
-//	case Dir::Left:
-//		spriteRow = 2;
-//		break;
-//	case Dir::Right:
-//		spriteRow = 3;
-//		break;
-//	case Dir::LU:
-//		spriteRow = 4;
-//		break;
-//	case Dir::RU:
-//		spriteRow = 5;
-//		break;
-//	case Dir::LD:
-//		spriteRow = 6;
-//		break;
-//	case Dir::RD:
-//		spriteRow = 7;
-//		break;
-//	default:
-//		assert(0);
-//		break;
-//	}
-//
-//	return spriteRow;
-//}
-//
+// 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
+int Enemy::GetSpriteRow()
+{
+	int spriteRow = 0;
+	switch (GetDir())
+	{
+	case Dir::Empty:
+	case Dir::Up:
+		spriteRow = 0;
+		break;
+	case Dir::Down:
+		spriteRow = 1;
+		break;
+	case Dir::Left:
+		spriteRow = 2;
+		break;
+	case Dir::Right:
+		spriteRow = 3;
+		break;
+	case Dir::LU:
+		spriteRow = 4;
+		break;
+	case Dir::RU:
+		spriteRow = 5;
+		break;
+	case Dir::LD:
+		spriteRow = 6;
+		break;
+	case Dir::RD:
+		spriteRow = 7;
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+	return spriteRow;
+}
+
 //// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
 //bool Melee::CheckCollidePlayer()
 //{
@@ -482,6 +493,11 @@ void EnemyController::CreateCheckMelee()
 
 		Melee* enemy = new Melee({ xPos, yPos }, meleeData, mPlayerMap);
 		enemies.emplace_back(enemy);
+		
+		NetworkEnemyData sendData{ NetworkEnemyData::Status::CREATE, enemy->GetID(), enemy->GetPosCenter(), enemy->GetSpriteRow() };
+		for (const auto& player : sPlayerMap) {
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
+		}
 	}
 }
 
@@ -528,8 +544,8 @@ void EnemyController::ShowEnemyCount() const
 	if (enemies.empty())
 		return;
 
-	cout << "enemy[0] - PosX: " << enemies[0]->GetPosCenter().x << ", PosY: " << enemies[0]->GetPosCenter().y << endl;
-	//cout << "EnemyCount: " << enemies.size() << endl;
+	//cout << "enemy[0] - PosX: " << enemies[0]->GetPosCenter().x << ", PosY: " << enemies[0]->GetPosCenter().y << endl;
+	cout << "EnemyCount: " << enemies.size() << endl;
 }
 
 //// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
