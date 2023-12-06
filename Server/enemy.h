@@ -32,6 +32,7 @@ protected:
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
 	uint32 id;
 	NetworkEnemyData mSendData;
+	NetworkPlayerData* mTarget;
 
 	Dir GetDir() const;
 	virtual void SetPosDest() abstract override;

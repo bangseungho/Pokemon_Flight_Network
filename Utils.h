@@ -23,7 +23,7 @@
 #define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
 #define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
 
-#include <winsock2.h> 
+#include <winsock2.h>
 #include <ws2tcpip.h> 
 #include <tchar.h>
 #include <stdio.h>
@@ -34,6 +34,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <algorithm>
+#include <assert.h>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -465,7 +466,7 @@ struct PhaseData
 struct BattleData
 {
 	uint8		PlayerIndex = 0;
-	Vector2		PosCenter = { 0.f, };
+	Vector2		PosCenter = { 250.f, 500.f };
 	FRECT		RectBody = { 0.f, };
 	bool		IsCollide = false;
 	bool		IsFieldEnd = false;
@@ -492,6 +493,7 @@ struct NetworkEnemyData
 	Vector2		Pos = { 0.f, 0.f };
 	int			SpriteRow = 0;
 	bool		IsCollide = false;
+	uint8		TargetIndex = 0;
 };
 
 struct SceneData

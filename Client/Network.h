@@ -47,8 +47,9 @@ private:
 };
 
 #define GET_MEMBER_MAP GET_SINGLE(Network)->GetMemberMap()
-#define GET_ENEMY_VEC GET_SINGLE(Network)->GetEnemyMap()
+#define GET_ENEMY_MAP GET_SINGLE(Network)->GetEnemyMap()
 #define MEMBER_MAP(index) GET_SINGLE(Network)->GetMemberMap()[index]
+#define ENEMY_MAP(index) GET_SINGLE(Network)->GetEnemyMap()[index]
 #define MY_INDEX GET_SINGLE(Network)->GetClientIndex()
 #define MP_INDEX GET_SINGLE(Network)->GetMainPlayerIndex()
 

@@ -84,7 +84,7 @@ Dir Enemy::GetDir() const
 	}
 }
 
-// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 플레이어쪽으로 이동하도록 한다.
+// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 가장 가까운 플레이어쪽으로 이동하도록 한다.
 void Melee::SetPosDest()
 {
 	if (IsMove() == false)
@@ -92,8 +92,22 @@ void Melee::SetPosDest()
 		return;
 	}
 
+
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - sPlayerMap[0].mBattleData.PosCenter;
+	float minLength = numeric_limits<float>::infinity();
+
+	for (auto& player : sPlayerMap) {
+		float length = Vector2::GetNorm(posCenter - player.second.mBattleData.PosCenter);
+		if (minLength >= length) {
+			minLength = length;
+			mTarget = &player.second;
+		}
+	}
+
+	if (mTarget == nullptr)
+		return;
+
+	const Vector2 vectorToPlayer = posCenter - mTarget->mBattleData.PosCenter;
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -236,8 +250,11 @@ int Enemy::GetSpriteRow()
 // 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
 bool Melee::CheckCollidePlayer()
 {
+	if (mTarget == nullptr)
+		return false;
+
 	const RECT rectBody = GetRectBody();
-	const RECT playerBody = sPlayerMap[0].mBattleData.RectBody;
+	const RECT playerBody = mTarget->mBattleData.RectBody;
 	if (IsCollide(playerBody) == true)
 	{
 		StopMove();
@@ -324,7 +341,8 @@ void Range::CheckAttackDelay()
 // 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
 EnemyController::EnemyController()
 {
-	switch (sPlayerMap[0].mStageData.Stage)
+	// 배열의 맨 처음 플레이어의 스테이지 기준 어차피 똑같음
+	switch (sPlayerMap.begin()->second.mStageData.Stage)
 	{
 	case StageElement::Elec:
 		meleeData.type = Type::Elec;

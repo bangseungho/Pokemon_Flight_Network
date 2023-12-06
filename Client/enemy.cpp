@@ -161,7 +161,8 @@ void Melee::Update()
 	else */if (CheckRecvCollidePlayer() == true)
 	{
 		//mPlayer->Hit(data.damage, GetType());
-		effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
+		const Vector2 targetPos = ENEMY_MAP(mRecvData.TargetIndex).Pos;
+		effects->CreateHitEffect(targetPos, GetType());
 		return;
 	}
 

@@ -1,10 +1,6 @@
 ﻿#include "..\Utils.h"
-#include <Windows.h>
-#include <iostream>
 #include <fstream>
-#include <string>
 #include <thread>
-#include <algorithm>
 
 #include "Timer.h"
 #include "Battle.h"
