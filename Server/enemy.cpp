@@ -496,12 +496,14 @@ void EnemyController::CreateCheckMelee()
 	//{
 	//	return;
 	//}
-	//else if (gui->IsFieldEnd() == true)
-	//{
-	//	gameData.ClearRecord++;
-
-	//	return;
-	//}
+	// 
+	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+		return a.second.mBattleData.IsFieldEnd == true;
+		});
+	if (isFieldEnd == true)
+	{
+		return;
+	}
 
 	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
 	delay_Melee += ELAPSE_BATTLE_INVALIDATE;
@@ -526,7 +528,7 @@ void EnemyController::CreateCheckMelee()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 
@@ -537,10 +539,13 @@ void EnemyController::CreateCheckRange()
 	//{
 	//	return;
 	//}
-	//else if (gui->IsFieldEnd() == true)
-	//{
-	//	return;
-	//}
+	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+		return a.second.mBattleData.IsFieldEnd == true;
+		});
+	if (isFieldEnd == true)
+	{
+		return;
+	}
 
 	delay_Range += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Range < createDelay_Range)
@@ -564,7 +569,7 @@ void EnemyController::CreateCheckRange()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 

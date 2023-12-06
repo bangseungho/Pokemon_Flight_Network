@@ -7,6 +7,7 @@
 #include "boss.h"
 #include "scene.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "town.h"
 #include "stage.h"
@@ -384,6 +385,9 @@ void GUIManager::Update(const HWND& hWnd)
 			soundManager->StopBGMSound();
 			soundManager->PlayEffectSound(EffectSound::Win);
 			sceneManager->StartLoading(hWnd);
+
+			BattleData sendData{ MY_INDEX, 0.f, 0.f, false, isIconStop };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 		return;
 	}

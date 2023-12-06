@@ -33,6 +33,7 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include <algorithm>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -463,9 +464,10 @@ struct PhaseData
 struct BattleData
 {
 	uint8	PlayerIndex = 0;
-	float	PosX;
-	float	PosY;
-	bool	IsCollider;
+	float	PosX = 0.f;
+	float	PosY = 0.f;
+	bool	IsCollider = false;
+	bool	IsFieldEnd = false;
 };
 
 struct NetworkEnemyData
