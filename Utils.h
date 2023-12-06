@@ -593,7 +593,7 @@ public:
 			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)
 			return DataType::SCENE_DATA;
-		else if (std::is_same_v<T, EndProcessing>)
+		else if (std::is_convertible_v<T, EndProcessing>)
 			return DataType::END_PROCESSING;
 		else
 			return DataType::NONE_DATA;
