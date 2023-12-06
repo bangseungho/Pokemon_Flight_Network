@@ -35,20 +35,20 @@ protected:
 
 	Dir GetDir() const;
 	virtual void SetPosDest() abstract override;
-//
-//	inline void ResetAttackDelay()
-//	{
-//		data.crntAttackDelay = data.attackDelay;
-//	}
-//	inline bool IsClearAttackDelay() const
-//	{
-//		return (data.crntAttackDelay <= 0);
-//	}
+
+	inline void ResetAttackDelay()
+	{
+		data.crntAttackDelay = data.attackDelay;
+	}
+	inline bool IsClearAttackDelay() const
+	{
+		return (data.crntAttackDelay <= 0);
+	}
 public:
 	Enemy(const Vector2& pos, const EnemyData& data);
 	virtual void Update() override;
-//	virtual void CheckAttackDelay() abstract;
-//
+	virtual void CheckAttackDelay() abstract;
+
 	int GetSpriteRow();
 	NetworkEnemyData& GetSendData() { return mSendData; }
 //	bool Hit(float damage);
@@ -66,13 +66,13 @@ public:
 class Melee : public Enemy {
 private:
 	void SetPosDest();
-	//bool CheckCollidePlayer();
+	bool CheckCollidePlayer();
 public:
 	Melee(const Vector2& pos, const EnemyData& data);
 	void Update() override;
 
 private:
-//	void CheckAttackDelay() override;
+	void CheckAttackDelay() override;
 };
 
 class Range : public Enemy {
@@ -82,7 +82,7 @@ private:
 public:
 	Range(const Vector2& pos, const EnemyData& data);
 	void Update() override;
-//	void CheckAttackDelay() override;
+	void CheckAttackDelay() override;
 };
 
 class EnemyController {
@@ -120,13 +120,13 @@ public:
 	{
 		return enemies.empty();
 	}
-	//inline void CheckAttackDelay()
-	//{
-	//	for (Enemy* enemy : enemies)
-	//	{
-	//		enemy->CheckAttackDelay();
-	//	}
-	//}
+	inline void CheckAttackDelay()
+	{
+		for (Enemy* enemy : enemies)
+		{
+			enemy->CheckAttackDelay();
+		}
+	}
 
 public:
 	void ShowEnemyCount() const;

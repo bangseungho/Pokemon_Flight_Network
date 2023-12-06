@@ -28,6 +28,7 @@ public:
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
 	mutex& GetMemberMapMutex() { return mMemberMapMutex; }
+	mutex& GetEnemyMapMutex() { return mEnemyMapMutex; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
 	unordered_map<uint8, NetworkEnemyData>& GetEnemyMap() { return mRecvEnemyMap; }
 
@@ -39,6 +40,7 @@ private:
 	SOCKET				mClientSock;
 	SOCKADDR_IN			mServerAddr;
 	mutex				mMemberMapMutex;
+	mutex				mEnemyMapMutex;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
 	unordered_map<uint8, NetworkEnemyData> mRecvEnemyMap;

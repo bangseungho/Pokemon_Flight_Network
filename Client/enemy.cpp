@@ -7,6 +7,7 @@
 #include "interface.h"
 #include "boss.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "phase.h"
 
@@ -124,7 +125,7 @@ void Enemy::Paint(const HDC& hdc, int spriteRow)
 }
 void Melee::Paint(const HDC& hdc)
 {
-	const int spriteRow = mSpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
+	const int spriteRow = mRecvData.SpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
 	Enemy::Paint(hdc, spriteRow);
 }
 void Range::Paint(const HDC& hdc)
@@ -147,37 +148,37 @@ void Enemy::Update()
 
 void Enemy::SetSpriteRow(int spriteRow)
 {
-	mSpriteRow = spriteRow;
+	mRecvData.SpriteRow = spriteRow;
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
-	if (IsMove() == false)
+/*	if (IsMove() == false)
 	{
 		return;
 	}
-	else if (CheckCollidePlayer() == true)
+	else */if (CheckRecvCollidePlayer() == true)
 	{
-		mPlayer->Hit(data.damage, GetType());
+		//mPlayer->Hit(data.damage, GetType());
 		effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
 		return;
 	}
 
-	SetPosDest();
-	SetPos(posDest);
+	//SetPosDest();
+	//SetPos(posDest);
 }
 
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
 void Range::Update()
 {
-	if (IsMove() == false)
-	{
-		return;
-	}
+	//if (IsMove() == false)
+	//{
+	//	return;
+	//}
 
-	SetPosDest();
-	SetPos(posDest);
+	//SetPosDest();
+	//SetPos(posDest);
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -254,7 +255,7 @@ void Enemy::Animate()
 		else if (isRevFrame == true && frame < data.frameNum_AtkRev)
 		{
 			isRevFrame = false;
-			SetAction(Action::Idle, data.frameNum_Idle);
+			IAnimatable::SetAction(Action::Idle, data.frameNum_Idle);
 		}
 		break;
 	default:
@@ -267,15 +268,26 @@ void Enemy::Animate()
 bool Melee::CheckCollidePlayer()
 {
 	const RECT rectBody = GetRectBody();
-	if (mPlayer->IsCollide(rectBody) == true)
+	if (mPlayer->IsCollide(rectBody))
 	{
 		StopMove();
-		SetAction(Action::Attack, data.frameNum_Atk);
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
 		ResetAttackDelay();
 
 		return true;
 	}
 
+	return false;
+}
+
+bool Melee::CheckRecvCollidePlayer()
+{
+	if (mRecvData.IsCollide)
+	{
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+		mRecvData.IsCollide = false;
+		return true;
+	}
 	return false;
 }
 
@@ -318,7 +330,7 @@ void Range::CheckAttackDelay()
 // 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
-	SetAction(Action::Attack, data.frameNum_Atk);
+	IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
 
 	RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -615,9 +627,12 @@ void EnemyController::CreateRecvRange(Vector2 pos)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Paint(hdc);
+		if (enemy != nullptr) {
+			enemy->Paint(hdc);
+		}
 	}
 	//bullets->Paint(hdc);
 }
@@ -632,9 +647,8 @@ void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
 {
 	if (enemies[recvData.ID] != nullptr) {
 		enemies[recvData.ID]->SetPos(recvData.Pos);
-		enemies[recvData.ID]->SetSpriteRow(recvData.SpriteRow);
+		enemies[recvData.ID]->SetRecvData(move(recvData));
 	}
-	
 }
 void EnemyController::Animate()
 {

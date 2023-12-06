@@ -396,6 +396,7 @@ typedef struct FRECT {
 
 }FRECT;
 
+// 게임 오브젝트의 사이즈를 반환
 Vector2 Rotate(Vector2 vector, float degree);
 void Rotate(const Vector2& vSrc, const Vector2& vDst, Vector2& vector, float t);
 bool OutOfRange(const RECT& rect, const RECT& rectRange);
@@ -463,11 +464,11 @@ struct PhaseData
 
 struct BattleData
 {
-	uint8	PlayerIndex = 0;
-	float	PosX = 0.f;
-	float	PosY = 0.f;
-	bool	IsCollider = false;
-	bool	IsFieldEnd = false;
+	uint8		PlayerIndex = 0;
+	Vector2		PosCenter = { 0.f, };
+	FRECT		RectBody = { 0.f, };
+	bool		IsCollide = false;
+	bool		IsFieldEnd = false;
 };
 
 struct NetworkEnemyData
@@ -482,13 +483,15 @@ struct NetworkEnemyData
 		NONE,
 		CREATE,
 		MOVE,
+		ATTACK,
 	};
 
 	AttackType	AttackType = AttackType::NONE;
 	Status		Status = Status::NONE;
-	uint8		ID = 0;
+	uint32		ID = 0;
 	Vector2		Pos = { 0.f, 0.f };
 	int			SpriteRow = 0;
+	bool		IsCollide = false;
 };
 
 struct SceneData

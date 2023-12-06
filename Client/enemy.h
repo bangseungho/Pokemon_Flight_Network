@@ -1,6 +1,5 @@
 #pragma once
 #include "object.h"
-
 struct BulletData;
 class Player;
 class EnemyBullet;
@@ -29,7 +28,7 @@ protected:
 	EnemyData data; // 적 데이터로 생성자에서 초기화
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
-	int mSpriteRow = 0;
+	NetworkEnemyData mRecvData;
 
 	void Paint(const HDC& hdc, int spriteRow);
 	Dir GetDir() const;
@@ -48,7 +47,10 @@ public:
 	virtual void Paint(const HDC& hdc) abstract;
 	virtual void Update() override;
 	void SetSpriteRow(int spriteRow);
+
 	virtual void CheckAttackDelay() abstract;
+	void SetRecvData(NetworkEnemyData&& recvData) { mRecvData = recvData; }
+	NetworkEnemyData GetRecvData() const { return mRecvData; }
 
 	int GetSpriteRow();
 	void Animate();
@@ -58,12 +60,28 @@ public:
 	{
 		return data.type;
 	}
+
+	inline void SetAction(Action action)
+	{
+		switch (action)
+		{
+		case Action::Idle:
+			IAnimatable::SetAction(action, data.frameNum_Idle);
+			break;
+		case Action::Attack:
+			IAnimatable::SetAction(action, data.frameNum_Atk);
+			break;
+		default:
+			break;
+		}
+	}
 };
 
 class Melee : public Enemy {
 private:
 	void SetPosDest();
 	bool CheckCollidePlayer();
+	bool CheckRecvCollidePlayer();
 public:
 	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data) : Enemy(image, pos, data) {};
 	void Paint(const HDC& hdc) override;

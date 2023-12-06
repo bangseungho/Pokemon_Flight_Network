@@ -232,7 +232,7 @@ void Player::SetPosDest()
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
 
-	BattleData sendData{MY_INDEX, GetPosCenter().x, GetPosCenter().y, false, gui->IsFieldEnd()};
+	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), false, gui->IsFieldEnd()};
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 

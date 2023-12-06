@@ -93,7 +93,7 @@ void Melee::SetPosDest()
 	}
 
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - Vector2{ sPlayerMap[0].mBattleData.PosX, sPlayerMap[0].mBattleData.PosY };
+	const Vector2 vectorToPlayer = posCenter - sPlayerMap[0].mBattleData.PosCenter;
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -144,19 +144,19 @@ Melee::Melee(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
+	mSendData.IsCollide = false;
 	if (IsMove() == false)
 	{
 		return;
 	}
-	//else if (CheckCollidePlayer() == true)
-	//{
-	//	//mPlayer->Hit(data.damage, GetType());
-	//	//effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
-	//	return;
-	//}
-
-	SetPosDest();
-	SetPos(posDest);
+	else if (CheckCollidePlayer() == true)
+	{
+		mSendData.IsCollide = true;
+	}
+	else {
+		SetPosDest();
+		SetPos(posDest);
+	}
 
 	mSendData.Status = NetworkEnemyData::Status::MOVE;
 	mSendData.Pos = GetPosCenter();
@@ -233,22 +233,22 @@ int Enemy::GetSpriteRow()
 	return spriteRow;
 }
 
-//// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
-//bool Melee::CheckCollidePlayer()
-//{
-//	const RECT rectBody = GetRectBody();
-//	if (mPlayer->IsCollide(rectBody) == true)
-//	{
-//		StopMove();
-//		SetAction(Action::Attack, data.frameNum_Atk);
-//		ResetAttackDelay();
-//
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
+// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
+bool Melee::CheckCollidePlayer()
+{
+	const RECT rectBody = GetRectBody();
+	const RECT playerBody = sPlayerMap[0].mBattleData.RectBody;
+	if (IsCollide(playerBody) == true)
+	{
+		StopMove();
+		ResetAttackDelay();
+
+		return true;
+	}
+
+	return false;
+}
+
 //// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
 //bool Enemy::Hit(float damage)
 //{
@@ -260,30 +260,30 @@ int Enemy::GetSpriteRow()
 //	return false;
 //}
 //
-//// 적이 공격을 하고 나서 딜레이를 주는 함수
-//void Melee::CheckAttackDelay()
-//{
-//	if (IsMove() == false)
-//	{
-//		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
-//		if (IsClearAttackDelay() == true) // 공격 딜레이가 끝났다면 움직이기 시작
-//		{
-//			StartMove();
-//		}
-//	}
-//}
-//void Range::CheckAttackDelay()
-//{
-//	if (IsMove() == false)	
-//	{
-//		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
-//		if (IsClearAttackDelay() == true)
-//		{
-//			Fire();
-//			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
-//		}
-//	}
-//}
+// 적이 공격을 하고 나서 딜레이를 주는 함수
+void Melee::CheckAttackDelay()
+{
+	if (IsMove() == false)
+	{
+		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
+		if (IsClearAttackDelay() == true) // 공격 딜레이가 끝났다면 움직이기 시작
+		{
+			StartMove();
+		}
+	}
+}
+void Range::CheckAttackDelay()
+{
+	if (IsMove() == false)	
+	{
+		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
+		if (IsClearAttackDelay() == true)
+		{
+			//Fire();
+			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
+		}
+	}
+}
 //
 //// 원거리 적 스킬 발사 함수
 //void Range::Fire()
