@@ -161,7 +161,7 @@ void Melee::Update()
 	else */if (CheckRecvCollidePlayer() == true)
 	{
 		//mPlayer->Hit(data.damage, GetType());
-		const Vector2 targetPos = ENEMY_MAP(mRecvData.TargetIndex).Pos;
+		const Vector2 targetPos = MEMBER_MAP(mRecvData.TargetIndex).mBattleData.PosCenter;
 		effects->CreateHitEffect(targetPos, GetType());
 		return;
 	}
@@ -173,6 +173,8 @@ void Melee::Update()
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
 void Range::Update()
 {
+	Fire();
+
 	//if (IsMove() == false)
 	//{
 	//	return;
@@ -331,28 +333,31 @@ void Range::CheckAttackDelay()
 // 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
-	IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+	if (mRecvData.Status == NetworkEnemyData::Status::ATTACK) {
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+		mRecvData.Status = NetworkEnemyData::Status::MOVE;
+	}
 
-	RECT rectBody = GetRectBody();
-	POINT bulletPos = { 0, };
-	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	bulletPos.y = rectBody.bottom;
+	//RECT rectBody = GetRectBody();
+	//POINT bulletPos = { 0, };
+	//bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	//bulletPos.y = rectBody.bottom;
 
-	BulletData bulletData;
-	bulletData.bulletType = GetType();
-	bulletData.damage = data.damage;
-	bulletData.speed = data.bulletSpeed;
+	//BulletData bulletData;
+	//bulletData.bulletType = GetType();
+	//bulletData.damage = data.damage;
+	//bulletData.speed = data.bulletSpeed;
 
-	Vector2 unitVector = Vector2::Down();
-	int randDegree = (rand() % 10) - 5;
+	//Vector2 unitVector = Vector2::Down();
+	//int randDegree = (rand() % 10) - 5;
 
-	// 3 방향으로 탄막 발사
-	unitVector = Rotate(unitVector, randDegree);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	unitVector = Rotate(unitVector, 20);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	unitVector = Rotate(unitVector, -40);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//// 3 방향으로 탄막 발사
+	//unitVector = Rotate(unitVector, randDegree);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, 20);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, -40);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
 }
 
 // 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제

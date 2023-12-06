@@ -47,7 +47,7 @@ void Battle::Update(float elapsedStime)
 		invalidateAccTime = 0.f;
 	}
 
-	if (animationAccTime > 0.05f) {
+	if (animationAccTime > 0.08f) {
 		T_Battle_Animate();
 		animationAccTime = 0.f;
 	}

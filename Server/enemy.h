@@ -1,10 +1,9 @@
 #pragma once
 #include "object.h"
-//
+
 //struct BulletData;
 //class Player;
 //class EnemyBullet;
-
 typedef struct EnemyData {
 	Type type = Type::Empty;
 
@@ -52,12 +51,12 @@ public:
 
 	int GetSpriteRow();
 	NetworkEnemyData& GetSendData() { return mSendData; }
-//	bool Hit(float damage);
-//
-//	inline Type GetType() const
-//	{
-//		return data.type;
-//	}
+	bool Hit(float damage);
+
+	inline Type GetType() const
+	{
+		return data.type;
+	}
 	uint32 GetID() const { return id; }
 
 public:
@@ -79,7 +78,7 @@ private:
 class Range : public Enemy {
 private:
 	void SetPosDest();
-//	void Fire();
+	void Fire();
 public:
 	Range(const Vector2& pos, const EnemyData& data);
 	void Update() override;

@@ -255,10 +255,12 @@ bool Melee::CheckCollidePlayer()
 
 	const RECT rectBody = GetRectBody();
 	const RECT playerBody = mTarget->mBattleData.RectBody;
+
 	if (IsCollide(playerBody) == true)
 	{
 		StopMove();
 		ResetAttackDelay();
+		mSendData.TargetIndex = mTarget->mBattleData.PlayerIndex;
 
 		return true;
 	}
@@ -266,17 +268,17 @@ bool Melee::CheckCollidePlayer()
 	return false;
 }
 
-//// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
-//bool Enemy::Hit(float damage)
-//{
-//	if ((data.hp -= damage) <= 0)
-//	{
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
+// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
+bool Enemy::Hit(float damage)
+{
+	if ((data.hp -= damage) <= 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 // 적이 공격을 하고 나서 딜레이를 주는 함수
 void Melee::CheckAttackDelay()
 {
@@ -296,39 +298,45 @@ void Range::CheckAttackDelay()
 		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
 		if (IsClearAttackDelay() == true)
 		{
-			//Fire();
+			Fire();
 			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
+		}
+		else {
+			//mSendData.Status = NetworkEnemyData::Status::MOVE;
 		}
 	}
 }
-//
-//// 원거리 적 스킬 발사 함수
-//void Range::Fire()
-//{
-//	SetAction(Action::Attack, data.frameNum_Atk);
-//
-//	RECT rectBody = GetRectBody();
-//	POINT bulletPos = { 0, };
-//	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-//	bulletPos.y = rectBody.bottom;
-//
-//	BulletData bulletData;
-//	bulletData.bulletType = GetType();
-//	bulletData.damage = data.damage;
-//	bulletData.speed = data.bulletSpeed;
-//
-//	Vector2 unitVector = Vector2::Down();
-//	int randDegree = (rand() % 10) - 5;
-//
-//	// 3 방향으로 탄막 발사
-//	unitVector = Rotate(unitVector, randDegree);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//	unitVector = Rotate(unitVector, 20);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//	unitVector = Rotate(unitVector, -40);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//}
-//
+
+// 원거리 적 스킬 발사 함수
+void Range::Fire()
+{
+	RECT rectBody = GetRectBody();
+	POINT bulletPos = { 0, };
+	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	bulletPos.y = rectBody.bottom;
+
+	//BulletData bulletData;
+	//bulletData.bulletType = GetType();
+	//bulletData.damage = data.damage;
+	//bulletData.speed = data.bulletSpeed;
+
+	//Vector2 unitVector = Vector2::Down();
+	//int randDegree = (rand() % 10) - 5;
+
+	//// 3 방향으로 탄막 발사
+	//unitVector = Rotate(unitVector, randDegree);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, 20);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, -40);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+
+	mSendData.Status = NetworkEnemyData::Status::ATTACK;
+	for (const auto& player : sPlayerMap) {
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	}
+}
+
 //// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
 //void EnemyController::Pop(size_t& index)
 //{

@@ -205,6 +205,10 @@ void ProcessClient(ThreadSocket sock)
 		else if (dataType == DataType::BATTLE_DATA) {
 			auto& data = sPlayerMap[threadId].mBattleData;
 			Data::RecvData<BattleData>(clientSock, data);
+
+			for (const auto& player : sPlayerMap) {
+				Data::SendDataAndType<BattleData>(player.second.mSock, data);
+			}
 		}
 #pragma endregion
 	}
