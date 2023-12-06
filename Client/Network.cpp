@@ -208,7 +208,7 @@ void Network::ClientReceiver()
 			case NetworkEnemyData::Status::CREATE:
 				if (recvData.AttackType == NetworkEnemyData::AttackType::MELEE)
 					enemies->CreateRecvMelee(recvData.Pos);
-				else 
+				else if (recvData.AttackType == NetworkEnemyData::AttackType::RANGE)
 					enemies->CreateRecvRange(recvData.Pos);
 				break;
 			case NetworkEnemyData::Status::MOVE:
@@ -253,9 +253,9 @@ void Network::Connect()
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
 
-	//// 네이글 알고리즘 해제
-	//int delayZeroOpt = 1;
-	//setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
+	// 네이글 알고리즘 해제
+	int delayZeroOpt = 1;
+	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
 
 	// 클라이언트 자신의 소켓에 대한 정보 얻기
 	SOCKADDR_IN localAddr;

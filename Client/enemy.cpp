@@ -160,7 +160,9 @@ void Melee::Update()
 	}
 	else */if (CheckRecvCollidePlayer() == true)
 	{
-		//mPlayer->Hit(data.damage, GetType());
+		if (mRecvData.TargetIndex == MY_INDEX) // 적의 타겟이 자신인 경우에만 피를 깎는다.
+			mPlayer->Hit(data.damage, GetType());
+
 		const Vector2 targetPos = MEMBER_MAP(mRecvData.TargetIndex).mBattleData.PosCenter;
 		effects->CreateHitEffect(targetPos, GetType());
 		return;
@@ -633,7 +635,6 @@ void EnemyController::CreateRecvRange(Vector2 pos)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		if (enemy != nullptr) {

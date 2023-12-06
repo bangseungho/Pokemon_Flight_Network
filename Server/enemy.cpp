@@ -16,7 +16,6 @@
 //extern GUIManager* gui;
 //extern PhaseManager phase;
 extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
-
 uint32 Enemy::sId = 0;
 
 // 적 생성자 타입을 받아서 업데이트한다.
@@ -301,9 +300,6 @@ void Range::CheckAttackDelay()
 			Fire();
 			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
 		}
-		else {
-			//mSendData.Status = NetworkEnemyData::Status::MOVE;
-		}
 	}
 }
 
@@ -523,6 +519,10 @@ void EnemyController::CreateCheckMelee()
 	//	return;
 	//}
 	// 
+
+	//if (enemies.size() >= 100)
+	//	return;
+
 	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
 		return a.second.mBattleData.IsFieldEnd == true;
 		});
@@ -565,13 +565,17 @@ void EnemyController::CreateCheckRange()
 	//{
 	//	return;
 	//}
+
+	//if (enemies.size() >= 100)
+	//	return;
+
 	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
 		return a.second.mBattleData.IsFieldEnd == true;
 		});
-	if (isFieldEnd == true)
-	{
-		return;
-	}
+	//if (isFieldEnd == true)
+	//{
+	//	return;
+	//}
 
 	delay_Range += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Range < createDelay_Range)
