@@ -626,25 +626,14 @@ void EnemyController::ShowEnemyCount() const
 // 임시 충돌 처리 
 bool EnemyController::CheckHit()
 {
-	const RECT playerBody = sPlayerMap[0].mBattleData.RectBody;
 	for (size_t i = 0;i<enemies.size();++i)
 	{
-		if (enemies.at(i)->IsCollide(playerBody) == true)
-		{
-			//enemies.at(i)->GetSendData().Status = NetworkEnemyData::Status::DEATH;
-			//for (const auto& player : sPlayerMap) {
-			//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies.at(i)->GetSendData());
-			//}
-
-			//effects->CreateHitEffect(effectPoint, hitType);
-			//const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
-			//if (enemies.at(i)->Hit(damage) == true)
-			//{
+		for (const auto& player : sPlayerMap) {
+			const RECT playerBody = player.second.mBattleData.RectBody;
+			if (enemies.at(i)->IsCollide(playerBody) == true) {
 				EnemyController::Pop(i);
-			//}
-
-
-			return true;
+				return true;
+			}
 		}
 	}
 

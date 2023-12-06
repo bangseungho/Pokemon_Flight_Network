@@ -643,6 +643,7 @@ void EnemyController::CreateRecvRange(Vector2 pos)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		if (enemy != nullptr) {
@@ -653,6 +654,7 @@ void EnemyController::Paint(HDC hdc)
 }
 void EnemyController::Update()
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Update();
@@ -667,6 +669,7 @@ void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
 }
 void EnemyController::Animate()
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Animate();

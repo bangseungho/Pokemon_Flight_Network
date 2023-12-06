@@ -204,6 +204,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma region Battle
 		else if (dataType == DataType::BATTLE_DATA) {
 			auto& data = sPlayerMap[threadId].mBattleData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
 			Data::RecvData<BattleData>(clientSock, data);
 
 			for (const auto& player : sPlayerMap) {
@@ -234,6 +236,7 @@ void ProcessBattle()
 		Battle battle;
 		battle.Init();
 		while (true) {
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
 			GET_SINGLE(Timer)->Update();
 			battle.Update(DELTA_TIME);
 		}
