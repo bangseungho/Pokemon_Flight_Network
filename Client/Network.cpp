@@ -215,6 +215,9 @@ void Network::ClientReceiver()
 			case NetworkEnemyData::Status::ATTACK:
 				enemies->SetRecvData(move(recvData));
 				break;
+			case NetworkEnemyData::Status::DEATH:
+				enemies->CheckHit(recvData.ID);
+				break;
 			default:
 				break;
 			}

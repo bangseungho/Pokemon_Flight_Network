@@ -333,14 +333,24 @@ void Range::Fire()
 	}
 }
 
-//// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
-//void EnemyController::Pop(size_t& index)
-//{
-//	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
-//	soundManager->PlayEffectSound(EffectSound::Explosion);
-//	enemies[index--] = enemies.back();
-//	enemies.pop_back();
-//}
+// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
+void EnemyController::Pop(size_t& index)
+{
+	//effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
+	//soundManager->PlayEffectSound(EffectSound::Explosion);
+
+	for (const auto& player : sPlayerMap) {
+		enemies[index]->GetSendData().Status = NetworkEnemyData::Status::DEATH;
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies[index]->GetSendData());
+	}
+
+	enemies[index] = enemies.back();
+	enemies[index]->GetSendData().ID = index;
+	enemies[index--]->GetSendData().Status = NetworkEnemyData::Status::MOVE;
+	Enemy::sId--;
+
+	enemies.pop_back();
+}
 
 // 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
 EnemyController::EnemyController()
@@ -520,9 +530,6 @@ void EnemyController::CreateCheckMelee()
 	//}
 	// 
 
-	//if (enemies.size() >= 100)
-	//	return;
-
 	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
 		return a.second.mBattleData.IsFieldEnd == true;
 		});
@@ -566,16 +573,13 @@ void EnemyController::CreateCheckRange()
 	//	return;
 	//}
 
-	//if (enemies.size() >= 100)
-	//	return;
-
 	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
 		return a.second.mBattleData.IsFieldEnd == true;
 		});
-	//if (isFieldEnd == true)
-	//{
-	//	return;
-	//}
+	if (isFieldEnd == true)
+	{
+		return;
+	}
 
 	delay_Range += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Range < createDelay_Range)
@@ -609,6 +613,8 @@ void EnemyController::Update()
 	{
 		enemy->Update();
 	}
+
+	CheckHit();
 }
 
 void EnemyController::ShowEnemyCount() const
@@ -617,6 +623,33 @@ void EnemyController::ShowEnemyCount() const
 		cout << "EnemyCount: " << enemies.size() << endl;
 }
 
+// 임시 충돌 처리 
+bool EnemyController::CheckHit()
+{
+	const RECT playerBody = sPlayerMap[0].mBattleData.RectBody;
+	for (size_t i = 0;i<enemies.size();++i)
+	{
+		if (enemies.at(i)->IsCollide(playerBody) == true)
+		{
+			//enemies.at(i)->GetSendData().Status = NetworkEnemyData::Status::DEATH;
+			//for (const auto& player : sPlayerMap) {
+			//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies.at(i)->GetSendData());
+			//}
+
+			//effects->CreateHitEffect(effectPoint, hitType);
+			//const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
+			//if (enemies.at(i)->Hit(damage) == true)
+			//{
+				EnemyController::Pop(i);
+			//}
+
+
+			return true;
+		}
+	}
+
+	return false;
+}
 //// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 //bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 //{

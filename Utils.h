@@ -485,6 +485,7 @@ struct NetworkEnemyData
 		CREATE,
 		MOVE,
 		ATTACK,
+		DEATH,
 	};
 
 	AttackType	AttackType = AttackType::NONE;

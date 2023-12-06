@@ -367,7 +367,15 @@ void EnemyController::Pop(size_t& index)
 {
 	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
 	soundManager->PlayEffectSound(EffectSound::Explosion);
-	enemies[index--] = enemies.back();
+
+	// 2023-12-07 추가 상태 변경
+	NetworkEnemyData recvData = enemies.at(index)->GetRecvData();
+	recvData.Status = NetworkEnemyData::Status::MOVE;
+	recvData.ID = (uint32)index;
+
+	enemies[index] = enemies.back();
+	enemies[index--]->SetRecvData(move(recvData));
+
 	enemies.pop_back();
 }
 
@@ -663,6 +671,12 @@ void EnemyController::Animate()
 	{
 		enemy->Animate();
 	}
+}
+
+// 임시 충돌 처리 확인 용도
+void EnemyController::CheckHit(uint32 id)
+{
+	EnemyController::Pop(id);
 }
 
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.

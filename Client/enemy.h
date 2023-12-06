@@ -50,7 +50,7 @@ public:
 
 	virtual void CheckAttackDelay() abstract;
 	void SetRecvData(NetworkEnemyData&& recvData) { mRecvData = recvData; }
-	NetworkEnemyData GetRecvData() const { return mRecvData; }
+	NetworkEnemyData GetRecvData() { return mRecvData; }
 
 	int GetSpriteRow();
 	void Animate();
@@ -133,6 +133,7 @@ public:
 	void Update();
 	void SetRecvData(NetworkEnemyData&& recvData);
 	void Animate();
+	void CheckHit(uint32 id); // Temp
 	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 

@@ -101,13 +101,14 @@ private:
 	int createAmount_Melee = 0;
 	int createAmount_Range = 0;
 
-	//void Pop(size_t& index);
+	void Pop(size_t& index);
 public:
 	EnemyController();
 	~EnemyController();
 	void CreateCheckMelee();
 	void CreateCheckRange();
 	void Update();
+	bool CheckHit(); // Temp
 	//bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	//void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 
