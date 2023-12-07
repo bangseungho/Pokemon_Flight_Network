@@ -13,6 +13,7 @@
 #define RECT_WINDOW_HEIGHT	711
 
 #define ELAPSE_BATTLE_INVALIDATE 10
+#define ELAPSE_BATTLE_CREATE_BULLET 10
 #define ELAPSE_BATTLE_ANIMATION 50
 #define ELAPSE_BATTLE_ANIMATION_BOSS 100
 #define ELAPSE_BATTLE_MOVE_PLAYER 10
@@ -29,12 +30,22 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
+#include <gdiplus.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
 #include <mutex>
 #include <algorithm>
 #include <assert.h>
+
+#include <Windows.h>
+#include <time.h>
+#include <atlImage.h>
+#include <mmsystem.h>
+#include <cmath>
+#include <cassert>
+#include <array>
+#include <memory>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -78,6 +89,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	BULLET_DATA,
 	ENEMY_OBJECT_DATA,
 	SCENE_DATA,
 	END_PROCESSING,
@@ -468,8 +480,23 @@ struct BattleData
 	uint8		PlayerIndex = 0;
 	Vector2		PosCenter = { 250.f, 500.f };
 	FRECT		RectBody = { 0.f, };
-	bool		IsCollide = false;
 	bool		IsFieldEnd = false;
+	bool		IsDeath = false;
+};
+
+struct NetworkBulletData
+{
+	enum class Status : uint8 {
+		NONE,
+		CREATE,
+		MOVE,
+		DEATH,
+	};
+
+	uint8 PlayerIndex	= 0;
+	uint32 BulletIndex	= 0;
+	Status Status		= Status::NONE;
+	POINT StartPos		= { 0, };
 };
 
 struct NetworkEnemyData
@@ -588,7 +615,9 @@ public:
 		else if (std::is_same_v<T, PhaseData>)
 			return DataType::PHASE_DATA;
 		else if (std::is_same_v<T, BattleData>)
-			return DataType::BATTLE_DATA;
+			return DataType::BATTLE_DATA;		
+		else if (std::is_same_v<T, NetworkBulletData>)
+			return DataType::BULLET_DATA;
 		else if (std::is_same_v<T, NetworkEnemyData>)
 			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)
@@ -658,7 +687,7 @@ class NetworkPlayerData
 public:
 	NetworkPlayerData() {}
 	NetworkPlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
-	virtual ~NetworkPlayerData() {}
+	~NetworkPlayerData() {}
 
 public:
 	SOCKET		mSock;

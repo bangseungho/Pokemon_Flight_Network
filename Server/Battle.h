@@ -1,5 +1,6 @@
 #pragma once
 
+class Player;
 class EnemyController;
 class Battle
 {
@@ -15,6 +16,7 @@ private:
 	void Invalidata();
 
 private:
-	unique_ptr<EnemyController> mEnemyController;
+	vector<shared_ptr<Player>>	mPlayerVec;
+	shared_ptr<EnemyController> mEnemyController;
 };
 

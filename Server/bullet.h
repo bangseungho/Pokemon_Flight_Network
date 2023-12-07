@@ -5,12 +5,16 @@ typedef struct BulletData {
 	Type bulletType = Type::Empty;
 	float damage = 0;
 	float speed = 0;
+	uint32 id = 0;
 }BulletData;
 
+class Player;
+class EnemyController;
 class BulletController abstract : public ISprite {
 protected:
 	class Bullet {
 	private:
+		NetworkBulletData mSendData;
 		BulletData data; // 탄막 데이터
 		bool isSkillBullet = false; // 스킬 탄막인지
 		bool isRotateImg = false; // 회전 이미지인지
@@ -26,7 +30,6 @@ protected:
 		Bullet(const POINT& center, const POINT& bulletSize, const BulletData& data, const Vector2& unitVector, bool isRotateImg, bool isSkillBullet = false);
 		~Bullet() {};
 
-		void Paint(const HDC& hdc, const ObjectImage& bulletImage);
 		bool Update();
 
 		POINT GetPos() const;
@@ -37,6 +40,10 @@ protected:
 		inline constexpr float GetDamage() const
 		{
 			return data.damage;
+		}		
+		inline NetworkBulletData& GetSendData()
+		{
+			return mSendData;
 		}
 		inline constexpr Dir GetDir() const
 		{
@@ -63,23 +70,29 @@ protected:
 	ObjectImage bulletImage;
 	POINT bulletSize = { 0, };
 
-public:
 	void Pop(size_t& index);
-
-	void Paint(HDC hdc);
-
-	void CreateBullet(const POINT& center, const BulletData& data, Dir dir);
-	void CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector, bool isRotateImg = false, bool isSkillBullet = false);
+public:
+	void CreateBullet(const POINT& center, BulletData& data, Dir dir);
+	void CreateBullet(const POINT& center, BulletData& data, const Vector2& unitVector, bool isRotateImg = false, bool isSkillBullet = false);
 	void DestroyCollideBullet(const RECT& rect);
 
 	virtual void Update() abstract;
+
+private:
+	uint32 mAccId = 0;
 };
 
 class PlayerBullet : public BulletController {
 public:
-	PlayerBullet(const ObjectImage& bulletImage) : BulletController(bulletImage) {};
+	PlayerBullet(const ObjectImage& bulletImage, shared_ptr<EnemyController> enemyController) : BulletController(bulletImage) { mEnemyController = enemyController; }
+	void SetPlayer(shared_ptr<Player> player) { mPlayer = player; }
 	void Update() override;
+
+private:
+	shared_ptr<Player>				mPlayer = nullptr;
+	shared_ptr<EnemyController>		mEnemyController = nullptr;
 };
+
 class EnemyBullet : public BulletController {
 public:
 	EnemyBullet(const ObjectImage& bulletImage) : BulletController(bulletImage) {};

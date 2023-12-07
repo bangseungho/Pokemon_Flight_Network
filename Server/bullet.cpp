@@ -1,21 +1,15 @@
-#include "stdafx.h"
+#include "..\Utils.h"
 #include "bullet.h"
 #include "enemy.h"
 #include "player.h"
 #include "effect.h"
 #include "boss.h"
-#include "scene.h"
-#include "Network.h"
-
-extern Player* mPlayer;
-extern EnemyController* enemies;
-extern Boss* boss;
-extern EffectManager* effects;
-extern SceneManager* sceneManager;
 
 // =============================================
 // Bullet
 // =============================================
+
+extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
 
 // 직선 탄막의 생성자에서 탄막의 데이터를 받아서 초기화
 BulletController::Bullet::Bullet(const POINT& center, const POINT& bulletSize, const BulletData& data)
@@ -42,27 +36,10 @@ BulletController::Bullet::Bullet(const POINT& center, const POINT& bulletSize, c
 	rectRotBody = GetRotatedBody(vPoints);
 }
 
-// 탄막 렌더링
-void BulletController::Bullet::Paint(const HDC& hdc, const ObjectImage& bulletImage)
-{
-	// 회전 탄막이 아닐 경우 그냥 렌더링
-	if (isRotateImg == false)
-	{
-		bulletImage.Paint(hdc, rectRotBody);
-	}
-	// 회전 탄막일 경우 회전 객체 렌더링 
-	else
-	{
-		Vector2 vPoints[4];
-		GetRotationPos(rectBody, unitVector, Vector2::Up(), vPoints);
-		bulletImage.PaintRotation(hdc, vPoints);
-	}
-}
-
 // 탄막 이동 업데이트 함수
 bool BulletController::Bullet::Update()
 {
-	const RECT rectDisplay = sceneManager->GetRectDisplay();
+	const RECT rectDisplay = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
 	float moveX = 0;
 	float moveY = 0;
 	switch (dir) // 방향에 따라서 탄막의 속도만큼 연산
@@ -199,27 +176,33 @@ BulletController::~BulletController()
 	}
 }
 
-void BulletController::Paint(HDC hdc)
-{
-	for (Bullet* bullet : bullets)
-	{
-		bullet->Paint(hdc, bulletImage);
-	}
-}
-
 // 탄막 생성 시 탄막 컨트롤러의 탄막 배열에 넣어준다.
-void BulletController::CreateBullet(const POINT& center, const BulletData& data, Dir dir)
+void BulletController::CreateBullet(const POINT& center, BulletData& data, Dir dir)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
+	data.id = mAccId++;
 	Bullet* bullet = new Bullet(center, bulletSize, data, dir);
 	bullets.emplace_back(bullet);
+
+	for (const auto& player : sPlayerMap) {
+		NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center};
+		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
+	}
+
+	bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
 }
 // 회전 탄막 생성 함수
-void BulletController::CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector, bool isRotateImg, bool isSkillBullet)
+void BulletController::CreateBullet(const POINT& center, BulletData& data, const Vector2& unitVector, bool isRotateImg, bool isSkillBullet)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
+	data.id = mAccId++;
 	Bullet* bullet = new Bullet(center, bulletSize, data, unitVector, isRotateImg, isSkillBullet);
 	bullets.emplace_back(bullet);
+
+	for (const auto& player : sPlayerMap) {
+		NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center };
+		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
+	}
+
+	bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
 }
 
 // 플레이어 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
@@ -228,62 +211,30 @@ void PlayerBullet::Update()
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
 		const RECT rectBullet = bullets.at(i)->GetRect();
+
+
 		const float bulletDamage = bullets.at(i)->GetDamage();
 		const Type bulletType = bullets.at(i)->GetType();
 		const POINT bulletPos = bullets.at(i)->GetPos();
 
-		bullets.at(i)->Update();
+		//if (bullets.at(i)->Update() == false)
+		//	BulletController::Pop(i);
 
 		// 탄막이 적이나 보스에 충돌했을 경우 
 		// 충돌 했거나 탄막이 윈도우 화면 바깥으로 나가면 탄막을 삭제한다.
-		//if ((enemies->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true) ||
-		//	(boss->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true))
-		//{
-		//	if (bullets.at(i)->IsSkillBullet() == false)
-		//	{
-		//		mPlayer->AddMP(0.30f);
-		//	}
-		//	BulletController::Pop(i);
-		//}
-		//else if(bullets.at(i)->Update() == false)
-		//{
-		//	BulletController::Pop(i);
-		//}
-	}
-}
-
-//// 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
-//void EnemyBullet::Update()
-//{
-//	for (size_t i = 0; i < bullets.size(); ++i)
-//	{
-//		if (mPlayer->IsCollide(bullets.at(i)->GetRect()) == true)
-//		{
-//			mPlayer->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
-//			BulletController::Pop(i);
-//		}
-//		else if (bullets.at(i)->Update() == false)
-//		{
-//			BulletController::Pop(i);
-//		}
-//	}
-//}
-
-// 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
-void EnemyBullet::Update()
-{
-	for (auto& member : sceneManager->GetMemberMap()) {
-		for (size_t i = 0; i < bullets.size(); ++i)
+		if ((mEnemyController->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true)/* ||
+			(boss->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true)*/)
 		{
-			if (member.second->IsCollide(bullets.at(i)->GetRect()) == true)
+
+			if (bullets.at(i)->IsSkillBullet() == false)
 			{
-				member.second->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos(), member.first);
-				BulletController::Pop(i);
+				mPlayer->AddMP(0.30f);
 			}
-			else if (bullets.at(i)->Update() == false)
-			{
-				BulletController::Pop(i);
-			}
+			BulletController::Pop(i);
+		}
+		else if(bullets.at(i)->Update() == false)
+		{
+			BulletController::Pop(i);
 		}
 	}
 }
@@ -292,10 +243,16 @@ void EnemyBullet::Update()
 // 가장 뒤 원소인 탄막을 pop_back을 통해서 제거한다. 속도를 위해서이다.
 void BulletController::Pop(size_t& index)
 {
-	//if (bullets.size() <= 0)
-	//	return;
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
+	for (const auto& player : sPlayerMap) {
+		bullets[index]->GetSendData().Status = NetworkBulletData::Status::DEATH;
+		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, bullets[index]->GetSendData());
+	}
+
 	bullets[index] = bullets.back();
+	bullets[index]->GetSendData().BulletIndex = index;
+	bullets[index--]->GetSendData().Status = NetworkBulletData::Status::MOVE;
+	mAccId--;
+
 	bullets.pop_back();
 }
 
@@ -307,8 +264,12 @@ void BulletController::DestroyCollideBullet(const RECT& rect)
 	{
 		if (bullets.at(i)->IsCollide(rect) == true)
 		{
-			effects->CreateHitEffect(bullets.at(i)->GetPos(), bullets.at(i)->GetType());
+			//effects->CreateHitEffect(bullets.at(i)->GetPos(), bullets.at(i)->GetType());
 			BulletController::Pop(i);
 		}
 	}
+}
+
+void EnemyBullet::Update()
+{
 }

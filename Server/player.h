@@ -27,7 +27,7 @@ typedef struct PlayerData {
 	bool isInvincible = true;
 }PlayerData;
 
-class Player : public GameObject, public IControllable, public IAnimatable {
+class Player : public GameObject, public IControllable, public IAnimatable, public enable_shared_from_this<Player> {
 private:
 	PlayerData playerData;
 	PlayerBullet* bullets = nullptr; // 메인 포켓몬의 탄막 컨트롤러(비행 포켓몬)
@@ -46,7 +46,6 @@ private:
 	ObjectImage img_subPokemon{};
 
 	void Death();
-	void SetPosDest() override;
 	inline bool IsClearShotDelay() const // 쿨타임이 완료되었는지 확인
 	{
 		return (playerData.crntShotDelay <= 0);
@@ -56,25 +55,17 @@ private:
 		playerData.crntShotDelay = playerData.shotDelay;
 	}
 public:
-	Player(Type type, Type subType);
-	~Player();
+	Player(NetworkPlayerData* recvData, shared_ptr<class EnemyController> enemyController);
+	virtual ~Player();
 	void Init();
-	void Paint(HDC hdc);
-	void PaintSkill(HDC hdc);
+	void Update();
 
-	void SetDirection(Dir dir);
-	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
-	void Update(const HWND& hWnd, int timerID) override;
-	void Stop(Dir dir) override;
-	void CheckCollideWindow(Vector2& pos) const;
+	void SetBulletsPlayer();
 
-	void Animate(const HWND& hWnd);
 	void CheckShot();
 	void Shot();
-	void Shot(NetworkBulletData& recvData);
-	void BulletPop(size_t& bulletIndex);
-	void CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet = false);
-	void Hit(float damage, Type hitType, POINT effectPoint = { -1, }, uint8 memberIndex = 0);
+	void CreateSubBullet(const POINT& center, BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet = false);
+
 
 	void ActiveSkill(Skill skill);
 	void MoveBullets();
@@ -153,4 +144,6 @@ public:
 	{
 		playerData.mp = playerData.maxmp;
 	}
+public:
+	NetworkPlayerData* mSendData = nullptr;
 };

@@ -40,6 +40,9 @@ void T_Battle_Invalidate()
 	boss->CheckActDelay(); // 보스의 움직임에 딜레이를 주는 함수
 	boss->CheckAttackDelay(); // 보스의 공격에 딜레이를 주는 함수
 
+	for (auto& member : sceneManager->GetMemberMap())
+		member.second->MoveBullets();
+
 	//mPlayer->MoveBullets(); // 플레이어 탄막 이동 함수
 	enemies->MoveBullets(); // 적 탄막 이동 함수
 	enemies->Update(); // 적 이동 및 충돌 검사 함수
@@ -48,8 +51,6 @@ void T_Battle_Invalidate()
 
 void T_Battle_Animate()
 {
-	mPlayer->Animate(sceneManager->GetHwnd()); // 플레이어 스프라이트 이미지 애니메이션 함수
-
 	for (auto& member : sceneManager->GetMemberMap())
 		member.second->Animate(sceneManager->GetHwnd());
 

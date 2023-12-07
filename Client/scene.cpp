@@ -86,13 +86,11 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 			delete member.second;
 
 		mMemberMap.clear();
-		delete mPlayer;
 		delete enemies;
 		delete effects;
 		delete boss;
 		delete gui;
 
-		mPlayer = nullptr;
 		enemies = nullptr;
 		effects = nullptr;
 		boss = nullptr;
@@ -125,22 +123,16 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	case Scene::Battle: 
 		battle.Init();
 
-		gameData.stage = stage.GetStage();
-
-		// 스테이지 씬(캐릭터 창)에서 고른 포켓몬 정보를 가져와서 해당 포켓몬으로 플레이어를 생성한다.
-		mPlayer = new Player(stage.GetAirPokemon(), stage.GetLandPokemon());
-
-		// 플레이어의 스킬 매니저를 생성한다.
-		mPlayer->Init();
-
-		// 파트너 드로우
-		for (const auto& member : GET_MEMBER_MAP) {
-			if (MY_INDEX == member.first)
-				continue;
-
+		// 모든 멤버 렌더링
+		for (const auto& member : GET_MEMBER_MAP)
 			mMemberMap[member.first] = new Player(member.second.mSceneData.AirPokemon, member.second.mSceneData.LandPokemon);
+
+		// 나의 인덱스가 바로 mPlayer
+		mPlayer = mMemberMap[MY_INDEX];
+
+		// 모든 멤버 초기화
+		for (const auto& member : GET_MEMBER_MAP)
 			mMemberMap[member.first]->Init();
-		}
 
 		// gameData의 스테이지에 따라 등장하는 적 포켓몬 데이터(hp, 범위, 공격력 등)를 각각 세팅한다.
 		enemies = new EnemyController();
@@ -244,10 +236,6 @@ void SceneManager::Paint()
 
 		for (auto& member : mMemberMap)
 			member.second->Paint(memDC);
-
-		mPlayer->Paint(memDC);
-
-
 
 		enemies->Paint(memDC);
 		mPlayer->PaintSkill(memDC);

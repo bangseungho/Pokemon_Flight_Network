@@ -1,23 +1,12 @@
-#include "stdafx.h"
+#include "..\Utils.h"
 #include "boss.h"
 #include "player.h"
 #include "bullet.h"
 #include "timer.h"
 #include "effect.h"
-#include "interface.h"
 #include "skill.h"
-#include "scene.h"
-#include "sound.h"
-#include "Network.h"
 
-#include "phase.h"
-
-extern GameData gameData;
-extern Player* mPlayer;
-extern EffectManager* effects;
-extern SceneManager* sceneManager;
-extern SoundManager* soundManager;
-extern PhaseManager phase;
+extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
 
 // 플레이어부터 보스로 향하는 방향 벡터를 업데이트하고 움직임을 true로 업데이트
 void Boss::SetMove(const Vector2& unitVector)
@@ -31,10 +20,9 @@ void Boss::Death()
 {
 	bossData.hp = 0;
 	bossData.isDeath = true;
-	mPlayer->InvincibleMode();
 
-	soundManager->StopEffectSound();
-	soundManager->StopBossSound();
+	//soundManager->StopEffectSound();
+	//soundManager->StopBossSound();
 }
 
 // 보스 액션에 따른 공격 설정 함수
@@ -144,35 +132,35 @@ void Boss::ResetAttackDelay()
 // 게임 스테이지에 따라서 이미지 로드
 Boss::Boss()
 {
-	const RECT rectDisplay = sceneManager->GetRectDisplay();
+	const RECT rectDisplay = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
 
 	ObjectImage imgBullet;
 	image = new ObjectImage();
 	
-	switch (MEMBER_MAP(MP_INDEX).mStageData.Stage)
+	switch (sPlayerMap.begin()->second.mStageData.Stage)
 	{
 	case StageElement::Elec:
-		image->Load(_T("images\\battle\\sprite_boss_elec.png"), { 73,68 }, { 3,7 }, { 69,50 });
+		image->Load(_T("..\\Client\\images\\battle\\sprite_boss_elec.png"), { 73,68 }, { 3,7 }, { 69,50 });
 		image->ScaleImage(4, 4);
-		imgBullet.Load(_T("images\\battle\\bullet_boss_elec.png"), { 400,400 });
+		imgBullet.Load(_T("..\\Client\\images\\battle\\bullet_boss_elec.png"), { 400,400 });
 		imgBullet.ScaleImage(0.05f, 0.05f);
 		break;
 	case StageElement::Water:
-		image->Load(_T("images\\battle\\sprite_boss_water.png"), { 65,41 }, { 2,3 }, { 63,36 });
+		image->Load(_T("..\\Client\\images\\battle\\sprite_boss_water.png"), { 65,41 }, { 2,3 }, { 63,36 });
 		image->ScaleImage(4, 4);
-		imgBullet.Load(_T("images\\battle\\bullet_boss_water.png"), { 400,400 });
+		imgBullet.Load(_T("..\\Client\\images\\battle\\bullet_boss_water.png"), { 400,400 });
 		imgBullet.ScaleImage(0.05f, 0.05f);
 		break;
 	case StageElement::Fire:
-		image->Load(_T("images\\battle\\sprite_boss_fire.png"), { 54,44 }, { 6,12 }, { 44,29 });
+		image->Load(_T("..\\Client\\images\\battle\\sprite_boss_fire.png"), { 54,44 }, { 6,12 }, { 44,29 });
 		image->ScaleImage(6, 6);
-		imgBullet.Load(_T("images\\battle\\bullet_boss_fire.png"), { 400,400 });
+		imgBullet.Load(_T("..\\Client\\images\\battle\\bullet_boss_fire.png"), { 400,400 });
 		imgBullet.ScaleImage(0.05f, 0.05f);
 		break;
 	case StageElement::Dark:
-		image->Load(_T("images\\battle\\sprite_boss_dark.png"), { 110,110 }, { 20,30 }, { 67,50 });
+		image->Load(_T("..\\Client\\images\\battle\\sprite_boss_dark.png"), { 110,110 }, { 20,30 }, { 67,50 });
 		image->ScaleImage(5, 5);
-		imgBullet.Load(_T("images\\battle\\bullet_boss_dark.png"), { 700,700 });
+		imgBullet.Load(_T("..\\Client\\images\\battle\\bullet_boss_dark.png"), { 700,700 });
 		imgBullet.ScaleImage(0.03f, 0.03f);
 		break;
 	default:
@@ -209,8 +197,8 @@ void Boss::Create()
 	GameObject::Init(*image, posCenter);
 	SetMove(Vector2::Down());
 
-	soundManager->StopBGMSound();
-	soundManager->PlayBGMSound(BGMSound::Battle_Boss, 1.0f, true);
+	//soundManager->StopBGMSound();
+	//soundManager->PlayBGMSound(BGMSound::Battle_Boss, 1.0f, true);
 }
 
 // 보스 움직임을 설정하는 함수
@@ -221,7 +209,7 @@ void Boss::SetPosDest()
 		return;
 	}
 
-	const RECT rectDisplay = sceneManager->GetRectDisplay();
+	const RECT rectDisplay = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
 
 	posDest = Vector2::GetDest(GetPosCenter(), unitVector, bossData.speed);
 	if (act == BossAct::Idle) // Idle시 maxYPos 위치까지 이동 후 정지
@@ -280,26 +268,6 @@ void Boss::SetPosDest()
 	}
 }
 
-// 보스를 렌더링하는 함수
-void Boss::Paint(HDC hdc)
-{
-	constexpr int disappearFrame = -3;
-	if (bossData.isCreated == false)
-	{
-		return;
-	}
-	else if (deathFrame < disappearFrame)
-	{
-		return;
-	}
-
-	const RECT rectImage = ISprite::GetRectImage(GetImage(), frame);
-	GameObject::Paint(hdc, &rectImage);
-
-	bullets->Paint(hdc);
-	skill->Paint(hdc);
-}
-
 // 보스를 업데이트 하는 함수 충돌 처리와 이동 함수를 호출한다.
 void Boss::Update()
 {
@@ -317,10 +285,10 @@ void Boss::Update()
 	}
 
 	const RECT rectBody = GetRectBody();
-	if (mPlayer->IsCollide(rectBody) == true)
-	{
-		mPlayer->Hit(bossData.damage, GetType());
-	}
+	//if (mPlayer->IsCollide(rectBody) == true)
+	//{
+	//	//mPlayer->Hit(bossData.damage, GetType());
+	//}
 
 	if (IsMove() == false)
 	{
@@ -419,7 +387,7 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 		}
 
 		// 충돌 검사를 통과했을 경우 이펙트를 생성하고 보스의 hp를 감소시킴
-		effects->CreateHitEffect(effectPoint, hitType);
+		//effects->CreateHitEffect(effectPoint, hitType);
 		const float calDamage = CalculateDamage(damage, GetType(), hitType);
 		if ((bossData.hp -= calDamage) <= 0)
 		{
@@ -431,107 +399,12 @@ bool Boss::CheckHit(const RECT& rectSrc, float damage, Type hitType, POINT effec
 	return false;
 }
 
-// 보스 애니메이션 함수
-void Boss::Animate(const HWND& hWnd)
-{
-	constexpr int loadingFrame = -40;
-
-	if (IsCreated() == false)
-	{
-		return;
-	}
-	else if (bossData.isDeath == true) // 만약 보스가 죽은 경우
-	{
-		if (--deathFrame > 0) // deathFrame을 하나씩 줄이면서 DeathEffect를 실행(작은 폭발)
-		{
-			effects->CreateBossDeathEffect(*this);
-		}
-		else if(deathFrame == -1) // deathFrame이 -1이 되었다면 ExplosionEffect를 실행(큰 폭발)
-		{
-			soundManager->PlayEffectSound(EffectSound::Win);
-			soundManager->StopBGMSound();
-
-			effects->CreateBossExplosionEffect(*this);
-		}
-		else if (deathFrame == loadingFrame) // ExplosionEffect가 끝난 경우 로딩 화면을 시작하며 페이즈를 실행
-		{
-			phase.ClearPhase();
-			sceneManager->StartLoading(hWnd);
-		}
-		return;
-	}	
-	else if (isRevFrame == true)
-	{
-		--frame;
-	}
-	else
-	{
-		++frame;
-	}
-
-	switch (GetAction()) // 보스가 죽지 않은 경우 상태에 맞는 애니메이션 진행
-	{
-	case Action::Idle:
-		if (frame > bossData.frameNum_IdleMax)
-		{
-			if (bossData.type == Type::Dark)
-			{
-				frame = bossData.frameNum_Idle;
-			}
-			else
-			{
-				isRevFrame = true;
-				--frame;
-			}
-		}
-		else if (frame < bossData.frameNum_Idle)
-		{
-			isRevFrame = false;
-			++frame;
-		}
-		break;
-	case Action::Attack:
-		if (frame > bossData.frameNum_AtkMax)
-		{
-			isRevFrame = true;
-			--frame;
-		}
-		else if (isRevFrame == true && frame < bossData.frameNum_AtkRev)
-		{
-			isRevFrame = false;
-			if (bossData.type != Type::Dark)
-			{
-				SetAction(Action::Idle, bossData.frameNum_Idle);
-			}
-		}
-		break;
-	default:
-		assert(0);
-		break;
-	}
-}
-
-// 스킬 애니메이션 실행 함수
-void Boss::AnimateSkill()
-{
-	if (IsCreated() == false)
-	{
-		return;
-	}
-	else if (IsDeath() == true)
-	{
-		return;
-	}
-
-	skill->Animate();
-}
-
 // 7개의 탄막이 1열로 y축 방향으로 나아감
 void Boss::ShotByLine()
 {
 	constexpr int bulletCount = 7;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	const int bulletSizeX = bullets->GetBulletSize().x;
@@ -553,7 +426,7 @@ void Boss::ShotByCircle()
 {
 	constexpr int bulletCount = 36;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const POINT bulletPos = GetPosCenter();
 
@@ -569,7 +442,7 @@ void Boss::ShotByCircle()
 // 중심에서 1개의 탄막이 원을 그리며 나아감(동글뱅이)
 void Boss::ShotBySpiral()
 {
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -595,7 +468,7 @@ void Boss::ShotBySector()
 {
 	constexpr int bulletCount = 12;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -616,7 +489,7 @@ void Boss::ShotBySector()
 // 1개의 탄막이 랜덤한 방향으로 나아감
 void Boss::ShotBySpread()
 {
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -651,7 +524,7 @@ BossData Boss::GetBossData()
 	bossData.frameNum_Idle = 0;
 
 	// 보스의 타입에 따라서 초기화
-	switch (gameData.stage)
+	switch (sPlayerMap.begin()->second.mStageData.Stage)
 	{
 	case StageElement::Elec:
 		bossData.type = Type::Elec;
@@ -713,10 +586,10 @@ BossData Boss::GetBossData()
 	bossData.crntActDelay = bossData.actDelay;
 
 	// 3페이즈(또도가스)인 경우 hp을 더 높게 설정
-	if (phase.GetPhase() == 3)
-	{
-		bossData.hp += 1000;
-	}
+	//if (phase.GetPhase() == 3)
+	//{
+	//	bossData.hp += 1000;
+	//}
 
 	return bossData;
 }

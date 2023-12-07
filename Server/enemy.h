@@ -109,7 +109,7 @@ public:
 	void CreateCheckRange();
 	void Update();
 	bool CheckHit(); // Temp
-	//bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
+	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	//void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 
 	//void CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector);

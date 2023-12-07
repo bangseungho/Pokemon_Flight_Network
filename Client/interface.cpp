@@ -386,7 +386,7 @@ void GUIManager::Update(const HWND& hWnd)
 			soundManager->PlayEffectSound(EffectSound::Win);
 			sceneManager->StartLoading(hWnd);
 
-			BattleData sendData{ MY_INDEX, mPlayer->GetPosCenter(), mPlayer->GetRectBody(), false, isIconStop};
+			BattleData sendData{ MY_INDEX, mPlayer->GetPosCenter(), mPlayer->GetRectBody(), isIconStop, mPlayer->IsDeath()};
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 		return;

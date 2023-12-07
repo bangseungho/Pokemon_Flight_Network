@@ -11,19 +11,7 @@
 #endif  
 
 #include "..\Utils.h"
-#include <Windows.h>
-#include <time.h>
-#include <gdiplus.h>
-#include <atlImage.h>
-#include <mmsystem.h>
 #include <fmod.hpp>
-#include <cmath>
-#include <vector>
-#include <cassert>
-#include <algorithm>
-#include <unordered_map>
-#include <array>
-#include <memory>
 
 #pragma region Window Define
 #define MSEC						1000

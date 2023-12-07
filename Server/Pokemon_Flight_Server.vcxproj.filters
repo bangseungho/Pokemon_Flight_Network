@@ -12,6 +12,9 @@
     <Filter Include="Battle">
       <UniqueIdentifier>{2fe2ac42-5361-44ff-966b-aa88db9ca755}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Working">
+      <UniqueIdentifier>{b3aa2b3d-e9fd-4642-a95c-99da8f2ba551}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Pokemon_Flight_Server.cpp">
@@ -32,6 +35,24 @@
     <ClCompile Include="..\Utils.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="bullet.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
+    <ClCompile Include="effect.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
+    <ClCompile Include="image.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
+    <ClCompile Include="skill.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
+    <ClCompile Include="boss.cpp">
+      <Filter>Working</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils.h">
@@ -48,6 +69,24 @@
     </ClInclude>
     <ClInclude Include="object.h">
       <Filter>Battle</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet.h">
+      <Filter>Working</Filter>
+    </ClInclude>
+    <ClInclude Include="effect.h">
+      <Filter>Working</Filter>
+    </ClInclude>
+    <ClInclude Include="image.h">
+      <Filter>Working</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>Working</Filter>
+    </ClInclude>
+    <ClInclude Include="skill.h">
+      <Filter>Working</Filter>
+    </ClInclude>
+    <ClInclude Include="boss.h">
+      <Filter>Working</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

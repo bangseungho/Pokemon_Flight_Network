@@ -2,6 +2,7 @@
 #include "Network.h"
 #include "scene.h"
 #include "enemy.h"
+#include "player.h"
 
 DECLARE_SINGLE(Network);
 extern SceneManager* sceneManager;
@@ -202,7 +203,7 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
 
-			std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
+			std::lock_guard<std::mutex> lock(mMemberMapMutex);
 			switch (recvData.Status)
 			{
 			case NetworkEnemyData::Status::CREATE:
@@ -217,6 +218,26 @@ void Network::ClientReceiver()
 				break;
 			case NetworkEnemyData::Status::DEATH:
 				enemies->CheckHit(recvData.ID);
+				break;
+			default:
+				break;
+			}
+		}
+#pragma endregion
+#pragma region Bullet
+		else if (dataType == DataType::BULLET_DATA) {
+			// 패킷을 수신할 임시 객체
+			NetworkBulletData recvData;
+			// 패킷 수신
+			Data::RecvData<NetworkBulletData>(mClientSock, recvData);
+
+			switch (recvData.Status)
+			{
+			case NetworkBulletData::Status::CREATE:
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->Shot(recvData);
+				break;
+			case NetworkBulletData::Status::DEATH:
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->BulletPop(recvData.BulletIndex);
 				break;
 			default:
 				break;
