@@ -404,7 +404,7 @@ void Boss::ShotByLine()
 {
 	constexpr int bulletCount = 7;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	const int bulletSizeX = bullets->GetBulletSize().x;
@@ -426,7 +426,7 @@ void Boss::ShotByCircle()
 {
 	constexpr int bulletCount = 36;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const POINT bulletPos = GetPosCenter();
 
@@ -442,7 +442,7 @@ void Boss::ShotByCircle()
 // 중심에서 1개의 탄막이 원을 그리며 나아감(동글뱅이)
 void Boss::ShotBySpiral()
 {
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -468,7 +468,7 @@ void Boss::ShotBySector()
 {
 	constexpr int bulletCount = 12;
 
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -489,7 +489,7 @@ void Boss::ShotBySector()
 // 1개의 탄막이 랜덤한 방향으로 나아감
 void Boss::ShotBySpread()
 {
-	const BulletData bulletData = GetBulletData();
+	BulletData bulletData = GetBulletData();
 
 	const RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };

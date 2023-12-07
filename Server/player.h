@@ -58,12 +58,13 @@ public:
 	Player(NetworkPlayerData* recvData, shared_ptr<class EnemyController> enemyController);
 	virtual ~Player();
 	void Init();
+	void Update();
 
-	void SetBulletsPlayer(shared_ptr<Player> player);
+	void SetBulletsPlayer();
 
 	void CheckShot();
 	void Shot();
-	void CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet = false);
+	void CreateSubBullet(const POINT& center, BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet = false);
 
 
 	void ActiveSkill(Skill skill);
@@ -144,5 +145,5 @@ public:
 		playerData.mp = playerData.maxmp;
 	}
 public:
-	NetworkPlayerData* mRecvData = nullptr;
+	NetworkPlayerData* mSendData = nullptr;
 };

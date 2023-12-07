@@ -231,9 +231,7 @@ void Player::SetPosDest()
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
 	
-	
-	ProcessData processData{ playerData.isDeath };
-	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), processData };
+	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd() };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -457,7 +455,17 @@ void Player::Animate(const HWND& hWnd)
 	skillManager->Animate();
 }
 
-// 탄막 발사 함수
+// 2023/12/08 : 네트워크 탄막 발사 함수 
+void Player::Shot(NetworkBulletData& recvData)
+{
+	BulletData bulletData;
+	bulletData.bulletType = playerData.type;
+	bulletData.damage = playerData.damage;
+	bulletData.speed = playerData.bulletSpeed;
+
+	bullets->CreateBullet(recvData.StartPos, bulletData, Dir::Up);
+}
+
 void Player::Shot()
 {
 	// 탄막의 데미지는 플레이어의 데이터에 따라서 달라진다.
@@ -479,10 +487,15 @@ void Player::Shot()
 	bulletData.bulletType = playerData.subType;
 	bulletData.damage = playerData.subDamage;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
+	//subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
 	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
-	skillManager->UseSkill();
+	//skillManager->UseSkill();
+}
+
+void Player::BulletPop(size_t& bulletIndex)
+{
+	bullets->Pop(bulletIndex);
 }
 
 // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
@@ -495,11 +508,11 @@ void Player::CheckShot()
 
 	// 타이머를 통해서 crntShotDelay 값을 줄이며 만약 0보다 작아지면 그 때 탄막을 발사하도록 하고 다시 리셋한다.
 	playerData.crntShotDelay -= ELAPSE_BATTLE_INVALIDATE;
-	if (IsClearShotDelay() == true)
-	{
+	//if (IsClearShotDelay() == true)
+	//{
 		Shot();
-		ResetShotDelay();
-	}
+		//ResetShotDelay();
+	//}
 }
 
 // 서브 포켓몬의 탄막 생성 함수

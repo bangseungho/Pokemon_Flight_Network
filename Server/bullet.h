@@ -5,6 +5,7 @@ typedef struct BulletData {
 	Type bulletType = Type::Empty;
 	float damage = 0;
 	float speed = 0;
+	uint32 id = 0;
 }BulletData;
 
 class Player;
@@ -13,6 +14,7 @@ class BulletController abstract : public ISprite {
 protected:
 	class Bullet {
 	private:
+		NetworkBulletData mSendData;
 		BulletData data; // 탄막 데이터
 		bool isSkillBullet = false; // 스킬 탄막인지
 		bool isRotateImg = false; // 회전 이미지인지
@@ -38,6 +40,10 @@ protected:
 		inline constexpr float GetDamage() const
 		{
 			return data.damage;
+		}		
+		inline NetworkBulletData& GetSendData()
+		{
+			return mSendData;
 		}
 		inline constexpr Dir GetDir() const
 		{
@@ -66,11 +72,14 @@ protected:
 
 	void Pop(size_t& index);
 public:
-	void CreateBullet(const POINT& center, const BulletData& data, Dir dir);
-	void CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector, bool isRotateImg = false, bool isSkillBullet = false);
+	void CreateBullet(const POINT& center, BulletData& data, Dir dir);
+	void CreateBullet(const POINT& center, BulletData& data, const Vector2& unitVector, bool isRotateImg = false, bool isSkillBullet = false);
 	void DestroyCollideBullet(const RECT& rect);
 
 	virtual void Update() abstract;
+
+private:
+	uint32 mAccId = 0;
 };
 
 class PlayerBullet : public BulletController {

@@ -522,6 +522,9 @@ void EnemyController::CreateCheckMelee()
 		return;
 	}
 
+	if (enemies.size() >= 2)
+		return;
+
 	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
 	delay_Melee += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Melee < createDelay_Melee)
@@ -564,6 +567,9 @@ void EnemyController::CreateCheckRange()
 	{
 		return;
 	}
+
+	if (enemies.size() >= 2)
+		return;
 
 	delay_Range += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Range < createDelay_Range)
@@ -631,11 +637,12 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
 		{
 			//effects->CreateHitEffect(effectPoint, hitType);
-			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
-			if (enemies.at(i)->Hit(damage) == true)
-			{
+			//const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
+
+			//if (enemies.at(i)->Hit(damage) == true)
+			//{
 				EnemyController::Pop(i);
-			}
+			//}
 			return true;
 		}
 	}

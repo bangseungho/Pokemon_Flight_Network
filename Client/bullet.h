@@ -63,8 +63,8 @@ protected:
 	ObjectImage bulletImage;
 	POINT bulletSize = { 0, };
 
-	void Pop(size_t& index);
 public:
+	void Pop(size_t& index);
 
 	void Paint(HDC hdc);
 

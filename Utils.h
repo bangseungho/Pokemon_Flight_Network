@@ -13,6 +13,7 @@
 #define RECT_WINDOW_HEIGHT	711
 
 #define ELAPSE_BATTLE_INVALIDATE 10
+#define ELAPSE_BATTLE_CREATE_BULLET 10
 #define ELAPSE_BATTLE_ANIMATION 50
 #define ELAPSE_BATTLE_ANIMATION_BOSS 100
 #define ELAPSE_BATTLE_MOVE_PLAYER 10
@@ -88,6 +89,7 @@ enum class DataType : int
 	STAGE_DATA,
 	PHASE_DATA,
 	BATTLE_DATA,
+	BULLET_DATA,
 	ENEMY_OBJECT_DATA,
 	SCENE_DATA,
 	END_PROCESSING,
@@ -473,19 +475,28 @@ struct PhaseData
 	int		InputKey;
 };
 
-struct ProcessData
-{
-	bool IsDeath = false;
-};
-
 struct BattleData
 {
 	uint8		PlayerIndex = 0;
 	Vector2		PosCenter = { 250.f, 500.f };
 	FRECT		RectBody = { 0.f, };
 	bool		IsFieldEnd = false;
+	bool		IsDeath = false;
+};
 
-	ProcessData PData;
+struct NetworkBulletData
+{
+	enum class Status : uint8 {
+		NONE,
+		CREATE,
+		MOVE,
+		DEATH,
+	};
+
+	uint8 PlayerIndex	= 0;
+	uint32 BulletIndex	= 0;
+	Status Status		= Status::NONE;
+	POINT StartPos		= { 0, };
 };
 
 struct NetworkEnemyData
@@ -604,7 +615,9 @@ public:
 		else if (std::is_same_v<T, PhaseData>)
 			return DataType::PHASE_DATA;
 		else if (std::is_same_v<T, BattleData>)
-			return DataType::BATTLE_DATA;
+			return DataType::BATTLE_DATA;		
+		else if (std::is_same_v<T, NetworkBulletData>)
+			return DataType::BULLET_DATA;
 		else if (std::is_same_v<T, NetworkEnemyData>)
 			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)

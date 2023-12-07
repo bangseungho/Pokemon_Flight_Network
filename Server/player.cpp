@@ -7,10 +7,12 @@
 #include "effect.h"
 #include "battle.h"
 
+extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
+
 Player::Player(NetworkPlayerData* recvData, shared_ptr<class EnemyController> enemyController)
 {
 	if (recvData != nullptr)
-		mRecvData = recvData;
+		mSendData = recvData;
 
 	constexpr int damagePerSec = (1000 / ELAPSE_BATTLE_ANIMATION);
 
@@ -119,7 +121,12 @@ void Player::Init()
 	skillManager = new SkillManager(shared_from_this());
 }
 
-void Player::SetBulletsPlayer(shared_ptr<Player> player)
+void Player::Update()
+{
+	SetPos(mSendData->mBattleData.PosCenter);
+}
+
+void Player::SetBulletsPlayer()
 {
 	bullets->SetPlayer(shared_from_this());
 	subBullets->SetPlayer(shared_from_this());
@@ -155,10 +162,10 @@ void Player::Shot()
 	bulletData.bulletType = playerData.subType;
 	bulletData.damage = playerData.subDamage;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
+	//subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
 	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
-	skillManager->UseSkill();
+	//skillManager->UseSkill();
 }
 
 // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
@@ -170,7 +177,7 @@ void Player::CheckShot()
 	}
 
 	// 타이머를 통해서 crntShotDelay 값을 줄이며 만약 0보다 작아지면 그 때 탄막을 발사하도록 하고 다시 리셋한다.
-	playerData.crntShotDelay -= ELAPSE_BATTLE_INVALIDATE;
+	playerData.crntShotDelay -= ELAPSE_BATTLE_CREATE_BULLET;
 	if (IsClearShotDelay() == true)
 	{
 		Shot();
@@ -179,7 +186,7 @@ void Player::CheckShot()
 }
 
 // 서브 포켓몬의 탄막 생성 함수
-void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet)
+void Player::CreateSubBullet(const POINT& center, BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet)
 {
 	subBullets->CreateBullet(center, data, unitVector, isRotateImg, isSkillBullet);
 }
