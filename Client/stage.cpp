@@ -298,34 +298,34 @@ void Stage::Update(float elapsedTime)
 		{
 			inputKey = VK_LEFT;
 
-			if (moveX > -100)
+			if (moveX > 0)
 			{
 				moveX -= MAPSCROLL_SPEED;
 
-				for (int i = 0; i < STAGE_NUM; i++)
-				{
-					if (!_select_pokemon) {
-						mRectTarget.left -= 200 * elapsedTime;
-						mRectTarget.right -= 200 * elapsedTime;
-					}
+
+			}
+			else {
+				if (!_select_pokemon) {
+					mRectTarget.left -= 200 * elapsedTime;
+					mRectTarget.right -= 200 * elapsedTime;
 				}
 			}
 		}
+
 		// Å¸°Ù ÀÌµ¿
 		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
 		{
 			inputKey = VK_RIGHT;
 
-			if (moveX < 600)
+			if (moveX < 450)
 			{
 				moveX += MAPSCROLL_SPEED;
 
-				for (int i = 0; i < STAGE_NUM; i++)
-				{
-					if (!_select_pokemon) {
-						mRectTarget.left += 200 * elapsedTime;
-						mRectTarget.right += 200 * elapsedTime;
-					}
+			}
+			else {
+				if (!_select_pokemon) {
+					mRectTarget.left += 200 * elapsedTime;
+					mRectTarget.right += 200 * elapsedTime;
 				}
 			}
 		}
