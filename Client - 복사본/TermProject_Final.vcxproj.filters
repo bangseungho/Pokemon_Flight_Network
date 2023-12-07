@@ -149,11 +149,11 @@
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="..\Utils.h">
-      <Filter>PCH</Filter>
-    </ClInclude>
     <ClInclude Include="gameTimer.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils.h">
+      <Filter>PCH</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

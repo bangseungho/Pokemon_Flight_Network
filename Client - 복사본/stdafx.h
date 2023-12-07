@@ -66,7 +66,7 @@
 #define CAMSIZE_X					162 
 #define CAMSIZE_Y					375
 #define STAGE_NUM					5
-#define MAPSCROLL_SPEED				4
+#define MAPSCROLL_SPEED				0.5
 #define SELECTPOKEMONSIZE			135
 #pragma endregion
 #pragma region Scene Define

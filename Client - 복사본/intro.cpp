@@ -182,7 +182,7 @@ void Menu::Update(float elapsedTime)
 {
 	mTwinkleCnt += elapsedTime * 3.f;
 
-	if (GetAsyncKeyState('D') & 0x0001 && mFingerCount > 0)
+	if (GetAsyncKeyState('W') & 0x0001 && mFingerCount > 0)
 	{
 		mProducer = false;
 		mFingerCount -= 1;

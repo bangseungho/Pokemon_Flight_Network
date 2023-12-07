@@ -294,29 +294,45 @@ void Stage::Update(float elapsedTime)
 		}
 
 		// 타겟 이동
-		if (GetAsyncKeyState('A') & 0x8000 && target->_rectDraw.left > rectWindow.left)
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
 		{
-			inputKey = 'A';
+			inputKey = VK_LEFT;
 
-			if (!_select_pokemon) {
-				mRectTarget.left -= 200 * elapsedTime;
-				mRectTarget.right -= 200 * elapsedTime;
+			if (moveX > 0)
+			{
+				moveX -= MAPSCROLL_SPEED;
+
+
+			}
+			else {
+				if (!_select_pokemon) {
+					mRectTarget.left -= 200 * elapsedTime;
+					mRectTarget.right -= 200 * elapsedTime;
+				}
+			}
+		}
+
+		// 타겟 이동
+		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
+		{
+			inputKey = VK_RIGHT;
+
+			if (moveX < 450)
+			{
+				moveX += MAPSCROLL_SPEED;
+
+			}
+			else {
+				if (!_select_pokemon) {
+					mRectTarget.left += 200 * elapsedTime;
+					mRectTarget.right += 200 * elapsedTime;
+				}
 			}
 		}
 		// 타겟 이동
-		else if (GetAsyncKeyState('D') & 0x8000 && target->_rectDraw.right < rectWindow.right)
+		else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
 		{
-			inputKey = 'D';
-
-			if (!_select_pokemon) {
-				mRectTarget.left += 200 * elapsedTime;
-				mRectTarget.right += 200 * elapsedTime;
-			}
-		}
-		// 타겟 이동
-		else if (GetAsyncKeyState('W') & 0x8000 && target->_rectDraw.top > rectWindow.top)
-		{
-			inputKey = 'W';
+			inputKey = VK_UP;
 
 			if (!_select_pokemon) {
 				mRectTarget.top -= 200 * elapsedTime;
@@ -324,18 +340,18 @@ void Stage::Update(float elapsedTime)
 			}
 		}
 		// 타겟 이동
-		else if (GetAsyncKeyState('S') & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
+		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
 		{
-			inputKey = 'S';
+			inputKey = VK_DOWN;
 
 			if (!_select_pokemon) {
 				mRectTarget.top += 200 * elapsedTime;
 				mRectTarget.bottom += 200 * elapsedTime;
 			}
 		}
-		else if (GetAsyncKeyState(VK_INSERT) & 0x0001)
+		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 		{
-			inputKey = VK_INSERT;
+			inputKey = VK_RETURN;
 		}
 	}
 
@@ -348,13 +364,26 @@ void Stage::Update(float elapsedTime)
 
 	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
 	if (recvData.InputKey != 0) {
+		if (recvData.InputKey == VK_RIGHT && moveX < 450)
+		{
+			moveX += MAPSCROLL_SPEED;
+
+		}
+		else if (recvData.InputKey == VK_LEFT && moveX > 0)
+		{
+			moveX -= MAPSCROLL_SPEED;
+
+		}
+
 		target->_rectDraw = recvData.RectDraw;
+
+
 		_dialogflag = false;
 	}
 
 	fingerController(elapsedTime);
 
-	if (recvData.InputKey == VK_INSERT && _ready_Air_pokemon && _ready_Land_pokemon)
+	if (recvData.InputKey == VK_RETURN && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
 		if (recvData.CanGoNextScene == true) {
 			moveX = 300;
@@ -363,7 +392,7 @@ void Stage::Update(float elapsedTime)
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
-	if (recvData.InputKey == VK_INSERT && target->_select == true)
+	if (recvData.InputKey == VK_RETURN && target->_select == true)
 	{
 		_enter_select = true;
 
@@ -456,7 +485,7 @@ void Stage::fingerController(float elpasedTime)
 
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
-		if (GetAsyncKeyState(VK_INSERT) & 0x0001 && _enter_select)
+		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
 		{
 			if (!_ready_Air_pokemon)
 			{
@@ -520,23 +549,23 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_INSERT, target->_rectDraw, true, false, target->_select_index };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
 
 		if (!_ready_Air_pokemon)
 		{
-			if (GetAsyncKeyState('A') & 0x0001 && mFingerCount > 0)
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 0)
 				mFingerCount -= 1;
-			if (GetAsyncKeyState('D') & 0x0001 && mFingerCount < 2)
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 2)
 				mFingerCount += 1;
 		}
 		else if (!_ready_Land_pokemon)
 		{
-			if (GetAsyncKeyState('A') & 0x0001 && mFingerCount > 3)
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 3)
 				mFingerCount -= 1;
-			if (GetAsyncKeyState('D') & 0x0001 && mFingerCount < 5)
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
 				mFingerCount += 1;
 		}
 		if (GetAsyncKeyState(VK_BACK) & 0x8000)

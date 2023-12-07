@@ -357,14 +357,26 @@ void Stage::Update(float elapsedTime)
 
 	if (inputKey != 0) {
 		if (MY_INDEX == MP_INDEX) {
-			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
+			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget};
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 	}
-
 	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
 	if (recvData.InputKey != 0) {
+		if (recvData.InputKey == VK_RIGHT && moveX < 450)
+		{
+			moveX += MAPSCROLL_SPEED;
+
+		}
+		else if (recvData.InputKey == VK_LEFT && moveX > 0)
+		{
+			moveX -= MAPSCROLL_SPEED;
+
+		}
+
 		target->_rectDraw = recvData.RectDraw;
+
+
 		_dialogflag = false;
 	}
 

@@ -450,6 +450,7 @@ struct StageData
 	int		Record;
 	int		InputKey;
 	FRECT	RectDraw = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
+
 	bool	IsReady = false;
 	bool	CanGoNextScene = false;
 	StageElement Stage = StageElement::Null;
