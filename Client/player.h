@@ -42,6 +42,7 @@ private:
 
 	Pokemon pokemon = Pokemon::Null;
 	SubPokemon subPokemon = SubPokemon::Null;
+	ObjectImage img_mainPokemon{};
 	ObjectImage img_subPokemon{};
 
 	void Death();

@@ -22,7 +22,6 @@ Player::Player(Type type, Type subType)
 {
 	constexpr int damagePerSec = (1000 / ELAPSE_BATTLE_ANIMATION);
 
-	static ObjectImage img_pokemon;
 	ObjectImage bulletImage;
 	ObjectImage subBulletImage;
 
@@ -32,7 +31,7 @@ Player::Player(Type type, Type subType)
 	{
 	case Type::Elec:
 		pokemon = Pokemon::Thunder;
-		img_pokemon.Load(_T("images\\battle\\sprite_thunder.png"), { 53, 48 }, { 19, 10 }, { 17,24 });
+		img_mainPokemon.Load(_T("images\\battle\\sprite_thunder.png"), { 53, 48 }, { 19, 10 }, { 17,24 });
 		bulletImage.Load(_T("images\\battle\\bullet_elec_main.png"), { 5,16 });
 
 		playerData.maxhp = 40;
@@ -46,8 +45,8 @@ Player::Player(Type type, Type subType)
 		break;
 	case Type::Water:
 		pokemon = Pokemon::Articuno;
-		img_pokemon.Load(_T("images\\battle\\sprite_articuno.png"), { 69, 69 }, { 29, 28 }, { 13,23 });
-		img_pokemon.ScaleImage(1.2f, 1.2f);
+		img_mainPokemon.Load(_T("images\\battle\\sprite_articuno.png"), { 69, 69 }, { 29, 28 }, { 13,23 });
+		img_mainPokemon.ScaleImage(1.2f, 1.2f);
 		bulletImage.Load(_T("images\\battle\\bullet_ice.png"), { 7,15 });
 		bulletImage.ScaleImage(0.9f, 0.9f);
 
@@ -62,7 +61,7 @@ Player::Player(Type type, Type subType)
 		break;
 	case Type::Fire:
 		pokemon = Pokemon::Moltres;
-		img_pokemon.Load(_T("images\\battle\\sprite_moltres.png"), { 83, 75 }, { 35, 25 }, { 15,28 });
+		img_mainPokemon.Load(_T("images\\battle\\sprite_moltres.png"), { 83, 75 }, { 35, 25 }, { 15,28 });
 		bulletImage.Load(_T("images\\battle\\bullet_fire.png"), { 11,16 });
 		bulletImage.ScaleImage(0.9f, 0.9f);
 
@@ -109,7 +108,7 @@ Player::Player(Type type, Type subType)
 		break;
 	}
 
-	GameObject::Init(img_pokemon, { 250, 500 });
+	GameObject::Init(img_mainPokemon, { 250, 500 });
 	bullets = new PlayerBullet(bulletImage);
 	subBullets = new PlayerBullet(subBulletImage);
 }
@@ -297,6 +296,12 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 // 실제 플레이어의 이동을 수행한다.
 void Player::Update(const HWND& hWnd, int timerID)
 {
+	// 파트너 이동 관련 코드
+	auto& members = sceneManager->GetMemberMap();
+	for (const auto& member : GET_MEMBER_MAP) 
+		if (members.find(member.first) != members.end())
+			members[member.first]->SetPos(member.second.mBattleData.PosCenter);
+
 	if (playerData.isCanGo == false)
 		return;
 

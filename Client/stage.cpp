@@ -271,7 +271,7 @@ void Stage::Update(float elapsedTime)
 	if (sceneManager->IsLoading())
 		return;
 
-	if(_select_pokemon)
+	if (_select_pokemon)
 		mTwinkleCnt += elapsedTime * 3.f;
 
 	RECT rect;
@@ -293,49 +293,51 @@ void Stage::Update(float elapsedTime)
 			target->_select_index = StageElement::Null;
 		}
 
-		// Å¸°Ù ÀÌµ¿
-		if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
-		{
-			inputKey = VK_LEFT;
+		if (IsWindowActive(sceneManager->GetHwnd())) {
+			// Å¸°Ù ÀÌµ¿
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
+			{
+				inputKey = VK_LEFT;
 
-			if (!_select_pokemon) {
-				mRectTarget.left -= 200 * elapsedTime;
-				mRectTarget.right -= 200 * elapsedTime;
+				if (!_select_pokemon) {
+					mRectTarget.left -= 200 * elapsedTime;
+					mRectTarget.right -= 200 * elapsedTime;
+				}
 			}
-		}
-		// Å¸°Ù ÀÌµ¿
-		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
-		{
-			inputKey = VK_RIGHT;
+			// Å¸°Ù ÀÌµ¿
+			else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
+			{
+				inputKey = VK_RIGHT;
 
-			if (!_select_pokemon) {
-				mRectTarget.left += 200 * elapsedTime;
-				mRectTarget.right += 200 * elapsedTime;
+				if (!_select_pokemon) {
+					mRectTarget.left += 200 * elapsedTime;
+					mRectTarget.right += 200 * elapsedTime;
+				}
 			}
-		}
-		// Å¸°Ù ÀÌµ¿
-		else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
-		{
-			inputKey = VK_UP;
+			// Å¸°Ù ÀÌµ¿
+			else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
+			{
+				inputKey = VK_UP;
 
-			if (!_select_pokemon) {
-				mRectTarget.top -= 200 * elapsedTime;
-				mRectTarget.bottom -= 200 * elapsedTime;
+				if (!_select_pokemon) {
+					mRectTarget.top -= 200 * elapsedTime;
+					mRectTarget.bottom -= 200 * elapsedTime;
+				}
 			}
-		}
-		// Å¸°Ù ÀÌµ¿
-		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
-		{
-			inputKey = VK_DOWN;
+			// Å¸°Ù ÀÌµ¿
+			else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
+			{
+				inputKey = VK_DOWN;
 
-			if (!_select_pokemon) {
-				mRectTarget.top += 200 * elapsedTime;
-				mRectTarget.bottom += 200 * elapsedTime;
+				if (!_select_pokemon) {
+					mRectTarget.top += 200 * elapsedTime;
+					mRectTarget.bottom += 200 * elapsedTime;
+				}
 			}
-		}
-		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
-		{
-			inputKey = VK_RETURN;
+			else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+			{
+				inputKey = VK_RETURN;
+			}
 		}
 	}
 
@@ -453,6 +455,9 @@ void Stage::fingerController(float elpasedTime)
 	_select_pokemon_move += elpasedTime * 2.f;
 	if ((int)_select_pokemon_move == 2)
 		_select_pokemon_move = 0;
+
+	if (!IsWindowActive(sceneManager->GetHwnd()))
+		return;
 
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{

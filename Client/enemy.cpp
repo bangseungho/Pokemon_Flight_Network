@@ -337,29 +337,32 @@ void Range::Fire()
 {
 	if (mRecvData.Status == NetworkEnemyData::Status::ATTACK) {
 		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
-		mRecvData.Status = NetworkEnemyData::Status::MOVE;
 	}
+	else
+		return;
 
-	//RECT rectBody = GetRectBody();
-	//POINT bulletPos = { 0, };
-	//bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	//bulletPos.y = rectBody.bottom;
+	RECT rectBody = GetRectBody();
+	POINT bulletPos = { 0, };
+	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	bulletPos.y = rectBody.bottom;
 
-	//BulletData bulletData;
-	//bulletData.bulletType = GetType();
-	//bulletData.damage = data.damage;
-	//bulletData.speed = data.bulletSpeed;
+	BulletData bulletData;
+	bulletData.bulletType = GetType();
+	bulletData.damage = data.damage;
+	bulletData.speed = data.bulletSpeed;
 
-	//Vector2 unitVector = Vector2::Down();
-	//int randDegree = (rand() % 10) - 5;
+	Vector2 unitVector = Vector2::Down();
+	int randDegree = (rand() % 10) - 5;
 
-	//// 3 방향으로 탄막 발사
-	//unitVector = Rotate(unitVector, randDegree);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	//unitVector = Rotate(unitVector, 20);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	//unitVector = Rotate(unitVector, -40);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	// 3 방향으로 탄막 발사
+	unitVector = Rotate(unitVector, randDegree);
+	enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	unitVector = Rotate(unitVector, 20);
+	enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	unitVector = Rotate(unitVector, -40);
+	enemies->CreateBullet(bulletPos, bulletData, unitVector);
+
+	mRecvData.Status = NetworkEnemyData::Status::MOVE;
 }
 
 // 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
@@ -643,18 +646,16 @@ void EnemyController::CreateRecvRange(Vector2 pos)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		if (enemy != nullptr) {
 			enemy->Paint(hdc);
 		}
 	}
-	//bullets->Paint(hdc);
+	bullets->Paint(hdc);
 }
 void EnemyController::Update()
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Update();
@@ -669,7 +670,6 @@ void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
 }
 void EnemyController::Animate()
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Animate();

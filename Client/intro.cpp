@@ -182,6 +182,9 @@ void Menu::Update(float elapsedTime)
 {
 	mTwinkleCnt += elapsedTime * 3.f;
 
+	if(!IsWindowActive(sceneManager->GetHwnd()))
+		return;
+
 	if (GetAsyncKeyState(VK_UP) & 0x0001 && mFingerCount > 0)
 	{
 		mProducer = false;

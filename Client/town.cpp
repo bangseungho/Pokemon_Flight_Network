@@ -387,74 +387,77 @@ void Town::Update(float elapedTime)
 		mAdjValue = Vector2{ 0, 0 };
 	}
 
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
-		_exit = false;
-		mPlayer->mIsReady = false;
-		mPlayer->_dir = Dir::Left;
-		Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
-		mPlayer->aboutMapPos += interval;
 
-		if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 10)
-		{
-			_rectImage.right += interval.x;
-			_rectImage.left += interval.x;
-			mAdjValue -= interval;
+	if (IsWindowActive(sceneManager->GetHwnd())) {
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
+			_exit = false;
+			mPlayer->mIsReady = false;
+			mPlayer->_dir = Dir::Left;
+			Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
+			mPlayer->aboutMapPos += interval;
 
-			for (auto& townObject : mObjects) {
-				townObject->mPos -= interval;
-				townObject->ConvertToFRECT();
+			if (mPlayer->_cam.left < rectWindow.left && _rectImage.left > 10)
+			{
+				_rectImage.right += interval.x;
+				_rectImage.left += interval.x;
+				mAdjValue -= interval;
+
+				for (auto& townObject : mObjects) {
+					townObject->mPos -= interval;
+					townObject->ConvertToFRECT();
+				}
+
+				for (auto& npcObject : mNpcs) {
+					npcObject->mPos -= interval;
+					npcObject->ConvertToFRECT();
+				}
 			}
-
-			for (auto& npcObject : mNpcs) {
-				npcObject->mPos -= interval;
-				npcObject->ConvertToFRECT();
+			else {
+				mPlayer->_Pos += interval;
 			}
 		}
-		else {
+		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+			_exit = false;
+			mPlayer->_dir = Dir::Right;
+			Vector2 interval = { TPLAYER_SPEED * elapedTime, 0 };
+			mPlayer->aboutMapPos += interval;
+
+			if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
+			{
+				_rectImage.right += interval.x;
+				_rectImage.left += interval.x;
+				mAdjValue -= interval;
+
+				for (auto& townObject : mObjects) {
+					townObject->mPos -= interval;
+					townObject->ConvertToFRECT();
+				}
+
+				for (auto& npcObject : mNpcs) {
+					npcObject->mPos -= interval;
+					npcObject->ConvertToFRECT();
+				}
+			}
+			else
+				mPlayer->_Pos += interval;
+		}
+		else if (GetAsyncKeyState(VK_UP) & 0x8000) {
+			Vector2 interval = { 0, -TPLAYER_SPEED * elapedTime };
+			mPlayer->aboutMapPos += interval;
+			mPlayer->_dir = Dir::Up;
 			mPlayer->_Pos += interval;
 		}
-	}
-	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
-		_exit = false;
-		mPlayer->_dir = Dir::Right;
-		Vector2 interval = { TPLAYER_SPEED * elapedTime, 0 };
-		mPlayer->aboutMapPos += interval;
-
-		if (mPlayer->_cam.right > rectWindow.right && _rectImage.right < 748)
-		{
-			_rectImage.right += interval.x;
-			_rectImage.left += interval.x;
-			mAdjValue -= interval;
-
-			for (auto& townObject : mObjects) {
-				townObject->mPos -= interval;
-				townObject->ConvertToFRECT();
-			}
-
-			for (auto& npcObject : mNpcs) {
-				npcObject->mPos -= interval;
-				npcObject->ConvertToFRECT();
-			}
-		}
-		else
+		else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
+			_exit = false;
+			Vector2 interval = { 0, TPLAYER_SPEED * elapedTime };
+			mPlayer->aboutMapPos += interval;
+			mPlayer->_dir = Dir::Down;
 			mPlayer->_Pos += interval;
-	}
-	else if (GetAsyncKeyState(VK_UP) & 0x8000) {
-		Vector2 interval = { 0, -TPLAYER_SPEED * elapedTime };
-		mPlayer->aboutMapPos += interval;
-		mPlayer->_dir = Dir::Up;
-		mPlayer->_Pos += interval;
-	}
-	else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
-		_exit = false;
-		Vector2 interval = { 0, TPLAYER_SPEED * elapedTime };
-		mPlayer->aboutMapPos += interval;
-		mPlayer->_dir = Dir::Down;
-		mPlayer->_Pos += interval;
-	}
-	else if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _exit) {
-		GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
-		PostQuitMessage(0);
+		}
+		else if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _exit) {
+			GET_SINGLE(Network)->SendDataAndType(EndProcessing{ GET_SINGLE(Network)->GetClientIndex() });
+			PostQuitMessage(0);
+		}
 	}
 	else {
 		InvalidateRect(sceneManager->GetHwnd(), NULL, false);

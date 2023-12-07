@@ -95,6 +95,12 @@
 #undef WINVER
 #define WINVER 0x6000
 
+// 윈도우가 활성화 되어 있는 경우에만
+static bool IsWindowActive(HWND targetWindow)
+{
+	return GetForegroundWindow() == targetWindow;
+}
+
 class MyGameObject
 {
 public:
