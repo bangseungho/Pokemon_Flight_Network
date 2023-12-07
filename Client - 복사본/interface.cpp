@@ -15,7 +15,7 @@
 #define KEYDOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000 ? 1 : 0))
 #define KEYUP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000 ? 0 : 1))
 
-#define MOVE_UP 'W'
+#define MOVE_UP 'w'
 #define MOVE_LEFT 'A'
 #define MOVE_DOWN 'S'
 #define MOVE_RIGHT 'D'
@@ -84,7 +84,7 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 		case _T('Q'):
 			mPlayer->ActiveSkill(Skill::Identity);
 			break;
-		case _T('W'):
+		case _T('D'):
 			mPlayer->ActiveSkill(Skill::Sector);
 			break;
 		case _T('E'):
@@ -137,7 +137,7 @@ void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 {
 	if (sceneManager->GetScene() == Scene::Town)
 	{
-		if (wParam == 'A' || wParam == 'D' || wParam == 'W' || wParam == 'S')
+		if (wParam == 'A' || wParam == 'D' || wParam == 'D' || wParam == 'S')
 		{
 			town.StopPlayer();
 		}

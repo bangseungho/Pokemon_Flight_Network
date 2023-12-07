@@ -1,4 +1,3 @@
-#pragma once
 #include "..\Utils.h"
 #include <assert.h>
 #include "enemy.h"

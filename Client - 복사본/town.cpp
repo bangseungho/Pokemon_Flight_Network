@@ -95,9 +95,9 @@ void Town::Init()
 
 	// 절대 좌표값 출력을 위한 변수
 	mPlayer->aboutMapPos = { mPlayer->_Pos.x, mPlayer->_Pos.y };
-
+	mPlayer->mIsReady = false;
 	TownData::TownPlayerData playerData{ mPlayer->aboutMapPos, mPlayer->_rectDraw, mPlayer->_rectImage };
-	TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, false };
+	TownData sendData{ GET_SINGLE(Network)->GetClientIndex(), playerData, mPlayer->mIsReady, 0 };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 
 	soundManager->StopBGMSound();
@@ -222,7 +222,7 @@ void Town::Animate(float elpasedTime)
 {
 	static float accTime = 0.f;
 	accTime += elpasedTime;
-	
+
 	if (accTime >= 0.1f) {
 		if (mPlayer->_keepGoing == true)
 		{
@@ -325,14 +325,17 @@ void Town::Update(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
-	mPlayer->mIsReady = false;
+	bool allReady = all_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& a) {
+		return a.second.mTownData.IsReady == 1;
+		});
 
-	if (any_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& m) { return m.second.mTownData.CanGoNextScene == true; })) {
+	if (allReady) {
+		Sleep(10);
 		sceneManager->StartLoading(sceneManager->GetHwnd());
 		_nextFlow = Scene::Stage;
 		mAdjValue = Vector2{ 0, 0 };
-		mPlayer->mIsReady = false;
 	}
+
 
 	const RECT rectWindow = sceneManager->GetRectWindow();
 
@@ -386,6 +389,7 @@ void Town::Update(float elapedTime)
 
 	if (GetAsyncKeyState('A') & 0x8000) {
 		_exit = false;
+		mPlayer->mIsReady = false;
 		mPlayer->_dir = Dir::Left;
 		Vector2 interval = { -TPLAYER_SPEED * elapedTime, 0 };
 		mPlayer->aboutMapPos += interval;

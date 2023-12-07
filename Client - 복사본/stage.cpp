@@ -271,7 +271,7 @@ void Stage::Update(float elapsedTime)
 	if (sceneManager->IsLoading())
 		return;
 
-	if(_select_pokemon)
+	if (_select_pokemon)
 		mTwinkleCnt += elapsedTime * 3.f;
 
 	RECT rect;

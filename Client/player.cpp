@@ -337,7 +337,7 @@ void Player::Update(const HWND& hWnd, int timerID)
 		if (member.first == MY_INDEX) {
 
 			BattleData::BattlePlayerData PlayerData{ GetRectBody() ,GetRectImage(GetImage(),frame) };
-			BattleData sendData{ GET_SINGLE(Network)->GetClientIndex(), PlayerData };
+			BattleData sendData{ GET_SINGLE(Network)->GetClientIndex(), GetPosCenter().x, GetPosCenter().y, false,PlayerData };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 	}
