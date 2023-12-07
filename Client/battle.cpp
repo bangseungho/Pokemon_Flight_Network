@@ -2,6 +2,9 @@
 #include "battle.h"
 #include "timer.h"
 #include "sound.h"
+#include "player.h"
+#include "scene.h"
+#include "Network.h"
 
 extern SoundManager* soundManager;
 

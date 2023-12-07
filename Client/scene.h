@@ -17,6 +17,8 @@ private:
 	void DeleteScene(const HWND& hWnd);
 	void LoadScene(const HWND& hWnd);
 
+	unordered_map<uint8, class Player*> mMemberMap;
+
 public:
 	SceneManager();
 	void Init(const HWND& hWnd);
@@ -28,7 +30,8 @@ public:
 
 	HWND GetHwnd() const { return mHwnd; }
 	bool GetIsEnding() const { return isEnding; }
-	
+	unordered_map<uint8, class Player*>& GetMemberMap();
+
 	inline bool constexpr IsLoading()
 	{
 		return isLoading;

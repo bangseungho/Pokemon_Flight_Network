@@ -82,6 +82,10 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	case Scene::PhaseManager:
 		break;
 	case Scene::Battle: // 배틀 씬에서는 타이머 삭제뿐만 아니라 생성된 모든 객체들을 제거한다.
+		for (auto& member : mMemberMap)
+			delete member.second;
+
+		mMemberMap.clear();
 		delete mPlayer;
 		delete enemies;
 		delete effects;
@@ -128,6 +132,15 @@ void SceneManager::LoadScene(const HWND& hWnd)
 
 		// 플레이어의 스킬 매니저를 생성한다.
 		mPlayer->Init();
+
+		// 파트너 드로우
+		for (const auto& member : GET_MEMBER_MAP) {
+			if (MY_INDEX == member.first)
+				continue;
+
+			mMemberMap[member.first] = new Player(member.second.mSceneData.AirPokemon, member.second.mSceneData.LandPokemon);
+			mMemberMap[member.first]->Init();
+		}
 
 		// gameData의 스테이지에 따라 등장하는 적 포켓몬 데이터(hp, 범위, 공격력 등)를 각각 세팅한다.
 		enemies = new EnemyController();
@@ -228,7 +241,14 @@ void SceneManager::Paint()
 	case Scene::Battle:
 		battle.Paint(memDC, rectWindow, stage.GetStage());
 		boss->Paint(memDC);
+
+		for (auto& member : mMemberMap)
+			member.second->Paint(memDC);
+
 		mPlayer->Paint(memDC);
+
+
+
 		enemies->Paint(memDC);
 		mPlayer->PaintSkill(memDC);
 		effects->Paint(memDC);
@@ -265,6 +285,11 @@ void SceneManager::StartLoading(const HWND& hWnd)
 void SceneManager::StopLoading(const HWND& hWnd)
 {
 	isLoading = false;
+}
+
+unordered_map<uint8, class Player*>& SceneManager::GetMemberMap()
+{
+	return mMemberMap;
 }
 
 
