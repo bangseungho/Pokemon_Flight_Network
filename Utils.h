@@ -29,12 +29,22 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
+#include <gdiplus.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
 #include <mutex>
 #include <algorithm>
 #include <assert.h>
+
+#include <Windows.h>
+#include <time.h>
+#include <atlImage.h>
+#include <mmsystem.h>
+#include <cmath>
+#include <cassert>
+#include <array>
+#include <memory>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -463,13 +473,19 @@ struct PhaseData
 	int		InputKey;
 };
 
+struct ProcessData
+{
+	bool IsDeath = false;
+};
+
 struct BattleData
 {
 	uint8		PlayerIndex = 0;
 	Vector2		PosCenter = { 250.f, 500.f };
 	FRECT		RectBody = { 0.f, };
-	bool		IsCollide = false;
 	bool		IsFieldEnd = false;
+
+	ProcessData PData;
 };
 
 struct NetworkEnemyData
@@ -658,7 +674,7 @@ class NetworkPlayerData
 public:
 	NetworkPlayerData() {}
 	NetworkPlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
-	virtual ~NetworkPlayerData() {}
+	~NetworkPlayerData() {}
 
 public:
 	SOCKET		mSock;

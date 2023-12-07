@@ -147,10 +147,6 @@ void ProcessClient(ThreadSocket sock)
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
-
-			//bool allReady = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
-			//	return a.second.mTownData.IsReady == 1;
-			//	});
 		}
 #pragma endregion
 #pragma region Stage

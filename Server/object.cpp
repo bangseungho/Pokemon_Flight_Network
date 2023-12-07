@@ -8,6 +8,13 @@ GameObject::GameObject(const Vector2& pos, const POINT& imgSize)
 
 	SetPos(pos);
 }
+void GameObject::Init(ObjectImage& image, const Vector2& pos)
+{
+	this->image = &image;
+	bodySize = this->image->GetBodySize();
+
+	SetPos(pos);
+}
 void GameObject::Init(const Vector2& pos, const POINT& imgSize)
 {
 	bodySize = imgSize;

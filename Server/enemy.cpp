@@ -311,22 +311,6 @@ void Range::Fire()
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
 	bulletPos.y = rectBody.bottom;
 
-	//BulletData bulletData;
-	//bulletData.bulletType = GetType();
-	//bulletData.damage = data.damage;
-	//bulletData.speed = data.bulletSpeed;
-
-	//Vector2 unitVector = Vector2::Down();
-	//int randDegree = (rand() % 10) - 5;
-
-	//// 3 방향으로 탄막 발사
-	//unitVector = Rotate(unitVector, randDegree);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	//unitVector = Rotate(unitVector, 20);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	//unitVector = Rotate(unitVector, -40);
-	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
-
 	mSendData.Status = NetworkEnemyData::Status::ATTACK;
 	for (const auto& player : sPlayerMap) {
 		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
@@ -639,59 +623,22 @@ bool EnemyController::CheckHit()
 
 	return false;
 }
-//// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
-//bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
-//{
-//	for (size_t i = 0;i<enemies.size();++i)
-//	{
-//		if (enemies.at(i)->IsCollide(rectSrc) == true)
-//		{
-//			effects->CreateHitEffect(effectPoint, hitType);
-//			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
-//			if (enemies.at(i)->Hit(damage) == true)
-//			{
-//				EnemyController::Pop(i);
-//			}
-//			return true;
-//		}
-//	}
-//
-//	return false;
-//}
-//
-//// 플레이어 스킬과 적의 충돌 함수이다. 이펙트 위치를 랜덤으로 지정하여 죽었을 경우 자료구조에서 제거한다.
-//void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitType)
-//{
-//	for (size_t i = 0; i < enemies.size(); ++i)
-//	{
-//		if (enemies.at(i)->IsCollide(rectSrc) == true)
-//		{
-//			POINT effectPoint = enemies.at(i)->GetPosCenter();
-//			GetRandEffectPoint(effectPoint);
-//			effects->CreateHitEffect(effectPoint, hitType);
-//			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
-//			if (enemies.at(i)->Hit(calDamage) == true)
-//			{
-//				EnemyController::Pop(i);
-//			}
-//		}
-//	}
-//}
-//
-//// 적 탄막 생성함수 및 이동 함수 및 삭제 함수
-//void EnemyController::CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector)
-//{
-//	bullets->CreateBullet(center, data, unitVector);
-//}
-//void EnemyController::CreateBullet(const POINT& center, const BulletData& data, Dir dir)
-//{
-//	bullets->CreateBullet(center, data, dir);
-//}
-//void EnemyController::MoveBullets()
-//{
-//	bullets->Update();
-//}
-//void EnemyController::DestroyCollideBullet(const RECT& rect)
-//{
-//	bullets->DestroyCollideBullet(rect);
-//}
+// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
+bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
+{
+	for (size_t i = 0;i<enemies.size();++i)
+	{
+		if (enemies.at(i)->IsCollide(rectSrc) == true)
+		{
+			//effects->CreateHitEffect(effectPoint, hitType);
+			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
+			if (enemies.at(i)->Hit(damage) == true)
+			{
+				EnemyController::Pop(i);
+			}
+			return true;
+		}
+	}
+
+	return false;
+}

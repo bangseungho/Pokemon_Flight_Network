@@ -230,8 +230,10 @@ void Player::SetPosDest()
 	}
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
-
-	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), false, gui->IsFieldEnd()};
+	
+	
+	ProcessData processData{ playerData.isDeath };
+	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), processData };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -518,9 +520,9 @@ void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberInde
 		effectPoint = GetPosCenter();
 		GetRandEffectPoint(effectPoint);
 	}
+	effects->CreateHitEffect(effectPoint, hitType); // 피격 효과를 이펙트 매니저에 추가한다.
 
 	if (MY_INDEX == memberIndex) {
-		effects->CreateHitEffect(effectPoint, hitType); // 피격 효과를 이펙트 매니저에 추가한다.
 		gui->DisplayHurtFrame(hitType); // 피격시 화면에 생성되는 프레임
 		battle.ShakeMap(); // 맵 흔들기
 
