@@ -247,19 +247,38 @@ void PlayerBullet::Update()
 	}
 }
 
+//// 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
+//void EnemyBullet::Update()
+//{
+//	for (size_t i = 0; i < bullets.size(); ++i)
+//	{
+//		if (mPlayer->IsCollide(bullets.at(i)->GetRect()) == true)
+//		{
+//			mPlayer->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
+//			BulletController::Pop(i);
+//		}
+//		else if (bullets.at(i)->Update() == false)
+//		{
+//			BulletController::Pop(i);
+//		}
+//	}
+//}
+
 // 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
 void EnemyBullet::Update()
 {
-	for (size_t i = 0; i < bullets.size(); ++i)
-	{
-		if (mPlayer->IsCollide(bullets.at(i)->GetRect()) == true)
+	for (auto& member : sceneManager->GetMemberMap()) {
+		for (size_t i = 0; i < bullets.size(); ++i)
 		{
-			mPlayer->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
-			BulletController::Pop(i);
-		}
-		else if (bullets.at(i)->Update() == false)
-		{
-			BulletController::Pop(i);
+			if (member.second->IsCollide(bullets.at(i)->GetRect()) == true)
+			{
+				member.second->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos(), member.first);
+				BulletController::Pop(i);
+			}
+			else if (bullets.at(i)->Update() == false)
+			{
+				BulletController::Pop(i);
+			}
 		}
 	}
 }

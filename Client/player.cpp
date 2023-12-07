@@ -298,9 +298,14 @@ void Player::Update(const HWND& hWnd, int timerID)
 {
 	// 파트너 이동 관련 코드
 	auto& members = sceneManager->GetMemberMap();
-	for (const auto& member : GET_MEMBER_MAP) 
+	for (const auto& member : GET_MEMBER_MAP) {
+		if (member.first == MY_INDEX)
+			continue;
+
 		if (members.find(member.first) != members.end())
 			members[member.first]->SetPos(member.second.mBattleData.PosCenter);
+	}
+
 
 	if (playerData.isCanGo == false)
 		return;
@@ -502,7 +507,7 @@ void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector
 }
 
 // 플레이어 피격 함수로 이펙트는 생성되어야 한다면 이펙트 매니저의 자료구조에 해당 이펙트를 추가한다.
-void Player::Hit(float damage, Type hitType, POINT effectPoint)
+void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberIndex)
 {
 	if (playerData.isDeath == true)
 	{
@@ -513,20 +518,23 @@ void Player::Hit(float damage, Type hitType, POINT effectPoint)
 		effectPoint = GetPosCenter();
 		GetRandEffectPoint(effectPoint);
 	}
-	effects->CreateHitEffect(effectPoint, hitType); // 피격 효과를 이펙트 매니저에 추가한다.
-	gui->DisplayHurtFrame(hitType); // 피격시 화면에 생성되는 프레임
 
-	if (playerData.isInvincible == true)
-	{
-		return;
-	}
+	if (MY_INDEX == memberIndex) {
+		effects->CreateHitEffect(effectPoint, hitType); // 피격 효과를 이펙트 매니저에 추가한다.
+		gui->DisplayHurtFrame(hitType); // 피격시 화면에 생성되는 프레임
+		battle.ShakeMap(); // 맵 흔들기
 
-	battle.ShakeMap(); // 맵 흔들기
-	damage = CalculateDamage(damage, playerData.type, hitType); // 데미지 계산
-	if ((playerData.hp -= damage) <= 0) // 계산된 데미지를 통해서 플레이어 hp 감소시 0보다 작다면 폭발 효과 이펙트 매니저에 추가하고 플레이어 사망 함수 호출
-	{
-		effects->CreateExplosionEffect(GetPosCenter(), playerData.type);
-		Player::Death();
+		if (playerData.isInvincible == true)
+		{
+			return;
+		}
+
+		damage = CalculateDamage(damage, playerData.type, hitType); // 데미지 계산
+		if ((playerData.hp -= damage) <= 0) // 계산된 데미지를 통해서 플레이어 hp 감소시 0보다 작다면 폭발 효과 이펙트 매니저에 추가하고 플레이어 사망 함수 호출
+		{
+			effects->CreateExplosionEffect(GetPosCenter(), playerData.type);
+			Player::Death();
+		}
 	}
 
 	switch (hitType) // 맞은 탄막의 속성에 따라 사운드 재생

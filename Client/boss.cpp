@@ -8,6 +8,7 @@
 #include "skill.h"
 #include "scene.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "phase.h"
 
@@ -148,7 +149,7 @@ Boss::Boss()
 	ObjectImage imgBullet;
 	image = new ObjectImage();
 	
-	switch (gameData.stage)
+	switch (MEMBER_MAP(MP_INDEX).mStageData.Stage)
 	{
 	case StageElement::Elec:
 		image->Load(_T("images\\battle\\sprite_boss_elec.png"), { 73,68 }, { 3,7 }, { 69,50 });

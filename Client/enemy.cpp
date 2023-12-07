@@ -386,7 +386,7 @@ void EnemyController::Pop(size_t& index)
 EnemyController::EnemyController()
 {
 	ObjectImage imgRangeBullet;
-	switch (gameData.stage)
+	switch (MEMBER_MAP(MP_INDEX).mStageData.Stage)
 	{
 	case StageElement::Elec:
 		meleeData.type = Type::Elec;

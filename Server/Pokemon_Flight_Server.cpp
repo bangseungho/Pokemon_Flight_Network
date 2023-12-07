@@ -68,9 +68,6 @@ void ProcessClient(ThreadSocket sock)
 			for (auto& player : sPlayerMap) {
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
-				if (threadId == player.first)
-					continue;
-
 				// 모든 플레이어에게 자신의 데이터 송신
 				Data::SendDataAndType<SceneData>(player.second.mSock, sPlayerMap[threadId].mSceneData);
 				Data::SendDataAndType<TownData>(player.second.mSock, sPlayerMap[threadId].mTownData);

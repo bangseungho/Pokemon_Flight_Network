@@ -48,8 +48,6 @@ void T_Battle_Invalidate()
 
 void T_Battle_Animate()
 {
-	mPlayer->Animate(sceneManager->GetHwnd()); // 플레이어 스프라이트 이미지 애니메이션 함수
-
 	for (auto& member : sceneManager->GetMemberMap())
 		member.second->Animate(sceneManager->GetHwnd());
 
