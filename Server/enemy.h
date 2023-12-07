@@ -1,10 +1,9 @@
 #pragma once
 #include "object.h"
-//
+
 //struct BulletData;
 //class Player;
 //class EnemyBullet;
-
 typedef struct EnemyData {
 	Type type = Type::Empty;
 
@@ -35,54 +34,55 @@ protected:
 
 	Dir GetDir() const;
 	virtual void SetPosDest() abstract override;
-//
-//	inline void ResetAttackDelay()
-//	{
-//		data.crntAttackDelay = data.attackDelay;
-//	}
-//	inline bool IsClearAttackDelay() const
-//	{
-//		return (data.crntAttackDelay <= 0);
-//	}
+
+	inline void ResetAttackDelay()
+	{
+		data.crntAttackDelay = data.attackDelay;
+	}
+	inline bool IsClearAttackDelay() const
+	{
+		return (data.crntAttackDelay <= 0);
+	}
 public:
 	Enemy(const Vector2& pos, const EnemyData& data);
 	virtual void Update() override;
-//	virtual void CheckAttackDelay() abstract;
-//
+	virtual void CheckAttackDelay() abstract;
+
 	int GetSpriteRow();
 	NetworkEnemyData& GetSendData() { return mSendData; }
-//	bool Hit(float damage);
-//
-//	inline Type GetType() const
-//	{
-//		return data.type;
-//	}
+	bool Hit(float damage);
+
+	inline Type GetType() const
+	{
+		return data.type;
+	}
 	uint32 GetID() const { return id; }
 
 public:
 	static uint32 sId;
+	NetworkPlayerData* mTarget;
 };
 
 class Melee : public Enemy {
 private:
 	void SetPosDest();
-	//bool CheckCollidePlayer();
+	bool CheckCollidePlayer();
 public:
 	Melee(const Vector2& pos, const EnemyData& data);
 	void Update() override;
 
 private:
-//	void CheckAttackDelay() override;
+	void CheckAttackDelay() override;
 };
 
 class Range : public Enemy {
 private:
 	void SetPosDest();
-//	void Fire();
+	void Fire();
 public:
 	Range(const Vector2& pos, const EnemyData& data);
 	void Update() override;
-//	void CheckAttackDelay() override;
+	void CheckAttackDelay() override;
 };
 
 class EnemyController {
@@ -101,13 +101,14 @@ private:
 	int createAmount_Melee = 0;
 	int createAmount_Range = 0;
 
-	//void Pop(size_t& index);
+	void Pop(size_t& index);
 public:
 	EnemyController();
 	~EnemyController();
 	void CreateCheckMelee();
 	void CreateCheckRange();
 	void Update();
+	bool CheckHit(); // Temp
 	//bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	//void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 
@@ -120,13 +121,13 @@ public:
 	{
 		return enemies.empty();
 	}
-	//inline void CheckAttackDelay()
-	//{
-	//	for (Enemy* enemy : enemies)
-	//	{
-	//		enemy->CheckAttackDelay();
-	//	}
-	//}
+	inline void CheckAttackDelay()
+	{
+		for (Enemy* enemy : enemies)
+		{
+			enemy->CheckAttackDelay();
+		}
+	}
 
 public:
 	void ShowEnemyCount() const;

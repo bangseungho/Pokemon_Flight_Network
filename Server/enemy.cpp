@@ -16,7 +16,6 @@
 //extern GUIManager* gui;
 //extern PhaseManager phase;
 extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
-
 uint32 Enemy::sId = 0;
 
 // 적 생성자 타입을 받아서 업데이트한다.
@@ -84,7 +83,7 @@ Dir Enemy::GetDir() const
 	}
 }
 
-// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 플레이어쪽으로 이동하도록 한다.
+// 플레이어 방향 벡터를 구하고 근거리 적 몬스터의 위치를 가장 가까운 플레이어쪽으로 이동하도록 한다.
 void Melee::SetPosDest()
 {
 	if (IsMove() == false)
@@ -92,8 +91,22 @@ void Melee::SetPosDest()
 		return;
 	}
 
+
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - Vector2{ sPlayerMap[0].mBattleData.PosX, sPlayerMap[0].mBattleData.PosY };
+	float minLength = numeric_limits<float>::infinity();
+
+	for (auto& player : sPlayerMap) {
+		float length = Vector2::GetNorm(posCenter - player.second.mBattleData.PosCenter);
+		if (minLength >= length) {
+			minLength = length;
+			mTarget = &player.second;
+		}
+	}
+
+	if (mTarget == nullptr)
+		return;
+
+	const Vector2 vectorToPlayer = posCenter - mTarget->mBattleData.PosCenter;
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -144,19 +157,19 @@ Melee::Melee(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
+	mSendData.IsCollide = false;
 	if (IsMove() == false)
 	{
 		return;
 	}
-	//else if (CheckCollidePlayer() == true)
-	//{
-	//	//mPlayer->Hit(data.damage, GetType());
-	//	//effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
-	//	return;
-	//}
-
-	SetPosDest();
-	SetPos(posDest);
+	else if (CheckCollidePlayer() == true)
+	{
+		mSendData.IsCollide = true;
+	}
+	else {
+		SetPosDest();
+		SetPos(posDest);
+	}
 
 	mSendData.Status = NetworkEnemyData::Status::MOVE;
 	mSendData.Pos = GetPosCenter();
@@ -233,98 +246,117 @@ int Enemy::GetSpriteRow()
 	return spriteRow;
 }
 
-//// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
-//bool Melee::CheckCollidePlayer()
-//{
-//	const RECT rectBody = GetRectBody();
-//	if (mPlayer->IsCollide(rectBody) == true)
-//	{
-//		StopMove();
-//		SetAction(Action::Attack, data.frameNum_Atk);
-//		ResetAttackDelay();
-//
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
-//// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
-//bool Enemy::Hit(float damage)
-//{
-//	if ((data.hp -= damage) <= 0)
-//	{
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
-//// 적이 공격을 하고 나서 딜레이를 주는 함수
-//void Melee::CheckAttackDelay()
-//{
-//	if (IsMove() == false)
-//	{
-//		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
-//		if (IsClearAttackDelay() == true) // 공격 딜레이가 끝났다면 움직이기 시작
-//		{
-//			StartMove();
-//		}
-//	}
-//}
-//void Range::CheckAttackDelay()
-//{
-//	if (IsMove() == false)	
-//	{
-//		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
-//		if (IsClearAttackDelay() == true)
-//		{
-//			Fire();
-//			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
-//		}
-//	}
-//}
-//
-//// 원거리 적 스킬 발사 함수
-//void Range::Fire()
-//{
-//	SetAction(Action::Attack, data.frameNum_Atk);
-//
-//	RECT rectBody = GetRectBody();
-//	POINT bulletPos = { 0, };
-//	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-//	bulletPos.y = rectBody.bottom;
-//
-//	BulletData bulletData;
-//	bulletData.bulletType = GetType();
-//	bulletData.damage = data.damage;
-//	bulletData.speed = data.bulletSpeed;
-//
-//	Vector2 unitVector = Vector2::Down();
-//	int randDegree = (rand() % 10) - 5;
-//
-//	// 3 방향으로 탄막 발사
-//	unitVector = Rotate(unitVector, randDegree);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//	unitVector = Rotate(unitVector, 20);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//	unitVector = Rotate(unitVector, -40);
-//	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-//}
-//
-//// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
-//void EnemyController::Pop(size_t& index)
-//{
-//	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
-//	soundManager->PlayEffectSound(EffectSound::Explosion);
-//	enemies[index--] = enemies.back();
-//	enemies.pop_back();
-//}
+// 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
+bool Melee::CheckCollidePlayer()
+{
+	if (mTarget == nullptr)
+		return false;
+
+	const RECT rectBody = GetRectBody();
+	const RECT playerBody = mTarget->mBattleData.RectBody;
+
+	if (IsCollide(playerBody) == true)
+	{
+		StopMove();
+		ResetAttackDelay();
+		mSendData.TargetIndex = mTarget->mBattleData.PlayerIndex;
+
+		return true;
+	}
+
+	return false;
+}
+
+// 적이 피격될 경우 데미지를 입힌다. 만약 피가 0이하일 경우 죽었음을 나타낸다.
+bool Enemy::Hit(float damage)
+{
+	if ((data.hp -= damage) <= 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+// 적이 공격을 하고 나서 딜레이를 주는 함수
+void Melee::CheckAttackDelay()
+{
+	if (IsMove() == false)
+	{
+		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
+		if (IsClearAttackDelay() == true) // 공격 딜레이가 끝났다면 움직이기 시작
+		{
+			StartMove();
+		}
+	}
+}
+void Range::CheckAttackDelay()
+{
+	if (IsMove() == false)	
+	{
+		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
+		if (IsClearAttackDelay() == true)
+		{
+			Fire();
+			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
+		}
+	}
+}
+
+// 원거리 적 스킬 발사 함수
+void Range::Fire()
+{
+	RECT rectBody = GetRectBody();
+	POINT bulletPos = { 0, };
+	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	bulletPos.y = rectBody.bottom;
+
+	//BulletData bulletData;
+	//bulletData.bulletType = GetType();
+	//bulletData.damage = data.damage;
+	//bulletData.speed = data.bulletSpeed;
+
+	//Vector2 unitVector = Vector2::Down();
+	//int randDegree = (rand() % 10) - 5;
+
+	//// 3 방향으로 탄막 발사
+	//unitVector = Rotate(unitVector, randDegree);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, 20);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, -40);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+
+	mSendData.Status = NetworkEnemyData::Status::ATTACK;
+	for (const auto& player : sPlayerMap) {
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	}
+}
+
+// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
+void EnemyController::Pop(size_t& index)
+{
+	//effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
+	//soundManager->PlayEffectSound(EffectSound::Explosion);
+
+	for (const auto& player : sPlayerMap) {
+		enemies[index]->GetSendData().Status = NetworkEnemyData::Status::DEATH;
+		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies[index]->GetSendData());
+	}
+
+	enemies[index] = enemies.back();
+	enemies[index]->GetSendData().ID = index;
+	enemies[index--]->GetSendData().Status = NetworkEnemyData::Status::MOVE;
+	Enemy::sId--;
+
+	enemies.pop_back();
+}
 
 // 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
 EnemyController::EnemyController()
 {
-	switch (sPlayerMap[0].mStageData.Stage)
+	// 배열의 맨 처음 플레이어의 스테이지 기준 어차피 똑같음
+	switch (sPlayerMap.begin()->second.mStageData.Stage)
 	{
 	case StageElement::Elec:
 		meleeData.type = Type::Elec;
@@ -496,12 +528,15 @@ void EnemyController::CreateCheckMelee()
 	//{
 	//	return;
 	//}
-	//else if (gui->IsFieldEnd() == true)
-	//{
-	//	gameData.ClearRecord++;
+	// 
 
-	//	return;
-	//}
+	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+		return a.second.mBattleData.IsFieldEnd == true;
+		});
+	if (isFieldEnd == true)
+	{
+		return;
+	}
 
 	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
 	delay_Melee += ELAPSE_BATTLE_INVALIDATE;
@@ -526,7 +561,7 @@ void EnemyController::CreateCheckMelee()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 
@@ -537,10 +572,14 @@ void EnemyController::CreateCheckRange()
 	//{
 	//	return;
 	//}
-	//else if (gui->IsFieldEnd() == true)
-	//{
-	//	return;
-	//}
+
+	bool isFieldEnd = std::any_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+		return a.second.mBattleData.IsFieldEnd == true;
+		});
+	if (isFieldEnd == true)
+	{
+		return;
+	}
 
 	delay_Range += ELAPSE_BATTLE_INVALIDATE;
 	if (delay_Range < createDelay_Range)
@@ -564,7 +603,7 @@ void EnemyController::CreateCheckRange()
 	}
 
 #ifdef _DEBUG 
-	mEnemyController->ShowEnemyCount(); // 적 객체 개수 확인
+	ShowEnemyCount(); // 적 객체 개수 확인
 #endif
 }
 
@@ -574,6 +613,8 @@ void EnemyController::Update()
 	{
 		enemy->Update();
 	}
+
+	CheckHit();
 }
 
 void EnemyController::ShowEnemyCount() const
@@ -582,6 +623,22 @@ void EnemyController::ShowEnemyCount() const
 		cout << "EnemyCount: " << enemies.size() << endl;
 }
 
+// 임시 충돌 처리 
+bool EnemyController::CheckHit()
+{
+	for (size_t i = 0;i<enemies.size();++i)
+	{
+		for (const auto& player : sPlayerMap) {
+			const RECT playerBody = player.second.mBattleData.RectBody;
+			if (enemies.at(i)->IsCollide(playerBody) == true) {
+				EnemyController::Pop(i);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 //// 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 //bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 //{

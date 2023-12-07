@@ -23,7 +23,7 @@
 #define DEGREE_TO_RADIAN(degree) ((PI/180) * (degree))
 #define RADIAN_TO_DEGREE(radian) ((180/PI) * (radian))
 
-#include <winsock2.h> 
+#include <winsock2.h>
 #include <ws2tcpip.h> 
 #include <tchar.h>
 #include <stdio.h>
@@ -33,6 +33,8 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include <algorithm>
+#include <assert.h>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -395,6 +397,7 @@ typedef struct FRECT {
 
 }FRECT;
 
+// 게임 오브젝트의 사이즈를 반환
 Vector2 Rotate(Vector2 vector, float degree);
 void Rotate(const Vector2& vSrc, const Vector2& vDst, Vector2& vector, float t);
 bool OutOfRange(const RECT& rect, const RECT& rectRange);
@@ -462,10 +465,11 @@ struct PhaseData
 
 struct BattleData
 {
-	uint8	PlayerIndex = 0;
-	float	PosX;
-	float	PosY;
-	bool	IsCollider;
+	uint8		PlayerIndex = 0;
+	Vector2		PosCenter = { 250.f, 500.f };
+	FRECT		RectBody = { 0.f, };
+	bool		IsCollide = false;
+	bool		IsFieldEnd = false;
 };
 
 struct NetworkEnemyData
@@ -480,13 +484,17 @@ struct NetworkEnemyData
 		NONE,
 		CREATE,
 		MOVE,
+		ATTACK,
+		DEATH,
 	};
 
 	AttackType	AttackType = AttackType::NONE;
 	Status		Status = Status::NONE;
-	uint8		ID = 0;
+	uint32		ID = 0;
 	Vector2		Pos = { 0.f, 0.f };
 	int			SpriteRow = 0;
+	bool		IsCollide = false;
+	uint8		TargetIndex = 0;
 };
 
 struct SceneData
@@ -585,7 +593,7 @@ public:
 			return DataType::ENEMY_OBJECT_DATA;
 		else if (std::is_same_v<T, SceneData>)
 			return DataType::SCENE_DATA;
-		else if (std::is_same_v<T, EndProcessing>)
+		else if (std::is_convertible_v<T, EndProcessing>)
 			return DataType::END_PROCESSING;
 		else
 			return DataType::NONE_DATA;

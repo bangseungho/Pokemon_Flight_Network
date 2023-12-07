@@ -24,7 +24,7 @@ typedef struct PlayerData {
 
 	bool isCanGo = false;
 	bool isDeath = false;
-	bool isInvincible = false;
+	bool isInvincible = true;
 }PlayerData;
 
 class Player : public GameObject, public IControllable, public IAnimatable {

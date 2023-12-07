@@ -7,6 +7,7 @@
 #include "interface.h"
 #include "boss.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "phase.h"
 
@@ -124,7 +125,7 @@ void Enemy::Paint(const HDC& hdc, int spriteRow)
 }
 void Melee::Paint(const HDC& hdc)
 {
-	const int spriteRow = mSpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
+	const int spriteRow = mRecvData.SpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
 	Enemy::Paint(hdc, spriteRow);
 }
 void Range::Paint(const HDC& hdc)
@@ -147,37 +148,42 @@ void Enemy::Update()
 
 void Enemy::SetSpriteRow(int spriteRow)
 {
-	mSpriteRow = spriteRow;
+	mRecvData.SpriteRow = spriteRow;
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
-	if (IsMove() == false)
+/*	if (IsMove() == false)
 	{
 		return;
 	}
-	else if (CheckCollidePlayer() == true)
+	else */if (CheckRecvCollidePlayer() == true)
 	{
-		mPlayer->Hit(data.damage, GetType());
-		effects->CreateHitEffect(mPlayer->GetPosCenter(), GetType());
+		if (mRecvData.TargetIndex == MY_INDEX) // 적의 타겟이 자신인 경우에만 피를 깎는다.
+			mPlayer->Hit(data.damage, GetType());
+
+		const Vector2 targetPos = MEMBER_MAP(mRecvData.TargetIndex).mBattleData.PosCenter;
+		effects->CreateHitEffect(targetPos, GetType());
 		return;
 	}
 
-	SetPosDest();
-	SetPos(posDest);
+	//SetPosDest();
+	//SetPos(posDest);
 }
 
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
 void Range::Update()
 {
-	if (IsMove() == false)
-	{
-		return;
-	}
+	Fire();
 
-	SetPosDest();
-	SetPos(posDest);
+	//if (IsMove() == false)
+	//{
+	//	return;
+	//}
+
+	//SetPosDest();
+	//SetPos(posDest);
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -254,7 +260,7 @@ void Enemy::Animate()
 		else if (isRevFrame == true && frame < data.frameNum_AtkRev)
 		{
 			isRevFrame = false;
-			SetAction(Action::Idle, data.frameNum_Idle);
+			IAnimatable::SetAction(Action::Idle, data.frameNum_Idle);
 		}
 		break;
 	default:
@@ -267,15 +273,26 @@ void Enemy::Animate()
 bool Melee::CheckCollidePlayer()
 {
 	const RECT rectBody = GetRectBody();
-	if (mPlayer->IsCollide(rectBody) == true)
+	if (mPlayer->IsCollide(rectBody))
 	{
 		StopMove();
-		SetAction(Action::Attack, data.frameNum_Atk);
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
 		ResetAttackDelay();
 
 		return true;
 	}
 
+	return false;
+}
+
+bool Melee::CheckRecvCollidePlayer()
+{
+	if (mRecvData.IsCollide)
+	{
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+		mRecvData.IsCollide = false;
+		return true;
+	}
 	return false;
 }
 
@@ -318,28 +335,31 @@ void Range::CheckAttackDelay()
 // 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
-	SetAction(Action::Attack, data.frameNum_Atk);
+	if (mRecvData.Status == NetworkEnemyData::Status::ATTACK) {
+		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+		mRecvData.Status = NetworkEnemyData::Status::MOVE;
+	}
 
-	RECT rectBody = GetRectBody();
-	POINT bulletPos = { 0, };
-	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	bulletPos.y = rectBody.bottom;
+	//RECT rectBody = GetRectBody();
+	//POINT bulletPos = { 0, };
+	//bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	//bulletPos.y = rectBody.bottom;
 
-	BulletData bulletData;
-	bulletData.bulletType = GetType();
-	bulletData.damage = data.damage;
-	bulletData.speed = data.bulletSpeed;
+	//BulletData bulletData;
+	//bulletData.bulletType = GetType();
+	//bulletData.damage = data.damage;
+	//bulletData.speed = data.bulletSpeed;
 
-	Vector2 unitVector = Vector2::Down();
-	int randDegree = (rand() % 10) - 5;
+	//Vector2 unitVector = Vector2::Down();
+	//int randDegree = (rand() % 10) - 5;
 
-	// 3 방향으로 탄막 발사
-	unitVector = Rotate(unitVector, randDegree);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	unitVector = Rotate(unitVector, 20);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
-	unitVector = Rotate(unitVector, -40);
-	enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//// 3 방향으로 탄막 발사
+	//unitVector = Rotate(unitVector, randDegree);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, 20);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
+	//unitVector = Rotate(unitVector, -40);
+	//enemies->CreateBullet(bulletPos, bulletData, unitVector);
 }
 
 // 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
@@ -347,7 +367,15 @@ void EnemyController::Pop(size_t& index)
 {
 	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
 	soundManager->PlayEffectSound(EffectSound::Explosion);
-	enemies[index--] = enemies.back();
+
+	// 2023-12-07 추가 상태 변경
+	NetworkEnemyData recvData = enemies.at(index)->GetRecvData();
+	recvData.Status = NetworkEnemyData::Status::MOVE;
+	recvData.ID = (uint32)index;
+
+	enemies[index] = enemies.back();
+	enemies[index--]->SetRecvData(move(recvData));
+
 	enemies.pop_back();
 }
 
@@ -615,14 +643,18 @@ void EnemyController::CreateRecvRange(Vector2 pos)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Paint(hdc);
+		if (enemy != nullptr) {
+			enemy->Paint(hdc);
+		}
 	}
 	//bullets->Paint(hdc);
 }
 void EnemyController::Update()
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Update();
@@ -632,16 +664,22 @@ void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
 {
 	if (enemies[recvData.ID] != nullptr) {
 		enemies[recvData.ID]->SetPos(recvData.Pos);
-		enemies[recvData.ID]->SetSpriteRow(recvData.SpriteRow);
+		enemies[recvData.ID]->SetRecvData(move(recvData));
 	}
-	
 }
 void EnemyController::Animate()
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Animate();
 	}
+}
+
+// 임시 충돌 처리 확인 용도
+void EnemyController::CheckHit(uint32 id)
+{
+	EnemyController::Pop(id);
 }
 
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.

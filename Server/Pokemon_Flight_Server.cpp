@@ -1,10 +1,6 @@
 ﻿#include "..\Utils.h"
-#include <Windows.h>
-#include <iostream>
 #include <fstream>
-#include <string>
 #include <thread>
-#include <algorithm>
 
 #include "Timer.h"
 #include "Battle.h"
@@ -150,14 +146,14 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			bool allReady = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
-					return a.second.mTownData.IsReady == 1;
-				});
-			data.CanGoNextScene = allReady;
-
 			for (const auto& player : sPlayerMap) {
 				Data::SendDataAndType<TownData>(player.second.mSock, data);
+				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 			}
+
+			//bool allReady = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+			//	return a.second.mTownData.IsReady == 1;
+			//	});
 		}
 #pragma endregion
 #pragma region Stage
@@ -177,15 +173,11 @@ void ProcessClient(ThreadSocket sock)
 
 			// 모든 플레이어가 준비되었다면 메인 플레이어의 다음 씬 플래그를 true로 설정
 			if (allReady)
-				sPlayerMap[mainPlayerIndex].mStageData.CanGoNextScene = true;
+				data.CanGoNextScene = true;
 
 			// 메인 플레이어의 화면 동시 송출
 			for (const auto& player : sPlayerMap) {
-				Data::SendDataAndType<StageData>(player.second.mSock, sPlayerMap[mainPlayerIndex].mStageData);
-			}
-
-			for ( auto& player : sPlayerMap) {
-				player.second.mStageData.InputKey = 0;
+				Data::SendDataAndType<StageData>(player.second.mSock, data);
 			}
 		}
 #pragma endregion
@@ -208,7 +200,13 @@ void ProcessClient(ThreadSocket sock)
 #pragma region Battle
 		else if (dataType == DataType::BATTLE_DATA) {
 			auto& data = sPlayerMap[threadId].mBattleData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
 			Data::RecvData<BattleData>(clientSock, data);
+
+			for (const auto& player : sPlayerMap) {
+				Data::SendDataAndType<BattleData>(player.second.mSock, data);
+			}
 		}
 #pragma endregion
 	}
@@ -234,6 +232,7 @@ void ProcessBattle()
 		Battle battle;
 		battle.Init();
 		while (true) {
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
 			GET_SINGLE(Timer)->Update();
 			battle.Update(DELTA_TIME);
 		}

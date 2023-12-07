@@ -103,7 +103,7 @@ protected:
 class IAnimatable abstract : public ISprite {
 private:
 	Action action = Action::Idle;
-protected:
+public:
 	bool isRevFrame = false;
 
 	inline Action GetAction() const
@@ -116,4 +116,6 @@ protected:
 		this->action = action;
 		this->isRevFrame = false;
 	}
+
+
 };

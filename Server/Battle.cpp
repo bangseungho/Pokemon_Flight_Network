@@ -28,8 +28,8 @@ void Battle::Update(float elapsedTime)
 
 void Battle::Invalidata()
 {
-	// 일정 타이머에 맞게 적 객체 생성
 	mEnemyController->CreateCheckMelee();
 	mEnemyController->CreateCheckRange();
+	mEnemyController->CheckAttackDelay();
 	mEnemyController->Update();
 }
