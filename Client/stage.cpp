@@ -298,9 +298,17 @@ void Stage::Update(float elapsedTime)
 		{
 			inputKey = VK_LEFT;
 
-			if (!_select_pokemon) {
-				mRectTarget.left -= 200 * elapsedTime;
-				mRectTarget.right -= 200 * elapsedTime;
+			if (moveX > -100)
+			{
+				moveX -= MAPSCROLL_SPEED;
+
+				for (int i = 0; i < STAGE_NUM; i++)
+				{
+					if (!_select_pokemon) {
+						mRectTarget.left -= 200 * elapsedTime;
+						mRectTarget.right -= 200 * elapsedTime;
+					}
+				}
 			}
 		}
 		// Å¸°Ù ÀÌµ¿
@@ -308,9 +316,17 @@ void Stage::Update(float elapsedTime)
 		{
 			inputKey = VK_RIGHT;
 
-			if (!_select_pokemon) {
-				mRectTarget.left += 200 * elapsedTime;
-				mRectTarget.right += 200 * elapsedTime;
+			if (moveX < 600)
+			{
+				moveX += MAPSCROLL_SPEED;
+
+				for (int i = 0; i < STAGE_NUM; i++)
+				{
+					if (!_select_pokemon) {
+						mRectTarget.left += 200 * elapsedTime;
+						mRectTarget.right += 200 * elapsedTime;
+					}
+				}
 			}
 		}
 		// Å¸°Ù ÀÌµ¿
