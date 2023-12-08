@@ -490,7 +490,7 @@ void Player::Shot()
 	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
 	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
-	//skillManager->UseSkill();
+	skillManager->UseSkill();
 }
 
 void Player::BulletPop(size_t& bulletIndex)

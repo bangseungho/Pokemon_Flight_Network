@@ -231,6 +231,15 @@ void Network::ClientReceiver()
 			case NetworkBulletData::Status::CREATE:
 				sceneManager->GetMemberMap()[recvData.PlayerIndex]->Shot();
 				break;
+			case NetworkBulletData::Status::IDENTITY:
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->ActiveSkill(Skill::Identity);
+				break;
+			case NetworkBulletData::Status::SECTOR:
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->ActiveSkill(Skill::Sector);
+				break;
+			case NetworkBulletData::Status::CIRCLE:
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->ActiveSkill(Skill::Circle);
+				break;
 			default:
 				break;
 			}

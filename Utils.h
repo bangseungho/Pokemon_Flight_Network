@@ -489,6 +489,9 @@ struct NetworkBulletData
 	enum class Status : uint8 {
 		NONE,
 		CREATE,
+		IDENTITY,
+		SECTOR,
+		CIRCLE,
 	};
 
 	uint8 PlayerIndex = 0;
@@ -685,5 +688,6 @@ public:
 	PhaseData			mPhaseData;
 	BattleData			mBattleData;
 	NetworkEnemyData	mKillData;
+	NetworkBulletData	mBulletData;
 	EndProcessing		mEndProcessing;
 };

@@ -85,7 +85,7 @@ public:
 class Melee : public Enemy {
 private:
 	void SetPosDest();
-	bool CheckCollidePlayer();
+	int8 CheckCollidePlayer();
 	bool CheckRecvCollidePlayer();
 public:
 	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint8 targetIndex, uint32 id) : Enemy(image, pos, data, id) { mTargetIndex = targetIndex; }
