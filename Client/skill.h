@@ -35,8 +35,7 @@ private:
 
 	RECT GetRectBody() const;
 public:
-	SkillManager();
-	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player; }
+	SkillManager(Player* player);
 	void UseSkill();
 	void Paint(const HDC& hdc) const;
 	void Animate();
@@ -46,6 +45,10 @@ public:
 	inline bool IsUsingSkill() const
 	{
 		return (crntSkill == Skill::Sector || crntSkill == Skill::Circle) ? true : false;
+	}
+	inline bool IsIdentity() const
+	{
+		return isIdentity;
 	}
 };
 

@@ -8,6 +8,7 @@
 #include "interface.h"
 #include "scene.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "battle.h"
 
@@ -81,8 +82,11 @@ bool SkillManager::Effect::Animate()
 
 
 
-SkillManager::SkillManager()
+SkillManager::SkillManager(Player* player)
 {
+	if (player != nullptr)
+		mPlayer = player;
+
 	const Type type = mPlayer->GetType();
 	switch (type)
 	{
@@ -232,40 +236,40 @@ void SkillManager::Animate()
 // 스킬 사용 함수 플래그가 켜져 있다면 현재 스킬 상태를 업데이트
 void SkillManager::ActiveSkill(Skill skill)
 {
-	if (skill == Skill::Identity && isIdentity == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
-	{
-		return;
-	}
-	else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
-	{
-		return;
-	}
+	//if (skill == Skill::Identity && isIdentity == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
+	//{
+	//	return;
+	//}
+	//else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
+	//{
+	//	return;
+	//}
 
 	// 스킬에 따라서 상태 업데이트
 	// MP가 적다면 바로 리턴
 	switch (skill)
 	{
 	case Skill::Sector:
-		if (mPlayer->ReduceMP(15) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(15) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		skillCount = 7;
 		crntSkill = skill;
 		break;
 	case Skill::Circle:
-		if (mPlayer->ReduceMP(10) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(10) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		skillCount = 10;
 		crntSkill = skill;
 		break;
 	case Skill::Identity:
-		if (mPlayer->ReduceMP(30) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(30) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		// 궁극기 사용시 맵을 흔든다.
 		switch (mPlayer->GetType())
 		{

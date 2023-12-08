@@ -124,8 +124,10 @@ void SceneManager::LoadScene(const HWND& hWnd)
 		battle.Init();
 
 		// 모든 멤버 렌더링
-		for (const auto& member : GET_MEMBER_MAP)
+		for (const auto& member : GET_MEMBER_MAP) {
 			mMemberMap[member.first] = new Player(member.second.mSceneData.AirPokemon, member.second.mSceneData.LandPokemon);
+			mMemberMap[member.first]->SetPlayerId(member.first);
+		}
 
 		// 나의 인덱스가 바로 mPlayer
 		mPlayer = mMemberMap[MY_INDEX];

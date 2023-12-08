@@ -122,8 +122,7 @@ Player::~Player()
 // 스킬 매니저 생성
 void Player::Init()
 {
-	skillManager = new SkillManager();
-	skillManager->SetPlayer(this);
+	skillManager = new SkillManager(this);
 }
 
 // 플레이어 렌더링
@@ -592,4 +591,28 @@ void Player::MoveBullets()
 bool Player::IsUsingSkill() const
 {
 	return skillManager->IsUsingSkill();
+}
+
+bool Player::IsIdentity() const
+{
+	return skillManager->IsIdentity();
+}
+
+bool Player::ReduceMP(float amount, Skill skill)
+{
+	if (skill == Skill::Identity && skillManager->IsIdentity() == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
+	{
+		return false;
+	}
+	else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
+	{
+		return false;
+	}
+
+	if ((playerData.mp - amount) < 0)
+	{
+		return false;
+	}
+	playerData.mp -= amount;
+	return true;
 }

@@ -25,6 +25,8 @@ typedef struct PlayerData {
 	bool isCanGo = false;
 	bool isDeath = false;
 	bool isInvincible = true;
+	
+	uint8 id = 0;
 }PlayerData;
 
 class Player : public GameObject, public IControllable, public IAnimatable {
@@ -62,6 +64,7 @@ public:
 	void Paint(HDC hdc);
 	void PaintSkill(HDC hdc);
 
+	void SetPlayerId(uint8 id) { playerData.id = id; }
 	void SetDirection(Dir dir);
 	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
 	void Move(const HWND& hWnd, int timerID) override;
@@ -79,6 +82,7 @@ public:
 	void ActiveSkill(Skill skill);
 	void MoveBullets();
 	bool IsUsingSkill() const;
+	bool IsIdentity() const;
 	inline float GetDamage_Q() const
 	{
 		return playerData.damage_Q;
@@ -111,6 +115,10 @@ public:
 	{
 		return playerData.maxmp;
 	}
+	inline uint8 GetPlayerId() const
+	{
+		return playerData.id;
+	}
 	inline void AddHP(float amount)
 	{
 		playerData.hp += amount;
@@ -127,15 +135,7 @@ public:
 			playerData.mp = playerData.maxmp;
 		}
 	}
-	inline bool ReduceMP(float amount)
-	{
-		if ((playerData.mp - amount) < 0)
-		{
-			return false;
-		}
-		playerData.mp -= amount;
-		return true;
-	}
+	bool ReduceMP(float amount, Skill skill);
 	void InvincibleMode()
 	{
 		playerData.isInvincible = !playerData.isInvincible;

@@ -82,18 +82,24 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			break;
 		case _T('Q'):
 		{
+			if (mPlayer->ReduceMP(30, Skill::Identity) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::IDENTITY };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
 		}
 		case _T('W'):
 		{
+			if (mPlayer->ReduceMP(15, Skill::Sector) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::SECTOR };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
 		}
 		case _T('E'):
 		{
+			if (mPlayer->ReduceMP(10, Skill::Circle) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::CIRCLE };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
