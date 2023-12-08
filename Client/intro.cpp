@@ -61,6 +61,7 @@ void Cloud::Update(float elapsedTime)
 	mPos.x += mMove.x * elapsedTime;
 	mPos.y += mMove.y * elapsedTime;
 
+	
 	// 윈도우 벗어날 시 왼쪽의 일정 위치부터 시작
 	if (mRectDraw.left > mRectWindow.right)
 		mPos.x = -188;
@@ -253,7 +254,10 @@ void Intro::Init()
 		cloud4->SetMove(Vector2{ 400, 0 });
 		cloud4->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud4);
+
 	}
+
+
 
 	soundManager->StopBGMSound();
 	soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
@@ -275,7 +279,8 @@ void Intro::Update(float elapsedTime)
 void Intro::Paint(HDC hdc)
 {
 	mBackground->Paint(hdc);
-	//mClouds[0]->Paint(hdc);
+	
+
 	for (auto& cloud : mClouds)
 		cloud->Paint(hdc);
 	mLogo->Paint(hdc);

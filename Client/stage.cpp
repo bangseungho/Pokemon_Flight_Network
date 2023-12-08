@@ -62,7 +62,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Fire)] = { -230, 570, 30, 720 };
 	rectStage[static_cast<int>(StageElement::Elec)] = { 300, 20, 560, 160 };
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
-	rectStage[4] = { 150, 200, 250, 260 };
+	rectStage[4] = { 150, 200, 500, 260 };
 
 	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_select,target->_rectDraw, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
@@ -306,6 +306,11 @@ void Stage::Update(float elapsedTime)
 				if (moveX > 0)
 				{
 					moveX -= MAPSCROLL_SPEED;
+					for (int i = 0; i < STAGE_NUM; i++)
+					{
+						rectStage[i].left += MAPSCROLL_SPEED;
+						rectStage[i].right += MAPSCROLL_SPEED;
+					}
 
 				}
 
@@ -322,6 +327,12 @@ void Stage::Update(float elapsedTime)
 				if (moveX < 450)
 				{
 					moveX += MAPSCROLL_SPEED;
+					for (int i = 0; i < STAGE_NUM; i++)
+					{
+						rectStage[i].left -= MAPSCROLL_SPEED;
+						rectStage[i].right -= MAPSCROLL_SPEED;
+					}
+
 
 				}
 
