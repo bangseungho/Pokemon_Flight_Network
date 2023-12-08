@@ -163,17 +163,15 @@ void Enemy::Move()
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Move()
 {
+	int8 collisionIndex = 0;
 	if (IsMove() == false)
 	{
 		return;
 	}
-	else if (CheckRecvCollidePlayer() == true)
+	else if ((collisionIndex = CheckCollidePlayer()) != -1)
 	{
-		if (mTargetIndex == MY_INDEX) // 적의 타겟이 자신인 경우에만 피를 깎는다.
-			mPlayer->Hit(data.damage, GetType());
-
-		const Vector2 targetPos = MEMBER_MAP(mTargetIndex).mBattleData.PosCenter;
-		effects->CreateHitEffect(targetPos, GetType());
+		mPlayer->Hit(data.damage, GetType(), POINT{-1,}, collisionIndex);
+		effects->CreateHitEffect(MEMBER_MAP(collisionIndex).mBattleData.PosCenter, GetType());
 		return;
 	}
 
@@ -265,19 +263,22 @@ void Enemy::Animate()
 }
 
 // 근거리 적과 플레이어가 충돌했다면 잠깐 멈추고 공격 액션으로 바꾼다.
-bool Melee::CheckCollidePlayer()
+int8 Melee::CheckCollidePlayer()
 {
 	const RECT rectBody = GetRectBody();
-	if (mPlayer->IsCollide(rectBody))
-	{
-		StopMove();
-		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
-		ResetAttackDelay();
 
-		return true;
+	for (auto& member : sceneManager->GetMemberMap()) {
+		if (member.second->IsCollide(rectBody))
+		{
+			StopMove();
+			IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+			ResetAttackDelay();
+
+			return member.first;
+		}
 	}
 
-	return false;
+	return -1;
 }
 
 bool Melee::CheckRecvCollidePlayer()
@@ -679,6 +680,7 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 				// 죽은 적 객체의 정보를 송신
 				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
+				Sleep(10);
 			}
 			return true;
 		}
@@ -703,6 +705,7 @@ void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitTyp
 				// 죽은 적 객체의 정보를 송신
 				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
+				Sleep(10);
 			}
 		}
 	}
