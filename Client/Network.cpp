@@ -37,116 +37,64 @@ void Network::ClientReceiver()
 
 #pragma region EndProcessing
 		if (dataType == DataType::END_PROCESSING) {
-			// Á¾·á Å¬¶óÀÌ¾ðÆ® ÀÎµ¦½º¸¦ ¼ö½Å
+			// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			EndProcessing recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<EndProcessing>(mClientSock, recvData);
 
-			// Á¾·á Å¬¶óÀÌ¾ðÆ®°¡ ÀÚ½ÅÀÌ¶ó¸é ½º·¹µå¸¦ Á¾·áÇÑ´Ù.
+			// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 			if (mClientIndex == recvData.PlayerIndex)
 				break;
 
-			// ¸â¹ö ¸Ê¿¡ ÇØ´ç Å° °ªÀÌ ÀÖ´Â °æ¿ì¸¸ ¸â¹ö ¸Ê¿¡¼­ ÇØ´ç ¸â¹ö Á¦°Å
+			// ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½Ø´ï¿½ Å° ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap.erase(findIt);
 
 #ifdef _DEBUG
-			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "¹ø ÇÃ·¹ÀÌ¾î °ÔÀÓ Á¾·á]" << endl;
+			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½]" << endl;
 #endif 
 		}
 #pragma endregion
 #pragma region SceneData
 		else if (dataType == DataType::SCENE_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			SceneData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<SceneData>(mClientSock, recvData);
 
-			// ¸ÞÀÎ ÇÃ·¹ÀÌ¾î ÀÎµ¦½º
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½Îµï¿½ï¿½ï¿½
 			mMainPlayerIndex = recvData.MainPlayerIndex;
 
-			// ¸â¹ö ¸Ê¿¡ ÇØ´ç Å° °ªÀÌ ÀÖ´Â °æ¿ì¸¸ ¸â¹ö ¸Ê¿¡ µ¥ÀÌÅÍ ÀÌµ¿
+			// ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½Ø´ï¿½ Å° ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
-
-#ifdef _DEBUG
-			std::lock_guard<std::mutex> lock(mMemberMapMutex);
-			for (const auto& member : mRecvMemberMap) {
-				if (mClientIndex == member.second.mSceneData.PlayerIndex)
-					continue;
-
-				string airPokemonStr;
-				switch (member.second.mSceneData.AirPokemon)
-				{
-				case Type::Empty:
-					airPokemonStr = "EMPTY";
-					break;
-				case Type::Fire:
-					airPokemonStr = "MOLTRES";
-					break;
-				case Type::Elec:
-					airPokemonStr = "THUNDER";
-					break;
-				case Type::Water:
-					airPokemonStr = "ARTICUNO";
-					break;
-				}
-
-				string landPokemonStr;
-				switch (member.second.mSceneData.LandPokemon)
-				{
-				case Type::Empty:
-					landPokemonStr = "EMPTY";
-					break;
-				case Type::Fire:
-					landPokemonStr = "CHARMANDER";
-					break;
-				case Type::Elec:
-					landPokemonStr = "PIKACHU";
-					break;
-				case Type::Water:
-					landPokemonStr = "SQUIRTLE";
-					break;
-				}
-
-				cout << "[" << (uint32)member.first << "¹ø ÇÃ·¹ÀÌ¾î] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", "
-					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
-			}
-#endif 
 		}
 #pragma endregion
 #pragma region Intro
 		else if (dataType == DataType::INTRO_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			IntroData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<IntroData>(mClientSock, recvData);
 
-			// »õ·Î¿î ¸â¹ö »ý¼º
+			// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			mRecvMemberMap[recvData.PlayerIndex].mIntroData = move(recvData);
-
-#ifdef _DEBUG
-			cout << endl << "[	" << inet_ntoa(mServerAddr.sin_addr) << " ¼­¹ö ÇÃ·¹ÀÌ¾î ¸ñ·Ï	]" << endl;
-			for (const auto& member : mRecvMemberMap) {
-				cout << "[	    " << static_cast<uint32>(recvData.PlayerIndex) << "¹ø ÇÃ·¹ÀÌ¾î Á¢¼ÓÁß		]" << Endl;
-			}
-#endif 
 		}
 #pragma endregion
 #pragma region Town
 		else if (dataType == DataType::TOWN_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			TownData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<TownData>(mClientSock, recvData);
 
-			// ¸â¹ö ¸Ê¿¡ ÇØ´ç Å° °ªÀÌ ÀÖ´Â °æ¿ì¸¸ ¸â¹ö ¸Ê¿¡ µ¥ÀÌÅÍ ÀÌµ¿
+			// ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½Ø´ï¿½ Å° ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mTownData = move(recvData);
@@ -154,13 +102,13 @@ void Network::ClientReceiver()
 #pragma endregion
 #pragma region Stage
 		else if (dataType == DataType::STAGE_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			StageData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<StageData>(mClientSock, recvData);
 
-			// ¸â¹öÀÇ ÆÐÅ¶ÀÌ¶ó¸é ¸É¹ö ¸Ê¿¡ ³Ö¾îÁÜ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½Ì¶ï¿½ï¿½ ï¿½É¹ï¿½ ï¿½Ê¿ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mStageData = move(recvData);
@@ -168,13 +116,13 @@ void Network::ClientReceiver()
 #pragma endregion
 #pragma region Phase
 		else if (dataType == DataType::PHASE_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			PhaseData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<PhaseData>(mClientSock, recvData);
 
-			// ¸â¹öÀÇ ÆÐÅ¶ÀÌ¶ó¸é ¸É¹ö ¸Ê¿¡ ³Ö¾îÁÜ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½Ì¶ï¿½ï¿½ ï¿½É¹ï¿½ ï¿½Ê¿ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
@@ -182,13 +130,13 @@ void Network::ClientReceiver()
 #pragma endregion
 #pragma region Battle
 		else if (dataType == DataType::BATTLE_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			BattleData recvData;
 
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<BattleData>(mClientSock, recvData);
 
-			// ¸â¹öÀÇ ÆÐÅ¶ÀÌ¶ó¸é ¸É¹ö ¸Ê¿¡ ³Ö¾îÁÜ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½Ì¶ï¿½ï¿½ ï¿½É¹ï¿½ ï¿½Ê¿ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mBattleData = move(recvData);
@@ -198,9 +146,9 @@ void Network::ClientReceiver()
 #pragma endregion
 #pragma region Enemy
 		else if (dataType == DataType::ENEMY_OBJECT_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			NetworkEnemyData recvData;
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
 
 			switch (recvData.AttackType)
@@ -221,9 +169,9 @@ void Network::ClientReceiver()
 #pragma endregion
 #pragma region Bullet
 		else if (dataType == DataType::BULLET_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			NetworkBulletData recvData;
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<NetworkBulletData>(mClientSock, recvData);
 
 			switch (recvData.Status)
@@ -278,16 +226,16 @@ void Network::Connect()
 	if (retVal == SOCKET_ERROR) ErrorQuit("connect()");
 	else mConnected = true;
 
-	// ³×ÀÌ±Û ¾Ë°í¸®Áò ÇØÁ¦
+	// ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½Ë°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int delayZeroOpt = 1;
 	setsockopt(mClientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&delayZeroOpt, sizeof(delayZeroOpt));
 
-	// Å¬¶óÀÌ¾ðÆ® ÀÚ½ÅÀÇ ¼ÒÄÏ¿¡ ´ëÇÑ Á¤º¸ ¾ò±â
+	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	SOCKADDR_IN localAddr;
 	int localAddrLength = sizeof(localAddr);
 	getsockname(mClientSock, (SOCKADDR*)&localAddr, &localAddrLength);
 
-	// Ã¹ ¿¬°á¿¡¼­ ÀÚ½ÅÀÇ Å¬¶óÀÌ¾ðÆ® ÀÎµ¦½º¸¦ ¼ö½ÅÇÑ´Ù.
+	// Ã¹ ï¿½ï¿½ï¿½á¿¡ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	Data::RecvData(mClientSock, mClientIndex);
 
 #ifdef _DEBUG
@@ -299,9 +247,9 @@ void Network::Connect()
 	cout << "CLIENT_NUMBER: " << static_cast<uint32>(mClientIndex) << ") ]" << Endl;
 #endif 
 
-	// ÀÚ½ÅÀÇ Å¬¶óÀÌ¾ðÆ® ÀÎµ¦½º¸¦ ¼ö½Å ¹Þ¾Ò´Ù¸é ´Ù½Ã ¸ðµç Å¬¶óÀÌ¾ðÆ®¿¡°Ô ÀÚ½ÅÀÇ ÀÎµ¦½º¸¦ ¼Û½ÅÇÑ´Ù.
+	// ï¿½Ú½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Ò´Ù¸ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û½ï¿½ï¿½Ñ´ï¿½.
 	Network::SendDataAndType(IntroData{ mClientIndex });
 
-	// Recv ½º·¹µå »ý¼º
+	// Recv ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	mRecvClientThread = thread(&Network::ClientReceiver, this);
 }

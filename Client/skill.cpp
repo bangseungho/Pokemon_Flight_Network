@@ -88,18 +88,23 @@ SkillManager::SkillManager(Player* player)
 		mPlayer = player;
 
 	const Type type = mPlayer->GetType();
+
+	BYTE reduceAlpha = 0x00;
+	if (mPlayer->GetPlayerId() != MY_INDEX)
+		reduceAlpha = (BYTE)120U;
+
 	switch (type)
 	{
 	case Type::Elec:
-		imgSkill_Elec_Q.Load(_T("images\\battle\\sprite_skill_elec.png"), { 34,226 }, 10, 0xdf);
+		imgSkill_Elec_Q.Load(_T("images\\battle\\sprite_skill_elec.png"), { 34,226 }, 10, 0xdf - reduceAlpha);
 		skillEffect = new Effect(imgSkill_Elec_Q, type);
 		break;
 	case Type::Fire:
-		imgSkill_Fire_Q.Load(_T("images\\battle\\sprite_skill_fire.png"), { 80,96 }, 50);
+		imgSkill_Fire_Q.Load(_T("images\\battle\\sprite_skill_fire.png"), { 80,96 }, 50, 0xff - reduceAlpha);
 		skillEffect = new Effect(imgSkill_Fire_Q, type);
 		break;
 	case Type::Water:
-		imgSkill_Water_Q.Load(_T("images\\battle\\skill_water.png"), { 273,843 }, 50, 0xaf);
+		imgSkill_Water_Q.Load(_T("images\\battle\\skill_water.png"), { 273,843 }, 50, 0xaf - reduceAlpha);
 		skillEffect = new Effect(imgSkill_Water_Q, type);
 		break;
 	default:
@@ -271,23 +276,25 @@ void SkillManager::ActiveSkill(Skill skill)
 		//	return;
 		//}
 		// 궁극기 사용시 맵을 흔든다.
-		switch (mPlayer->GetType())
-		{
-		case Type::Elec:
-			battle.ShakeMap(10);
-			soundManager->PlaySkillSound(SkillSound::Elec);
-			break;
-		case Type::Fire:
-			battle.ShakeMap(15);
-			soundManager->PlaySkillSound(SkillSound::Fire);
-			break;
-		case Type::Water:
-			battle.ShakeMap(20);
-			soundManager->PlaySkillSound(SkillSound::Water);
-			break;
-		default:
-			assert(0);
-			break;
+		if (mPlayer->GetPlayerId() == MY_INDEX) {
+			switch (mPlayer->GetType())
+			{
+			case Type::Elec:
+				battle.ShakeMap(10);
+				soundManager->PlaySkillSound(SkillSound::Elec);
+				break;
+			case Type::Fire:
+				battle.ShakeMap(15);
+				soundManager->PlaySkillSound(SkillSound::Fire);
+				break;
+			case Type::Water:
+				battle.ShakeMap(20);
+				soundManager->PlaySkillSound(SkillSound::Water);
+				break;
+			default:
+				assert(0);
+				break;
+			}
 		}
 
 		isIdentity = true; // 현재 궁극기 사용중임을 나타내는 플래그

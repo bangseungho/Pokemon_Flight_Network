@@ -18,9 +18,10 @@ extern SoundManager* soundManager;
 extern Battle battle;
 
 // 플레이어의 타입에 따라서 플레이어 데이터를 설정하고 이미지도 로드한다. 탄막과 서브 탄막도 생성한다.
-Player::Player(Type type, Type subType)
+Player::Player(Type type, Type subType, uint8 id)
 {
 	constexpr int damagePerSec = (1000 / ELAPSE_BATTLE_ANIMATION);
+	playerData.id = id;
 
 	ObjectImage bulletImage;
 	ObjectImage subBulletImage;
@@ -106,6 +107,13 @@ Player::Player(Type type, Type subType)
 	default:
 		assert(0);
 		break;
+	}
+
+	if (playerData.id != MY_INDEX) {
+		bulletImage.SetAlpha(120);
+		subBulletImage.SetAlpha(120);
+		img_mainPokemon.SetAlpha(120);
+		img_subPokemon.SetAlpha(120);
 	}
 
 	GameObject::Init(img_mainPokemon, { 250, 500 });
