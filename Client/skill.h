@@ -18,6 +18,8 @@ private:
 		}
 	};
 
+	class Player* mPlayer = nullptr;
+
 	Effect* skillEffect = nullptr;
 	Skill crntSkill = Skill::Empty;
 	bool isIdentity = false;
@@ -34,7 +36,7 @@ private:
 	RECT GetRectBody() const;
 public:
 	SkillManager();
-
+	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player; }
 	void UseSkill();
 	void Paint(const HDC& hdc) const;
 	void Animate();
@@ -79,6 +81,7 @@ private:
 
 	class Effect : public ISprite {
 	private:
+		class Player* mPlayer = nullptr;
 		EffectImage imgSkill;
 		FRECT rectDraw = { -1, };
 		Vector2 posCenter = { 0, };
@@ -91,12 +94,13 @@ private:
 
 		bool Move();
 	public:
-		Effect(const EffectImage& imgSkill, const FRECT rectDraw, const SkillData& skillData = {});
-		Effect(const EffectImage& imgSkill, const Vector2& pos, const SkillData& skillData = {});
-		Effect(const EffectImage& imgSkill, const Vector2& pos, float rotationDegree, const SkillData& skillData = {});
-		Effect(const EffectImage& imgSkill, const Vector2& pos, const Vector2& unitVector_imgRotation, const SkillData& skillData);
-		Effect(const EffectImage& imgSkill, const Vector2& pos, const Vector2& unitVector_imgRotation, const Vector2& unitVector_direction, const SkillData& skillData);
-		Effect(const EffectImage& imgSkill, const SkillData& skillData, const DarkSkillData& darkSkillData);
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const FRECT rectDraw, const SkillData& skillData = {});
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const Vector2& pos, const SkillData& skillData = {});
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const Vector2& pos, float rotationDegree, const SkillData& skillData = {});
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const Vector2& pos, const Vector2& unitVector_imgRotation, const SkillData& skillData);
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const Vector2& pos, const Vector2& unitVector_imgRotation, const Vector2& unitVector_direction, const SkillData& skillData);
+		Effect(const BossSkillManager* skillManager, const EffectImage& imgSkill, const SkillData& skillData, const DarkSkillData& darkSkillData);
+		void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player; }
 		void Paint(HDC hdc) const;
 		bool Animate();
 
@@ -149,6 +153,8 @@ private:
 		}
 	};
 
+	class Player* mPlayer = nullptr;
+
 	bool isWarning = false;
 	float rotationDegree = 0.0f;
 
@@ -184,7 +190,7 @@ private:
 public:
 	BossSkillManager();
 	~BossSkillManager();
-
+	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player;  }
 	void Paint(const HDC& hdc);
 	void Animate();
 
