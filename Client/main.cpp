@@ -94,7 +94,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 			}
 		}
 
-		sceneManager->Update();
+		sceneManager->Move();
 	}
 
 	DESTROY_SINGLE(Network);

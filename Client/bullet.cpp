@@ -60,7 +60,7 @@ void BulletController::Bullet::Paint(const HDC& hdc, const ObjectImage& bulletIm
 }
 
 // 탄막 이동 업데이트 함수
-bool BulletController::Bullet::Update()
+bool BulletController::Bullet::Move()
 {
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
 	float moveX = 0;
@@ -221,52 +221,33 @@ void BulletController::CreateBullet(const POINT& center, const BulletData& data,
 }
 
 // 플레이어 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
-void PlayerBullet::Update()
+void PlayerBullet::Move()
 {
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
-		//const RECT rectBullet = bullets.at(i)->GetRect();
-		//const float bulletDamage = bullets.at(i)->GetDamage();
-		//const Type bulletType = bullets.at(i)->GetType();
-		//const POINT bulletPos = bullets.at(i)->GetPos();
+		const RECT rectBullet = bullets.at(i)->GetRect();
+		const float bulletDamage = bullets.at(i)->GetDamage();
+		const Type bulletType = bullets.at(i)->GetType();
+		const POINT bulletPos = bullets.at(i)->GetPos();
 
-		// 탄막이 적이나 보스에 충돌했을 경우 
-		// 충돌 했거나 탄막이 윈도우 화면 바깥으로 나가면 탄막을 삭제한다.
-		//if ((enemies->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true) ||
-		//	(boss->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true))
-		//{
-		//	if (bullets.at(i)->IsSkillBullet() == false)
-		//	{
-		//		mPlayer->AddMP(0.30f);
-		//	}
-		//	BulletController::Pop(i);
-		//}
-		/*else */if(bullets.at(i)->Update() == false)
+		if ((enemies->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true) ||
+			(boss->CheckHit(rectBullet, bulletDamage, bulletType, bulletPos) == true))
+		{
+			if (bullets.at(i)->IsSkillBullet() == false)
+			{
+				mPlayer->AddMP(0.30f);
+			}
+			BulletController::Pop(i);
+		}
+		else if(bullets.at(i)->Move() == false)
 		{
 			BulletController::Pop(i);
 		}
 	}
 }
 
-//// 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
-//void EnemyBullet::Update()
-//{
-//	for (size_t i = 0; i < bullets.size(); ++i)
-//	{
-//		if (mPlayer->IsCollide(bullets.at(i)->GetRect()) == true)
-//		{
-//			mPlayer->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos());
-//			BulletController::Pop(i);
-//		}
-//		else if (bullets.at(i)->Update() == false)
-//		{
-//			BulletController::Pop(i);
-//		}
-//	}
-//}
-
 // 적 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
-void EnemyBullet::Update()
+void EnemyBullet::Move()
 {
 	for (auto& member : sceneManager->GetMemberMap()) {
 		for (size_t i = 0; i < bullets.size(); ++i)
@@ -276,7 +257,7 @@ void EnemyBullet::Update()
 				member.second->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos(), member.first);
 				BulletController::Pop(i);
 			}
-			else if (bullets.at(i)->Update() == false)
+			else if (bullets.at(i)->Move() == false)
 			{
 				BulletController::Pop(i);
 			}

@@ -179,25 +179,25 @@ void SceneManager::Init(const HWND& hWnd)
 	LoadScene(hWnd);
 }
 
-void SceneManager::Update()
+void SceneManager::Move()
 {
-	GET_SINGLE(GameTimer)->Update();
+	GET_SINGLE(GameTimer)->Move();
 
 	switch (crntScene){
 	case Scene::Intro:
-		intro.Update(DELTA_TIME);
+		intro.Move(DELTA_TIME);
 		break;
 	case Scene::Town:
-		town.Update(DELTA_TIME);
+		town.Move(DELTA_TIME);
 		break;
 	case Scene::Stage:
-		stage.Update(DELTA_TIME);
+		stage.Move(DELTA_TIME);
 		break;
 	case Scene::PhaseManager:
-		phase.Update(DELTA_TIME);
+		phase.Move(DELTA_TIME);
 		break;
 	case Scene::Battle:
-		battle.Update(DELTA_TIME);
+		battle.Move(DELTA_TIME);
 		break;
 	}
 

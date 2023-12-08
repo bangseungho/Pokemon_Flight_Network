@@ -148,63 +148,59 @@ void Enemy::Update()
 Melee::Melee(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
 {
 	mSendData.AttackType = NetworkEnemyData::AttackType::MELEE;
-	mSendData.Status = NetworkEnemyData::Status::CREATE;
-	mSendData.ID = id;
-	mSendData.Pos = GetPosCenter();
-	mSendData.SpriteRow = GetSpriteRow();
+	mSendData.TargetIndex = 0;
+	mSendData.StartPos = GetPosCenter();
 }
 
 // 최종적으로 근거리 적 몬스터 이동과 충돌 체크
 void Melee::Update()
 {
-	mSendData.IsCollide = false;
-	if (IsMove() == false)
-	{
-		return;
-	}
-	else if (CheckCollidePlayer() == true)
-	{
-		mSendData.IsCollide = true;
-	}
-	else {
-		SetPosDest();
-		SetPos(posDest);
-	}
+	//mSendData.IsCollide = false;
+	//if (IsMove() == false)
+	//{
+	//	return;
+	//}
+	//else if (CheckCollidePlayer() == true)
+	//{
+	//	mSendData.IsCollide = true;
+	//}
+	//else {
+	//	SetPosDest();
+	//	SetPos(posDest);
+	//}
 
-	mSendData.Status = NetworkEnemyData::Status::MOVE;
-	mSendData.Pos = GetPosCenter();
-	mSendData.SpriteRow = GetSpriteRow();
-	for (const auto& player : sPlayerMap) {
-		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
-	}
+	//mSendData.Status = NetworkEnemyData::Status::MOVE;
+	//mSendData.Pos = GetPosCenter();
+	//mSendData.SpriteRow = GetSpriteRow();
+	//for (const auto& player : sPlayerMap) {
+	//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	//}
 }
 
 Range::Range(const Vector2& pos, const EnemyData& data) : Enemy(pos, data)
 {
 	mSendData.AttackType = NetworkEnemyData::AttackType::RANGE;
-	mSendData.Status = NetworkEnemyData::Status::CREATE;
-	mSendData.ID = id;
-	mSendData.Pos = GetPosCenter();
-	mSendData.SpriteRow = GetSpriteRow();
+	mSendData.TargetIndex = 0;
+	mSendData.StartPos = GetPosCenter();
 }
 
 // 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
 void Range::Update()
 {
-	if (IsMove() == false)
-	{
-		return;
-	}
+	//if (IsMove() == false)
+	//{
+	//	return;
+	//}
 
-	SetPosDest();
-	SetPos(posDest);
+	//SetPosDest();
+	//SetPos(posDest);
 
-	mSendData.Status = NetworkEnemyData::Status::MOVE;
-	mSendData.Pos = GetPosCenter();
-	mSendData.SpriteRow = GetSpriteRow();
-	for (const auto& player : sPlayerMap) {
-		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
-	}
+	//mSendData.Status = NetworkEnemyData::Status::MOVE;
+	//mSendData.Pos = GetPosCenter();
+	//mSendData.SpriteRow = GetSpriteRow();
+	//for (const auto& player : sPlayerMap) {
+	//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	//}
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -306,15 +302,15 @@ void Range::CheckAttackDelay()
 // 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
-	RECT rectBody = GetRectBody();
-	POINT bulletPos = { 0, };
-	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	bulletPos.y = rectBody.bottom;
+	//RECT rectBody = GetRectBody();
+	//POINT bulletPos = { 0, };
+	//bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
+	//bulletPos.y = rectBody.bottom;
 
-	mSendData.Status = NetworkEnemyData::Status::ATTACK;
-	for (const auto& player : sPlayerMap) {
-		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
-	}
+	//mSendData.Status = NetworkEnemyData::Status::ATTACK;
+	//for (const auto& player : sPlayerMap) {
+	//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, mSendData);
+	//}
 }
 
 // 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
@@ -323,17 +319,17 @@ void EnemyController::Pop(size_t& index)
 	//effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
 	//soundManager->PlayEffectSound(EffectSound::Explosion);
 
-	for (const auto& player : sPlayerMap) {
-		enemies[index]->GetSendData().Status = NetworkEnemyData::Status::DEATH;
-		Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies[index]->GetSendData());
-	}
+	//for (const auto& player : sPlayerMap) {
+	//	enemies[index]->GetSendData().Status = NetworkEnemyData::Status::DEATH;
+	//	Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemies[index]->GetSendData());
+	//}
 
-	enemies[index] = enemies.back();
-	enemies[index]->GetSendData().ID = index;
-	enemies[index--]->GetSendData().Status = NetworkEnemyData::Status::MOVE;
-	Enemy::sId--;
+	//enemies[index] = enemies.back();
+	//enemies[index]->GetSendData().ID = index;
+	//enemies[index--]->GetSendData().Status = NetworkEnemyData::Status::MOVE;
+	//Enemy::sId--;
 
-	enemies.pop_back();
+	//enemies.pop_back();
 }
 
 // 적 객체들을 관리하는 클래스로 스테이지 상태에 따라서 적 오브젝트 초기화
@@ -536,14 +532,23 @@ void EnemyController::CreateCheckMelee()
 	// 최대 생성 적 개수에 따라서 적 객체를 생성하여 객체 자료구조에 넣는다.
 	for (int i = 0; i < createAmount_Melee; ++i)
 	{
-		float xPos = rand() % WINDOWSIZE_X;
-		float yPos = -(rand() % 100);
+		Vector2 pos{ rand() % WINDOWSIZE_X, -(rand() % 100) };
 
-		Melee* enemy = new Melee({ xPos, yPos }, meleeData);
-		enemies.emplace_back(enemy);
+		Melee enemy = Melee(pos, meleeData);
 
+		float minLength = numeric_limits<float>::infinity();
+		uint8 targetIndex = 0;
+		for (auto& player : sPlayerMap) {
+			float length = Vector2::GetNorm(pos - player.second.mBattleData.PosCenter);
+			if (minLength >= length) {
+				minLength = length;
+				targetIndex = player.first;
+			}
+		}
+
+		NetworkEnemyData sendData{ NetworkEnemyData::AttackType::MELEE, pos, targetIndex, mAccId++ };
 		for (const auto& player : sPlayerMap) {
-			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy->GetSendData());
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
 		}
 	}
 
@@ -584,11 +589,11 @@ void EnemyController::CreateCheckRange()
 		const float xPos = (rand() % (WINDOWSIZE_X - 100)) + 50;
 		const float yPos = -(rand() % 100);
 
-		Range* enemy = new Range({ xPos, yPos }, rangeData);
-		enemies.emplace_back(enemy);
+		Range enemy = Range({ xPos, yPos }, rangeData);
+		//enemies.emplace_back(enemy);
 
 		for (const auto& player : sPlayerMap) {
-			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy->GetSendData());
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy.GetSendData());
 		}
 	}
 

@@ -11,7 +11,7 @@ void GameTimer::Init()
 	Reset();
 }
 
-void GameTimer::Update()
+void GameTimer::Move()
 {
 	if (mStopped) {
 		mDeltaTime = 0.0;

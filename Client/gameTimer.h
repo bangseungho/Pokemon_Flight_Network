@@ -6,7 +6,7 @@ class GameTimer
 
 public:
 	void Init();
-	void Update();
+	void Move();
 	void Reset();
 	void Start(); 
 	void Stop();  

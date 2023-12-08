@@ -22,7 +22,7 @@ private:
 public:
 	SceneManager();
 	void Init(const HWND& hWnd);
-	void Update();
+	void Move();
 	void Paint();
 	void MoveScene(const HWND& hWnd, Scene scene);
 	void StartLoading(const HWND& hWnd);

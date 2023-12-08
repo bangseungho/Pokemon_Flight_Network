@@ -266,7 +266,7 @@ void Stage::Paint(HDC hdc, const RECT& rectWindow)
 }
 
 // 스테이지에서의 Update 함수
-void Stage::Update(float elapsedTime)
+void Stage::Move(float elapsedTime)
 {
 	if (sceneManager->IsLoading())
 		return;

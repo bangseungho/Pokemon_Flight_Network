@@ -41,7 +41,7 @@ private:
 public:
 	PhaseManager();
 	void Init();
-	void Update(float elapsedTime);
+	void Move(float elapsedTime);
 	void Paint(HDC hdc, const RECT& rectWindow, StageElement _select_index);
 
 	void ClearPhase();

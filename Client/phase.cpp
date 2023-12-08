@@ -57,7 +57,7 @@ void PhaseManager::Init()
 	rectDraw_boss = { 180, 20, 430, 270 };
 }
 
-void PhaseManager::Update(float elapsedTime)
+void PhaseManager::Move(float elapsedTime)
 {
 	if (sceneManager->IsLoading())
 		return;

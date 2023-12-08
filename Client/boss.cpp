@@ -301,7 +301,7 @@ void Boss::Paint(HDC hdc)
 }
 
 // 보스를 업데이트 하는 함수 충돌 처리와 이동 함수를 호출한다.
-void Boss::Update()
+void Boss::Move()
 {
 	if (bossData.isCreated == false)
 	{
@@ -309,7 +309,7 @@ void Boss::Update()
 	}
 
 	// 탄막 업데이트
-	bullets->Update();
+	bullets->Move();
 
 	if (bossData.isDeath == true)
 	{

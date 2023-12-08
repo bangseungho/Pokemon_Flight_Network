@@ -48,10 +48,10 @@ void Battle::Invalidata()
 
 	mEnemyController->CreateCheckMelee();
 	//mEnemyController->CreateCheckRange();
-	mEnemyController->CheckAttackDelay();
+	//mEnemyController->CheckAttackDelay();
 
-	for (auto& player : mPlayerVec)
-		player->MoveBullets();
+	//for (auto& player : mPlayerVec)
+	//	player->MoveBullets();
 
-	mEnemyController->Update();
+	//mEnemyController->Update();
 }

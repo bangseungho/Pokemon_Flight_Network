@@ -203,21 +203,16 @@ void Network::ClientReceiver()
 			// 패킷 수신
 			Data::RecvData<NetworkEnemyData>(mClientSock, recvData);
 
-			std::lock_guard<std::mutex> lock(mMemberMapMutex);
-			switch (recvData.Status)
+			switch (recvData.AttackType)
 			{
-			case NetworkEnemyData::Status::CREATE:
-				if (recvData.AttackType == NetworkEnemyData::AttackType::MELEE)
-					enemies->CreateRecvMelee(recvData.Pos);
-				else if (recvData.AttackType == NetworkEnemyData::AttackType::RANGE)
-					enemies->CreateRecvRange(recvData.Pos);
+			case NetworkEnemyData::AttackType::MELEE:
+				enemies->CreateRecvMelee(recvData);
 				break;
-			case NetworkEnemyData::Status::MOVE:
-			case NetworkEnemyData::Status::ATTACK:
-				enemies->SetRecvData(move(recvData));
+			case NetworkEnemyData::AttackType::RANGE:
+				enemies->CreateRecvRange(recvData);
 				break;
-			case NetworkEnemyData::Status::DEATH:
-				enemies->CheckHit(recvData.ID);
+			case NetworkEnemyData::AttackType::DEATH:
+				enemies->Pop(recvData.TargetIndex);
 				break;
 			default:
 				break;

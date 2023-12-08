@@ -9,8 +9,11 @@
 
 // 서버에서 가지고 있는 플레이어들의 전역 데이터
 unordered_map<uint8, NetworkPlayerData> sPlayerMap;
-std::mutex sPlayersMutex;
+vector<uint32> sAccEnemyId;
+mutex sPlayersMutex;
 HANDLE hAllPlayerBattleSceneEvent;
+
+CRITICAL_SECTION cs;
 
 void ProcessClient(ThreadSocket sock)
 {
@@ -202,6 +205,25 @@ void ProcessClient(ThreadSocket sock)
 			}
 		}
 #pragma endregion
+#pragma region Enemy
+		else if (dataType == DataType::ENEMY_OBJECT_DATA) {
+			auto& data = sPlayerMap[threadId];
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+			
+			Data::RecvData<NetworkEnemyData>(clientSock, data.mKillData);
+		
+			// 이미 등록된 적 ID라면 등록하지 않고 송신도 하지 않는다.
+			auto findIt = find(sAccEnemyId.begin(), sAccEnemyId.end(), data.mKillData.Id);
+			if (findIt != sAccEnemyId.end())
+				continue;
+
+			sAccEnemyId.emplace_back(data.mKillData.Id);
+
+			for (const auto& player : sPlayerMap) {
+				Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, data.mKillData);
+			}
+		}
+#pragma endregion
 	}
 
 	sPlayerMap.erase(threadId);
@@ -224,6 +246,8 @@ void ProcessBattle()
 	
 		Battle battle;
 		battle.Init();
+		sAccEnemyId.clear();
+		sAccEnemyId.reserve(200);
 		while (true) {
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
 			GET_SINGLE(Timer)->Update();
@@ -241,6 +265,7 @@ int main(int argc, char* argv[])
 	GET_SINGLE(Timer)->Init();
 	GET_SINGLE(Timer)->Start();
 	hAllPlayerBattleSceneEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	InitializeCriticalSection(&cs);
 #pragma endregion
 
 #pragma region Socket
@@ -294,6 +319,7 @@ int main(int argc, char* argv[])
 #pragma region Close
 	for (auto& clientThread : clientThread) clientThread.join();
 	logicThread.join();
+	DeleteCriticalSection(&cs);
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion

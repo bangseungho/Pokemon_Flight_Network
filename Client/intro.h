@@ -5,7 +5,7 @@ enum MI_Menu { start = 0, producer, finish };
 class Cloud : public MyGameObject
 {
 public:
-	virtual void Update(float elapsedTime) override;
+	virtual void Move(float elapsedTime) override;
 
 public:
 	void SetMove(Vector2 move) { mMove = move; }
@@ -20,7 +20,7 @@ class Logo : public MyGameObject
 {
 public:
 	virtual void Init() override;
-	virtual void Update(float elapsedTime) override;
+	virtual void Move(float elapsedTime) override;
 	virtual void Paint(HDC hdc) override;
 
 private:
@@ -33,7 +33,7 @@ class Menu : public MyGameObject
 {
 public:
 	virtual void Init() override;
-	virtual void Update(float elapsedTime) override;
+	virtual void Move(float elapsedTime) override;
 	virtual void Paint(HDC hdc) override;
 
 public: 
@@ -50,7 +50,7 @@ class Intro
 {
 public:
 	virtual void Init();
-	virtual void Update(float elapsedTime);
+	virtual void Move(float elapsedTime);
 	virtual void Paint(HDC hdc);
 
 public:

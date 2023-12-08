@@ -85,7 +85,7 @@ public:
 	~Boss();
 	void Create();
 	void Paint(HDC hdc);
-	void Update() override;
+	void Move() override;
 	void CheckAttackDelay();
 	void CheckActDelay();
 

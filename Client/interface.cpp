@@ -361,7 +361,7 @@ void GUIManager::Paint(const HDC& hdc)
 	hurtGUI_Dark.gui->Paint(hdc, *rectWindow);
 }
 
-void GUIManager::Update(const HWND& hWnd)
+void GUIManager::Move(const HWND& hWnd)
 {
 	hurtGUI_Fire.ReduceAlpha();
 	hurtGUI_Water.ReduceAlpha();

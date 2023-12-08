@@ -8,6 +8,7 @@
 #include "boss.h"
 #include "sound.h"
 #include "Network.h"
+#include "scene.h"
 
 #include "phase.h"
 
@@ -17,14 +18,16 @@ extern Boss* boss;
 extern EffectManager* effects;
 extern EnemyController* enemies;
 extern SoundManager* soundManager;
+extern SceneManager* sceneManager;
 extern GUIManager* gui;
 extern PhaseManager phase;
 
 // 적 생성자 타입을 받아서 업데이트한다.
-Enemy::Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data) : GameObject(image, pos)
+Enemy::Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint32 id) : GameObject(image, pos)
 {
 	StartMove();
 	this->data = data;
+	this->data.id = id;
 }
 
 // 플레이어의 방향 벡터를 기준으로 적의 현재 방향을 구함
@@ -93,7 +96,7 @@ void Melee::SetPosDest()
 	}
 
 	const Vector2 posCenter = GetPosCenter();
-	const Vector2 vectorToPlayer = posCenter - mPlayer->GetPosCenter();
+	const Vector2 vectorToPlayer = posCenter - sceneManager->GetMemberMap()[mTargetIndex]->GetPosCenter();
 
 	const float radius = GetRadius(vectorToPlayer.x, vectorToPlayer.y);
 
@@ -125,7 +128,7 @@ void Enemy::Paint(const HDC& hdc, int spriteRow)
 }
 void Melee::Paint(const HDC& hdc)
 {
-	const int spriteRow = mRecvData.SpriteRow; // 근거리는 스프라이트 이미지를 방향에 따라 변경해야 한다.
+	const int spriteRow = GetSpriteRow();
 	Enemy::Paint(hdc, spriteRow);
 }
 void Range::Paint(const HDC& hdc)
@@ -134,8 +137,7 @@ void Range::Paint(const HDC& hdc)
 	Enemy::Paint(hdc, spriteRow);
 }
 
-// 최종적으로 위치를 이동
-void Enemy::Update()  
+void Range::Move()
 {
 	if (IsMove() == false)
 	{
@@ -146,44 +148,37 @@ void Enemy::Update()
 	SetPos(posDest);
 }
 
-void Enemy::SetSpriteRow(int spriteRow)
+// 최종적으로 위치를 이동
+void Enemy::Move()
 {
-	mRecvData.SpriteRow = spriteRow;
-}
-
-// 최종적으로 근거리 적 몬스터 이동과 충돌 체크
-void Melee::Update()
-{
-/*	if (IsMove() == false)
+	if (IsMove() == false)
 	{
 		return;
 	}
-	else */if (CheckRecvCollidePlayer() == true)
+
+	SetPosDest();
+	SetPos(posDest);
+}
+
+// 최종적으로 근거리 적 몬스터 이동과 충돌 체크
+void Melee::Move()
+{
+	if (IsMove() == false)
 	{
-		if (mRecvData.TargetIndex == MY_INDEX) // 적의 타겟이 자신인 경우에만 피를 깎는다.
+		return;
+	}
+	else if (CheckRecvCollidePlayer() == true)
+	{
+		if (mTargetIndex == MY_INDEX) // 적의 타겟이 자신인 경우에만 피를 깎는다.
 			mPlayer->Hit(data.damage, GetType());
 
-		const Vector2 targetPos = MEMBER_MAP(mRecvData.TargetIndex).mBattleData.PosCenter;
+		const Vector2 targetPos = MEMBER_MAP(mTargetIndex).mBattleData.PosCenter;
 		effects->CreateHitEffect(targetPos, GetType());
 		return;
 	}
 
-	//SetPosDest();
-	//SetPos(posDest);
-}
-
-// 최종적으로 원거리 적 몬스터 이동, 충돌 체크는 원거리 적 몬스터의 총알하고만 한다.
-void Range::Update()
-{
-	Fire();
-
-	//if (IsMove() == false)
-	//{
-	//	return;
-	//}
-
-	//SetPosDest();
-	//SetPos(posDest);
+	SetPosDest();
+	SetPos(posDest);
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -287,12 +282,13 @@ bool Melee::CheckCollidePlayer()
 
 bool Melee::CheckRecvCollidePlayer()
 {
-	if (mRecvData.IsCollide)
-	{
-		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
-		mRecvData.IsCollide = false;
-		return true;
-	}
+	//if (mRecvData.IsCollide)
+	//{
+	//	IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+	//	mRecvData.IsCollide = false;
+	//	return true;
+	//}
+	//return false;
 	return false;
 }
 
@@ -335,11 +331,11 @@ void Range::CheckAttackDelay()
 // 원거리 적 스킬 발사 함수
 void Range::Fire()
 {
-	if (mRecvData.Status == NetworkEnemyData::Status::ATTACK) {
-		IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
-	}
-	else
-		return;
+	//if (mRecvData.Status == NetworkEnemyData::Status::ATTACK) {
+	//	IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+	//}
+	//else
+	//	return;
 
 	RECT rectBody = GetRectBody();
 	POINT bulletPos = { 0, };
@@ -362,22 +358,22 @@ void Range::Fire()
 	unitVector = Rotate(unitVector, -40);
 	enemies->CreateBullet(bulletPos, bulletData, unitVector);
 
-	mRecvData.Status = NetworkEnemyData::Status::MOVE;
+	//mRecvData.Status = NetworkEnemyData::Status::MOVE;
 }
 
-// 적이 죽었을 경우 효과 사운드를 재생하고 적 객체 삭제
-void EnemyController::Pop(size_t& index)
+void EnemyController::Pop(int32 index)
 {
+	// 적이 죽은 경우 바로 삭제하지 않고 데이터를 보낸 다음 받고 해당 적이 죽은 경우에만 삭제하기로 변경
 	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
 	soundManager->PlayEffectSound(EffectSound::Explosion);
 
-	// 2023-12-07 추가 상태 변경
-	NetworkEnemyData recvData = enemies.at(index)->GetRecvData();
-	recvData.Status = NetworkEnemyData::Status::MOVE;
-	recvData.ID = (uint32)index;
+	//// 2023-12-07 추가 상태 변경
+	//NetworkEnemyData recvData = enemies.at(index)->GetRecvData();
+	//recvData.Status = NetworkEnemyData::Status::MOVE;
+	//recvData.ID = (uint32)index;
 
-	enemies[index] = enemies.back();
-	enemies[index--]->SetRecvData(move(recvData));
+	enemies.at(index--) = enemies.back();
+	//enemies[index--]->SetRecvData(move(recvData));
 
 	enemies.pop_back();
 }
@@ -568,78 +564,78 @@ EnemyController::~EnemyController()
 // 배틀 타이머당 생성되는 근거리 적 생성 함수
 void EnemyController::CreateCheckMelee()
 {
-	// 보스가 나왔거나 게임이 끝났다면 적 생성을 그만한다.
-	if (boss->IsCreated() == true)
-	{
-		return;
-	}
-	else if (gui->IsFieldEnd() == true)
-	{
-		gameData.ClearRecord++;
+	//// 보스가 나왔거나 게임이 끝났다면 적 생성을 그만한다.
+	//if (boss->IsCreated() == true)
+	//{
+	//	return;
+	//}
+	//else if (gui->IsFieldEnd() == true)
+	//{
+	//	gameData.ClearRecord++;
 
-		return;
-	}
+	//	return;
+	//}
 
-	// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
-	delay_Melee += ELAPSE_BATTLE_INVALIDATE; 
-	if (delay_Melee < createDelay_Melee)
-	{
-		return;
-	}
-	delay_Melee = 0;
+	//// 현재 적을 생성하고 난 다음 지난 시간이 적 생성 시간을 넘겼을 경우에만 새로운 적을 생성한다.
+	//delay_Melee += ELAPSE_BATTLE_INVALIDATE; 
+	//if (delay_Melee < createDelay_Melee)
+	//{
+	//	return;
+	//}
+	//delay_Melee = 0;
 
-	// 최대 생성 적 개수에 따라서 적 객체를 생성하여 객체 자료구조에 넣는다.
-	for (int i = 0; i < createAmount_Melee; ++i)
-	{
-		float xPos = rand() % WINDOWSIZE_X;
-		float yPos = -(rand() % 100);
+	//// 최대 생성 적 개수에 따라서 적 객체를 생성하여 객체 자료구조에 넣는다.
+	//for (int i = 0; i < createAmount_Melee; ++i)
+	//{
+	//	float xPos = rand() % WINDOWSIZE_X;
+	//	float yPos = -(rand() % 100);
 
-		Melee* enemy = new Melee(imgMelee, { xPos, yPos }, meleeData);
-		enemies.emplace_back(enemy);
-	}
+	//	Melee* enemy = new Melee(imgMelee, { xPos, yPos }, meleeData);
+	//	enemies.emplace_back(enemy);
+	//}
 }
 
 // 배틀 타이머당 생성되는 원거리 적 생성 함수
 void EnemyController::CreateCheckRange()
 {
-	if (boss->IsCreated() == true)
-	{
-		return;
-	}
-	else if (gui->IsFieldEnd() == true)
-	{
-		return;
-	}
+	//if (boss->IsCreated() == true)
+	//{
+	//	return;
+	//}
+	//else if (gui->IsFieldEnd() == true)
+	//{
+	//	return;
+	//}
 
-	delay_Range += ELAPSE_BATTLE_INVALIDATE;
-	if (delay_Range < createDelay_Range)
-	{
-		return;
-	}
-	delay_Range = 0;
+	//delay_Range += ELAPSE_BATTLE_INVALIDATE;
+	//if (delay_Range < createDelay_Range)
+	//{
+	//	return;
+	//}
+	//delay_Range = 0;
 
-	for (int i = 0; i < createAmount_Range; ++i)
-	{
-		rangeData.maxYPos = (rand() % 100) + 50;
-		const float xPos = (rand() % (WINDOWSIZE_X - 100)) + 50;
-		const float yPos = -(rand() % 100);
+	//for (int i = 0; i < createAmount_Range; ++i)
+	//{
+	//	rangeData.maxYPos = (rand() % 100) + 50;
+	//	const float xPos = (rand() % (WINDOWSIZE_X - 100)) + 50;
+	//	const float yPos = -(rand() % 100);
 
-		Range* enemy = new Range(imgRange, { xPos, yPos }, rangeData);
-		enemies.emplace_back(enemy);
-	}
+	//	Range* enemy = new Range(imgRange, { xPos, yPos }, rangeData);
+	//	enemies.emplace_back(enemy);
+	//}
 }
 
 // 수신받은 근거리 적 생성
-void EnemyController::CreateRecvMelee(Vector2 pos)
+void EnemyController::CreateRecvMelee(NetworkEnemyData& recvData)
 {
-	Melee* enemy = new Melee(imgMelee, pos, meleeData);
+	Melee* enemy = new Melee(imgMelee, recvData.StartPos, meleeData, recvData.TargetIndex, recvData.Id);
 	enemies.emplace_back(enemy);
 }
 
 // 수신받은 원거리 적 생성
-void EnemyController::CreateRecvRange(Vector2 pos)
+void EnemyController::CreateRecvRange(NetworkEnemyData& recvData)
 {
-	Range* enemy = new Range(imgRange, pos, rangeData);
+	Range* enemy = new Range(imgRange, recvData.StartPos, rangeData, recvData.Id);
 	enemies.emplace_back(enemy);
 }
 
@@ -654,18 +650,11 @@ void EnemyController::Paint(HDC hdc)
 	}
 	bullets->Paint(hdc);
 }
-void EnemyController::Update()
+void EnemyController::Move()
 {
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Update();
-	}
-}
-void EnemyController::SetRecvData(NetworkEnemyData&& recvData)
-{
-	if (enemies[recvData.ID] != nullptr) {
-		enemies[recvData.ID]->SetPos(recvData.Pos);
-		enemies[recvData.ID]->SetRecvData(move(recvData));
+		enemy->Move();
 	}
 }
 void EnemyController::Animate()
@@ -676,16 +665,10 @@ void EnemyController::Animate()
 	}
 }
 
-// 임시 충돌 처리 확인 용도
-void EnemyController::CheckHit(uint32 id)
-{
-	EnemyController::Pop(id);
-}
-
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 {
-	for (size_t i = 0;i<enemies.size();++i)
+	for (uint32 i = 0;i<enemies.size();++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
 		{
@@ -693,7 +676,9 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
 			if (enemies.at(i)->Hit(damage) == true)
 			{
-				EnemyController::Pop(i);
+				// 죽은 적 객체의 정보를 송신
+				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 			return true;
 		}
@@ -705,7 +690,7 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 // 플레이어 스킬과 적의 충돌 함수이다. 이펙트 위치를 랜덤으로 지정하여 죽었을 경우 자료구조에서 제거한다.
 void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitType)
 {
-	for (size_t i = 0; i < enemies.size(); ++i)
+	for (uint32 i = 0; i < enemies.size(); ++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
 		{
@@ -715,7 +700,9 @@ void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitTyp
 			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
 			if (enemies.at(i)->Hit(calDamage) == true)
 			{
-				EnemyController::Pop(i);
+				// 죽은 적 객체의 정보를 송신
+				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}
 	}
@@ -732,7 +719,7 @@ void EnemyController::CreateBullet(const POINT& center, const BulletData& data, 
 }
 void EnemyController::MoveBullets()
 {
-	bullets->Update();
+	bullets->Move();
 }
 void EnemyController::DestroyCollideBullet(const RECT& rect)
 {
