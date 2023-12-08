@@ -57,7 +57,7 @@ void Stage::Init()
 	target->_rectDraw = { (float)(rectWindow.right / 2 - 40), (float)(rectWindow.bottom / 2 - 40), (float)(rectWindow.right / 2 + 40),  (float)(rectWindow.bottom / 2 + 40) }; // 중간에 위치 타겟을
 	target->_rectImage = { 0, 0, TARGET_IMAGESIZE_X, TARGET_IMAGESIZE_Y };
 	mRectTarget = target->_rectDraw;
-
+	
 	rectStage[static_cast<int>(StageElement::Water)] = { 350, 570, 610, 720 };
 	rectStage[static_cast<int>(StageElement::Fire)] = { -230, 570, 30, 720 };
 	rectStage[static_cast<int>(StageElement::Elec)] = { 300, 20, 560, 160 };
@@ -278,107 +278,101 @@ void Stage::Update(float elapsedTime)
 	auto rectWindow = sceneManager->GetRectWindow();
 
 	int inputKey = 0;
+	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
+
+
 	if (!_select_pokemon) {
-		target->_select = false;
 
-		// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
-		for (int i = 0; i < STAGE_NUM; i++)
-		{
-			if (IntersectRect2(rectStage[i], target->_rectDraw))
-			{
-				target->_select = true;
-				target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
-				break;
-			}
-			target->_select_index = StageElement::Null;
-		}
-
-		// 타겟 이동
-		if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
-		{
-			inputKey = VK_LEFT;
-
-			if (moveX > 0)
-			{
-				moveX -= MAPSCROLL_SPEED;
-
-
-			}
-			else {
-				if (!_select_pokemon) {
-					mRectTarget.left -= 200 * elapsedTime;
-					mRectTarget.right -= 200 * elapsedTime;
-				}
-			}
-		}
-
-		// 타겟 이동
-		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
-		{
-			inputKey = VK_RIGHT;
-
-			if (moveX < 450)
-			{
-				moveX += MAPSCROLL_SPEED;
-
-			}
-			else {
-				if (!_select_pokemon) {
-					mRectTarget.left += 200 * elapsedTime;
-					mRectTarget.right += 200 * elapsedTime;
-				}
-			}
-		}
-		// 타겟 이동
-		else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
-		{
-			inputKey = VK_UP;
-
-			if (!_select_pokemon) {
-				mRectTarget.top -= 200 * elapsedTime;
-				mRectTarget.bottom -= 200 * elapsedTime;
-			}
-		}
-		// 타겟 이동
-		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
-		{
-			inputKey = VK_DOWN;
-
-			if (!_select_pokemon) {
-				mRectTarget.top += 200 * elapsedTime;
-				mRectTarget.bottom += 200 * elapsedTime;
-			}
-		}
-		else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
-		{
-			inputKey = VK_RETURN;
-		}
-	}
-
-	if (inputKey != 0) {
 		if (MY_INDEX == MP_INDEX) {
-			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget};
+			target->_select = false;
+
+			// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
+			for (int i = 0; i < STAGE_NUM; i++)
+			{
+				if (IntersectRect2(rectStage[i], target->_rectDraw))
+				{
+					target->_select = true;
+					target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
+					break;
+				}
+				target->_select_index = StageElement::Null;
+			}
+
+			// 타겟 이동
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000 && target->_rectDraw.left > rectWindow.left)
+			{
+				inputKey = VK_LEFT;
+
+				if (moveX > 0)
+				{
+					moveX -= MAPSCROLL_SPEED;
+
+
+				}
+				else {
+					if (!_select_pokemon) {
+						mRectTarget.left -= 200 * elapsedTime;
+						mRectTarget.right -= 200 * elapsedTime;
+					}
+				}
+			}
+
+			// 타겟 이동
+			else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && target->_rectDraw.right < rectWindow.right)
+			{
+				inputKey = VK_RIGHT;
+
+				if (moveX < 450)
+				{
+					moveX += MAPSCROLL_SPEED;
+
+				}
+				else {
+					if (!_select_pokemon) {
+						mRectTarget.left += 200 * elapsedTime;
+						mRectTarget.right += 200 * elapsedTime;
+					}
+				}
+			}
+			// 타겟 이동
+			else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
+			{
+				inputKey = VK_UP;
+
+				if (!_select_pokemon) {
+					mRectTarget.top -= 200 * elapsedTime;
+					mRectTarget.bottom -= 200 * elapsedTime;
+				}
+			}
+			// 타겟 이동
+			else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
+			{
+				inputKey = VK_DOWN;
+
+				if (!_select_pokemon) {
+					mRectTarget.top += 200 * elapsedTime;
+					mRectTarget.bottom += 200 * elapsedTime;
+				}
+			}
+			else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
+			{
+				inputKey = VK_RETURN;
+			}
+
+			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget,_rectImage };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
-	}
-	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
-	if (recvData.InputKey != 0) {
-		if (recvData.InputKey == VK_RIGHT && moveX < 450)
-		{
-			moveX += MAPSCROLL_SPEED;
+		else if (recvData.InputKey != 0) {
+			target->_rectDraw = recvData.RectDraw;
+			_rectImage = recvData.RectImage;
 
-		}
-		else if (recvData.InputKey == VK_LEFT && moveX > 0)
-		{
-			moveX -= MAPSCROLL_SPEED;
-
+			_dialogflag = false;
 		}
 
-		target->_rectDraw = recvData.RectDraw;
 
-
-		_dialogflag = false;
 	}
+
+
 
 	fingerController(elapsedTime);
 
@@ -548,7 +542,7 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, true, false, target->_select_index };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, _rectImage,true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
