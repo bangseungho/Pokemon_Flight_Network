@@ -210,14 +210,12 @@ void BulletController::Paint(HDC hdc)
 // 탄막 생성 시 탄막 컨트롤러의 탄막 배열에 넣어준다.
 void BulletController::CreateBullet(const POINT& center, const BulletData& data, Dir dir)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
 	Bullet* bullet = new Bullet(center, bulletSize, data, dir);
 	bullets.emplace_back(bullet);
 }
 // 회전 탄막 생성 함수
 void BulletController::CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector, bool isRotateImg, bool isSkillBullet)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
 	Bullet* bullet = new Bullet(center, bulletSize, data, unitVector, isRotateImg, isSkillBullet);
 	bullets.emplace_back(bullet);
 }
@@ -227,12 +225,10 @@ void PlayerBullet::Update()
 {
 	for (size_t i = 0; i < bullets.size(); ++i)
 	{
-		const RECT rectBullet = bullets.at(i)->GetRect();
-		const float bulletDamage = bullets.at(i)->GetDamage();
-		const Type bulletType = bullets.at(i)->GetType();
-		const POINT bulletPos = bullets.at(i)->GetPos();
-
-		bullets.at(i)->Update();
+		//const RECT rectBullet = bullets.at(i)->GetRect();
+		//const float bulletDamage = bullets.at(i)->GetDamage();
+		//const Type bulletType = bullets.at(i)->GetType();
+		//const POINT bulletPos = bullets.at(i)->GetPos();
 
 		// 탄막이 적이나 보스에 충돌했을 경우 
 		// 충돌 했거나 탄막이 윈도우 화면 바깥으로 나가면 탄막을 삭제한다.
@@ -245,10 +241,10 @@ void PlayerBullet::Update()
 		//	}
 		//	BulletController::Pop(i);
 		//}
-		//else if(bullets.at(i)->Update() == false)
-		//{
-		//	BulletController::Pop(i);
-		//}
+		/*else */if(bullets.at(i)->Update() == false)
+		{
+			BulletController::Pop(i);
+		}
 	}
 }
 
@@ -294,7 +290,6 @@ void BulletController::Pop(size_t& index)
 {
 	//if (bullets.size() <= 0)
 	//	return;
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetBulletMutex());
 	bullets[index] = bullets.back();
 	bullets.pop_back();
 }

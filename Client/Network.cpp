@@ -234,10 +234,7 @@ void Network::ClientReceiver()
 			switch (recvData.Status)
 			{
 			case NetworkBulletData::Status::CREATE:
-				sceneManager->GetMemberMap()[recvData.PlayerIndex]->Shot(recvData);
-				break;
-			case NetworkBulletData::Status::DEATH:
-				sceneManager->GetMemberMap()[recvData.PlayerIndex]->BulletPop(recvData.BulletIndex);
+				sceneManager->GetMemberMap()[recvData.PlayerIndex]->Shot();
 				break;
 			default:
 				break;

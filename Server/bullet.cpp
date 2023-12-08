@@ -179,30 +179,30 @@ BulletController::~BulletController()
 // 탄막 생성 시 탄막 컨트롤러의 탄막 배열에 넣어준다.
 void BulletController::CreateBullet(const POINT& center, BulletData& data, Dir dir)
 {
-	data.id = mAccId++;
-	Bullet* bullet = new Bullet(center, bulletSize, data, dir);
-	bullets.emplace_back(bullet);
+	//data.id = mAccId++;
+	//Bullet* bullet = new Bullet(center, bulletSize, data, dir);
+	//bullets.emplace_back(bullet);
 
-	for (const auto& player : sPlayerMap) {
-		NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center};
-		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
-	}
+	//for (const auto& player : sPlayerMap) {
+	//	NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center};
+	//	Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
+	//}
 
-	bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
+	//bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
 }
 // 회전 탄막 생성 함수
 void BulletController::CreateBullet(const POINT& center, BulletData& data, const Vector2& unitVector, bool isRotateImg, bool isSkillBullet)
 {
-	data.id = mAccId++;
-	Bullet* bullet = new Bullet(center, bulletSize, data, unitVector, isRotateImg, isSkillBullet);
-	bullets.emplace_back(bullet);
+	//data.id = mAccId++;
+	//Bullet* bullet = new Bullet(center, bulletSize, data, unitVector, isRotateImg, isSkillBullet);
+	//bullets.emplace_back(bullet);
 
-	for (const auto& player : sPlayerMap) {
-		NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center };
-		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
-	}
+	//for (const auto& player : sPlayerMap) {
+	//	NetworkBulletData sendData{ bullet->GetSendData().PlayerIndex, data.id, NetworkBulletData::Status::CREATE, center };
+	//	Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
+	//}
 
-	bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
+	//bullet->GetSendData().Status = NetworkBulletData::Status::MOVE;
 }
 
 // 플레이어 탄막의 업데이트 함수 충돌 처리도 여기서 진행한다.
@@ -243,17 +243,17 @@ void PlayerBullet::Update()
 // 가장 뒤 원소인 탄막을 pop_back을 통해서 제거한다. 속도를 위해서이다.
 void BulletController::Pop(size_t& index)
 {
-	for (const auto& player : sPlayerMap) {
-		bullets[index]->GetSendData().Status = NetworkBulletData::Status::DEATH;
-		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, bullets[index]->GetSendData());
-	}
+	//for (const auto& player : sPlayerMap) {
+	//	bullets[index]->GetSendData().Status = NetworkBulletData::Status::DEATH;
+	//	Data::SendDataAndType<NetworkBulletData>(player.second.mSock, bullets[index]->GetSendData());
+	//}
 
-	bullets[index] = bullets.back();
-	bullets[index]->GetSendData().BulletIndex = index;
-	bullets[index--]->GetSendData().Status = NetworkBulletData::Status::MOVE;
-	mAccId--;
+	//bullets[index] = bullets.back();
+	//bullets[index]->GetSendData().BulletIndex = index;
+	//bullets[index--]->GetSendData().Status = NetworkBulletData::Status::MOVE;
+	//mAccId--;
 
-	bullets.pop_back();
+	//bullets.pop_back();
 }
 
 // 만약 스킬이 탄막과 충돌했을 경우 탄막을 없애주며 이펙트 효과를 발생시켜야 한다.
