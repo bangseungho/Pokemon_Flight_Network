@@ -489,14 +489,10 @@ struct NetworkBulletData
 	enum class Status : uint8 {
 		NONE,
 		CREATE,
-		MOVE,
-		DEATH,
 	};
 
 	uint8 PlayerIndex	= 0;
-	uint32 BulletIndex	= 0;
 	Status Status		= Status::NONE;
-	POINT StartPos		= { 0, };
 };
 
 struct NetworkEnemyData

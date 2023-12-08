@@ -143,29 +143,10 @@ void Player::Death()
 // 탄막 발사 함수
 void Player::Shot()
 {
-	// 탄막의 데미지는 플레이어의 데이터에 따라서 달라진다.
-	const RECT rectBody = GetRectBody();
-	BulletData bulletData;
-	bulletData.bulletType = playerData.type;
-	bulletData.damage = playerData.damage;
-	bulletData.speed = playerData.bulletSpeed;
-
-	// 메인 포켓몬의 탄막을 생성하여 BulletController에 추가한다.
-	POINT bulletPos = { 0, };
-	bulletPos.y = rectBody.top;
-	bulletPos.x = rectBody.left - 10;
-	bullets->CreateBullet(bulletPos, bulletData, Dir::Up);
-	bulletPos.x = rectBody.right + 10;
-	bullets->CreateBullet(bulletPos, bulletData, Dir::Up);
-
-	// 서브 포켓몬의 탄막을 생성하여 BulletController에 추가한다.
-	bulletData.bulletType = playerData.subType;
-	bulletData.damage = playerData.subDamage;
-	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	//subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
-
-	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
-	//skillManager->UseSkill();
+	for (const auto& player : sPlayerMap) {
+		NetworkBulletData sendData{ mSendData->mBattleData.PlayerIndex, NetworkBulletData::Status::CREATE };
+		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);
+	}
 }
 
 // 플레이어의 기본 공격에 쿨타임을 주는 함수이다

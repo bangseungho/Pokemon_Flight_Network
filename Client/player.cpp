@@ -458,12 +458,12 @@ void Player::Animate(const HWND& hWnd)
 // 2023/12/08 : 네트워크 탄막 발사 함수 
 void Player::Shot(NetworkBulletData& recvData)
 {
-	BulletData bulletData;
-	bulletData.bulletType = playerData.type;
-	bulletData.damage = playerData.damage;
-	bulletData.speed = playerData.bulletSpeed;
+	//BulletData bulletData;
+	//bulletData.bulletType = playerData.type;
+	//bulletData.damage = playerData.damage;
+	//bulletData.speed = playerData.bulletSpeed;
 
-	bullets->CreateBullet(recvData.StartPos, bulletData, Dir::Up);
+	//bullets->CreateBullet(recvData.StartPos, bulletData, Dir::Up);
 }
 
 void Player::Shot()
@@ -487,7 +487,7 @@ void Player::Shot()
 	bulletData.bulletType = playerData.subType;
 	bulletData.damage = playerData.subDamage;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
-	//subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
+	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
 	// 스킬도 사용시 스킬 매니저를 이용해서 스킬 업데이트
 	//skillManager->UseSkill();
