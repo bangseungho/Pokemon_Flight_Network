@@ -352,13 +352,15 @@ void Stage::Update(float elapsedTime)
 				inputKey = VK_RETURN;
 			}
 			if (inputKey != 0) {
-				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, target->_select, mRectTarget,rectWindow };
+				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, target->_select, mRectTarget,moveX, _rectImage };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}
 		target->_select = recvData.mTargetSelect;
 		target->_rectDraw = recvData.RectDraw;
-		rectWindow = recvData.RectImage;
+		moveX = recvData.mMoveX;
+		_rectImage = recvData.RectImage;
+
 
 		_dialogflag = false;
 		
@@ -536,7 +538,7 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_select,target->_rectDraw, _rectImage,true, false, target->_select_index };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_select,target->_rectDraw,moveX, _rectImage, true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}

@@ -451,7 +451,9 @@ struct StageData
 	int		InputKey;
 	bool	mTargetSelect;
 	FRECT	RectDraw = { (float)(RECT_WINDOW_WIDTH / 2 - 40), (float)(RECT_WINDOW_HEIGHT / 2 - 40), (float)(RECT_WINDOW_WIDTH / 2 + 40), (float)(RECT_WINDOW_HEIGHT / 2 + 40) };
+	float	mMoveX;
 	RECT	RectImage = { 0, 0, TPLAYER_IMAGESIZE_X, TPLAYER_IMAGESIZE_Y };
+
 	bool	IsReady = false;
 	bool	CanGoNextScene = false;
 	StageElement Stage = StageElement::Null;
