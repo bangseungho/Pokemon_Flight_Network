@@ -16,8 +16,8 @@ typedef struct PlayerData {
 	float speed = 0;
 
 	float bulletSpeed = 0;
-	float shotDelay = 0; // ÇÃ·¹ÀÌ¾î Åº¸·ÀÇ ÄðÅ¸ÀÓ
-	float crntShotDelay = 0; // ÇÃ·¹ÀÌ¾î Åº¸·ÀÇ ÇöÀç ÄðÅ¸ÀÓ
+	float shotDelay = 0; // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
+	float crntShotDelay = 0; // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
 	float damage = 0;
 	float subDamage = 0;
 	float damage_Q = 0; // per sec
@@ -25,18 +25,18 @@ typedef struct PlayerData {
 	bool isCanGo = false;
 	bool isDeath = false;
 	bool isInvincible = true;
-
+	
 	uint8 id = 0;
 }PlayerData;
 
 class Player : public GameObject, public IControllable, public IAnimatable {
 private:
 	PlayerData playerData;
-	PlayerBullet* bullets = nullptr; // ¸ÞÀÎ Æ÷ÄÏ¸óÀÇ Åº¸· ÄÁÆ®·Ñ·¯(ºñÇà Æ÷ÄÏ¸ó)
-	PlayerBullet* subBullets = nullptr; // ¼­ºê Æ÷ÄÏ¸óÀÇ Åº¸· ÄÁÆ®·Ñ·¯(´ëÁö Æ÷ÄÏ¸ó)
-	Vector2 posDest = { 0, }; // ¸ñÀûÁö ÁÂÇ¥(¹Ù·Î ÀÌµ¿ÇÏÁö ¾Ê°í ¼±Çüº¸°£À» ÅëÇØ Á¶±Ý¾¿ ÀÌµ¿ÇÑ´Ù)
+	PlayerBullet* bullets = nullptr; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ Åºï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½)
+	PlayerBullet* subBullets = nullptr; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ Åºï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½)
+	Vector2 posDest = { 0, }; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥(ï¿½Ù·ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý¾ï¿½ ï¿½Ìµï¿½ï¿½Ñ´ï¿½)
 	Vector2 vectorMove = { 0, };
-	float alpha = 0; // ¼±Çüº¸°£ ¿òÁ÷ÀÓÀ» À§ÇÑ ¾ËÆÄ°ªÀÌ´Ù. 1ÀÌ¸é posDestÀÌ°í 0ÀÌ¸é ÇöÀç ÁÂÇ¥ÀÌ´Ù.
+	float alpha = 0; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä°ï¿½ï¿½Ì´ï¿½. 1ï¿½Ì¸ï¿½ posDestï¿½Ì°ï¿½ 0ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½Ì´ï¿½.
 
 	SkillManager* skillManager = nullptr;
 	int skillCount = 0;
@@ -49,11 +49,11 @@ private:
 
 	void Death();
 	void SetPosDest() override;
-	inline bool IsClearShotDelay() const // ÄðÅ¸ÀÓÀÌ ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+	inline bool IsClearShotDelay() const // ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	{
 		return (playerData.crntShotDelay <= 0);
 	}
-	inline void ResetShotDelay() // ÄðÅ¸ÀÓ ¿Ï·á½Ã Åº¸· ÀåÀü
+	inline void ResetShotDelay() // ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ Åºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		playerData.crntShotDelay = playerData.shotDelay;
 	}

@@ -240,7 +240,10 @@ void SceneManager::Paint()
 			member.second->Paint(memDC);
 
 		enemies->Paint(memDC);
-		mPlayer->PaintSkill(memDC);
+
+		for (auto& member : mMemberMap)
+			member.second->PaintSkill(memDC);
+
 		effects->Paint(memDC);
 		gui->Paint(memDC);
 		break;
