@@ -64,7 +64,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
 
-	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_rectDraw, false };
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_select,target->_rectDraw, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	soundManager->StopBGMSound();
@@ -307,14 +307,11 @@ void Stage::Update(float elapsedTime)
 				{
 					moveX -= MAPSCROLL_SPEED;
 
+				}
 
-				}
-				else {
-					if (!_select_pokemon) {
-						mRectTarget.left -= 200 * elapsedTime;
-						mRectTarget.right -= 200 * elapsedTime;
-					}
-				}
+				mRectTarget.left -= 200 * elapsedTime;
+				mRectTarget.right -= 200 * elapsedTime;
+
 			}
 
 			// Å¸°Ù ÀÌµ¿
@@ -327,12 +324,10 @@ void Stage::Update(float elapsedTime)
 					moveX += MAPSCROLL_SPEED;
 
 				}
-				else {
-					if (!_select_pokemon) {
-						mRectTarget.left += 200 * elapsedTime;
-						mRectTarget.right += 200 * elapsedTime;
-					}
-				}
+
+				mRectTarget.left += 200 * elapsedTime;
+				mRectTarget.right += 200 * elapsedTime;
+
 			}
 			// Å¸°Ù ÀÌµ¿
 			else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
@@ -360,16 +355,17 @@ void Stage::Update(float elapsedTime)
 				inputKey = VK_RETURN;
 			}
 			if (inputKey != 0) {
-				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget,rectWindow };
+				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, target->_select, mRectTarget,rectWindow };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}
-		else{
-			target->_rectDraw = recvData.RectDraw;
-			rectWindow = recvData.RectImage;
+		
+		target->_select = recvData.mTargetSelect;
+		target->_rectDraw = recvData.RectDraw;
+		rectWindow = recvData.RectImage;
 
-			_dialogflag = false;
-		}
+		_dialogflag = false;
+		
 
 
 	}
@@ -544,7 +540,7 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, _rectImage,true, false, target->_select_index };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_select,target->_rectDraw, _rectImage,true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
