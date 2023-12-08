@@ -123,6 +123,7 @@ Player::~Player()
 void Player::Init()
 {
 	skillManager = new SkillManager();
+	skillManager->SetPlayer(this);
 }
 
 // 플레이어 렌더링

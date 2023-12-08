@@ -204,6 +204,7 @@ void Boss::Create()
 	bossData = GetBossData();
 	bossData.isCreated = true;
 	skill = new BossSkillManager();
+	skill->SetPlayer(mPlayer);
 
 	Vector2 posCenter = { WINDOWSIZE_X / 2 , -300 };
 	GameObject::Init(*image, posCenter);
