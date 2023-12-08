@@ -25,6 +25,8 @@ typedef struct PlayerData {
 	bool isCanGo = false;
 	bool isDeath = false;
 	bool isInvincible = true;
+
+	uint8 id = 0;
 }PlayerData;
 
 class Player : public GameObject, public IControllable, public IAnimatable {
@@ -33,7 +35,7 @@ private:
 	PlayerBullet* bullets = nullptr; // 메인 포켓몬의 탄막 컨트롤러(비행 포켓몬)
 	PlayerBullet* subBullets = nullptr; // 서브 포켓몬의 탄막 컨트롤러(대지 포켓몬)
 	Vector2 posDest = { 0, }; // 목적지 좌표(바로 이동하지 않고 선형보간을 통해 조금씩 이동한다)
-	Vector2 vectorMove = { 0, }; 
+	Vector2 vectorMove = { 0, };
 	float alpha = 0; // 선형보간 움직임을 위한 알파값이다. 1이면 posDest이고 0이면 현재 좌표이다.
 
 	SkillManager* skillManager = nullptr;
@@ -62,6 +64,7 @@ public:
 	void Paint(HDC hdc);
 	void PaintSkill(HDC hdc);
 
+	void SetPlayerId(uint8 id) { playerData.id = id; }
 	void SetDirection(Dir dir);
 	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
 	void Move(const HWND& hWnd, int timerID) override;
@@ -79,6 +82,7 @@ public:
 	void ActiveSkill(Skill skill);
 	void MoveBullets();
 	bool IsUsingSkill() const;
+	bool IsIdentity() const;
 	inline float GetDamage_Q() const
 	{
 		return playerData.damage_Q;
@@ -111,6 +115,10 @@ public:
 	{
 		return playerData.maxmp;
 	}
+	inline uint8 GetPlayerId() const
+	{
+		return playerData.id;
+	}
 	inline void AddHP(float amount)
 	{
 		playerData.hp += amount;
@@ -127,15 +135,7 @@ public:
 			playerData.mp = playerData.maxmp;
 		}
 	}
-	inline bool ReduceMP(float amount)
-	{
-		if ((playerData.mp - amount) < 0)
-		{
-			return false;
-		}
-		playerData.mp -= amount;
-		return true;
-	}
+	bool ReduceMP(float amount, Skill skill);
 	void InvincibleMode()
 	{
 		playerData.isInvincible = !playerData.isInvincible;

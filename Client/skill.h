@@ -35,17 +35,20 @@ private:
 
 	RECT GetRectBody() const;
 public:
-	SkillManager();
-	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player; }
+	SkillManager(Player* player);
 	void UseSkill();
 	void Paint(const HDC& hdc) const;
 	void Animate();
 
 	void ActiveSkill(Skill skill);
-	
+
 	inline bool IsUsingSkill() const
 	{
 		return (crntSkill == Skill::Sector || crntSkill == Skill::Circle) ? true : false;
+	}
+	inline bool IsIdentity() const
+	{
+		return isIdentity;
 	}
 };
 
@@ -88,7 +91,7 @@ private:
 
 		Vector2 unitVector_imgRotation = Vector2::Down();
 		Vector2 unitVector_direction = Vector2::Zero();
-		
+
 		SkillData skillData;
 		DarkSkillData darkSkillData;
 
@@ -104,7 +107,7 @@ private:
 		void Paint(HDC hdc) const;
 		bool Animate();
 
-		RECT GetRectBody() const;	
+		RECT GetRectBody() const;
 		bool RotateToPlayer(float t);
 		inline void IncreaseAlpha(BYTE alpha)
 		{
@@ -190,7 +193,7 @@ private:
 public:
 	BossSkillManager();
 	~BossSkillManager();
-	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player;  }
+	void SetPlayer(class Player* player) { if (player != nullptr) mPlayer = player; }
 	void Paint(const HDC& hdc);
 	void Animate();
 

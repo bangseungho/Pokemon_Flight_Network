@@ -122,8 +122,7 @@ Player::~Player()
 // 스킬 매니저 생성
 void Player::Init()
 {
-	skillManager = new SkillManager();
-	skillManager->SetPlayer(this);
+	skillManager = new SkillManager(this);
 }
 
 // 플레이어 렌더링
@@ -139,7 +138,7 @@ void Player::Paint(HDC hdc)
 		return;
 	}
 
-	const RECT rectImage =ISprite::GetRectImage(GetImage(), frame);
+	const RECT rectImage = ISprite::GetRectImage(GetImage(), frame);
 	GameObject::Paint(hdc, &rectImage);
 
 	const ObjectImage& image = GetImage();
@@ -231,8 +230,8 @@ void Player::SetPosDest()
 	}
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
-	
-	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd() };
+
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd() };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -322,7 +321,7 @@ void Player::Move(const HWND& hWnd, int timerID)
 	// 넘지 않았다면 다음 좌표로 플레이어의 중심 좌표를 이동한다
 	SetPos(posNext);
 	posCenter = GetPosCenter();
-	
+
 	// 벡터의 뺄셈 계산을 통해서 현재 어느 방향으로 가는지를 구할 수 있다.
 	vectorMove = posDest - posCenter;
 
@@ -511,9 +510,9 @@ void Player::CheckShot()
 	playerData.crntShotDelay -= ELAPSE_BATTLE_INVALIDATE;
 	//if (IsClearShotDelay() == true)
 	//{
-		Shot();
-		//ResetShotDelay();
-	//}
+	Shot();
+	//ResetShotDelay();
+//}
 }
 
 // 서브 포켓몬의 탄막 생성 함수
@@ -592,4 +591,28 @@ void Player::MoveBullets()
 bool Player::IsUsingSkill() const
 {
 	return skillManager->IsUsingSkill();
+}
+
+bool Player::IsIdentity() const
+{
+	return skillManager->IsIdentity();
+}
+
+bool Player::ReduceMP(float amount, Skill skill)
+{
+	if (skill == Skill::Identity && skillManager->IsIdentity() == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
+	{
+		return false;
+	}
+	else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
+	{
+		return false;
+	}
+
+	if ((playerData.mp - amount) < 0)
+	{
+		return false;
+	}
+	playerData.mp -= amount;
+	return true;
 }

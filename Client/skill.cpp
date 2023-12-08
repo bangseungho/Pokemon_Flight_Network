@@ -8,6 +8,7 @@
 #include "interface.h"
 #include "scene.h"
 #include "sound.h"
+#include "Network.h"
 
 #include "battle.h"
 
@@ -81,8 +82,11 @@ bool SkillManager::Effect::Animate()
 
 
 
-SkillManager::SkillManager()
+SkillManager::SkillManager(Player* player)
 {
+	if (player != nullptr)
+		mPlayer = player;
+
 	const Type type = mPlayer->GetType();
 	switch (type)
 	{
@@ -174,7 +178,7 @@ void SkillManager::UseSkill()
 // 궁극기 사용시 스킬 렌더링
 void SkillManager::Paint(const HDC& hdc) const
 {
-	if (isIdentity == false) 
+	if (isIdentity == false)
 	{
 		return;
 	}
@@ -232,40 +236,40 @@ void SkillManager::Animate()
 // 스킬 사용 함수 플래그가 켜져 있다면 현재 스킬 상태를 업데이트
 void SkillManager::ActiveSkill(Skill skill)
 {
-	if (skill == Skill::Identity && isIdentity == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
-	{
-		return;
-	}
-	else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
-	{
-		return;
-	}
+	//if (skill == Skill::Identity && isIdentity == true) // 현재 궁극기 사용중이면 리턴(연속으로 사용 못하도록)
+	//{
+	//	return;
+	//}
+	//else if (skill != Skill::Identity && IsUsingSkill() == true) // 현재 W, E 스킬 중 하나를 사용중이면 리턴(연속으로 사용 못하도록)
+	//{
+	//	return;
+	//}
 
 	// 스킬에 따라서 상태 업데이트
 	// MP가 적다면 바로 리턴
 	switch (skill)
 	{
 	case Skill::Sector:
-		if (mPlayer->ReduceMP(15) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(15) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		skillCount = 7;
 		crntSkill = skill;
 		break;
 	case Skill::Circle:
-		if (mPlayer->ReduceMP(10) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(10) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		skillCount = 10;
 		crntSkill = skill;
 		break;
 	case Skill::Identity:
-		if (mPlayer->ReduceMP(30) == false)
-		{
-			return;
-		}
+		//if (mPlayer->ReduceMP(30) == false && mPlayer->GetPlayerId() == MY_INDEX)
+		//{
+		//	return;
+		//}
 		// 궁극기 사용시 맵을 흔든다.
 		switch (mPlayer->GetType())
 		{
@@ -357,7 +361,7 @@ RECT BossSkillManager::Effect::GetRectBody() const
 	rectBody.top = posCenter.y - ((float)size.y / 2);
 	rectBody.right = rectBody.left + size.x;
 	rectBody.bottom = rectBody.top + size.y;
-	
+
 
 	return rectBody;
 }
@@ -445,11 +449,11 @@ void BossSkillManager::Effect::Paint(HDC hdc) const
 			GetRotationPos(rectBody, unitVector_direction, Vector2::Up(), vPoints);
 		}
 		imgSkill.PaintRotation(hdc, vPoints, &rectImage);
-		
+
 		if (gameData.isShowHitbox == true)
 		{
 			MoveToEx(hdc, posCenter.x, posCenter.y, NULL);
-			LineTo(hdc, posCenter.x + (unitVector_direction.x*100), posCenter.y + (unitVector_direction.y * 100));
+			LineTo(hdc, posCenter.x + (unitVector_direction.x * 100), posCenter.y + (unitVector_direction.y * 100));
 		}
 	}
 }
@@ -494,7 +498,7 @@ bool BossSkillManager::Effect::Animate()
 				}
 			}
 		}
-		
+
 	}
 
 	return Move();
@@ -512,14 +516,14 @@ bool BossSkillManager::Effect::Move()
 			}
 			posCenter = darkSkillData.GetRotatePos(rotationDegree);
 		}
-		
+
 		return true;
 	}
 
 	posCenter = posCenter + (unitVector_direction * skillData.speed);
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
 	const RECT rectBody = GetRectBody();
-		
+
 	if (boss->GetType() == Type::Dark)
 	{
 		if (skillData.damage > 0)
@@ -594,7 +598,7 @@ BossSkillManager::BossSkillManager()
 		imgSkill2.ScaleImage(1.5f, 1.5f);
 		imgSkill2_Warning.Load(_T("images\\battle\\boss_skill2_dark_warning.png"), { 100,100 }, 200, 0x50);
 		imgSkill2_Warning.ScaleImage(3.0f, 3.0f);
-		break;	
+		break;
 	default:
 		assert(0);
 		break;
@@ -914,7 +918,7 @@ void BossSkillManager::Skill2_Water()
 		showLine = 0;
 		showCount += lines;
 	}
-	
+
 	const size_t size = warningEffects.size();
 	if (showCount > size)
 	{
@@ -1006,7 +1010,7 @@ void BossSkillManager::Skill1_Fire()
 		skillData.damage = boss->GetDamage_Skill1();
 		skillData.isHitOnce = true;
 		skillEffects.emplace_back(this, imgSkill1, posCenter, Vector2::Down(), vToPlayer, skillData);
-		
+
 		posCenter.x = rectBoss.left + (rand() % width);
 		posCenter.y = rectBoss.top + (rand() % height);
 		vToPlayer = (mPlayer->GetPosCenter() - posCenter).Normalized();
@@ -1027,7 +1031,7 @@ void BossSkillManager::Skill1_Fire()
 		}
 	}
 
-	if(skillEffects.empty() == true)
+	if (skillEffects.empty() == true)
 	{
 		skillCount = 0;
 		creationCount = 0;
@@ -1066,7 +1070,7 @@ void BossSkillManager::Skill2_Fire()
 		}
 	}
 
-	if(skillEffects.empty() == false)
+	if (skillEffects.empty() == false)
 	{
 		if (skillEffects.front().Animate() == false)
 		{
@@ -1227,8 +1231,8 @@ void BossSkillManager::Skill2_Dark()
 			skillEffects.pop_back();
 		}
 	}
-	
-	if(warningEffects.empty() == true && skillEffects.empty() == true)
+
+	if (warningEffects.empty() == true && skillEffects.empty() == true)
 	{
 		boss->ReSetBossAct();
 		soundManager->StopBossSound();

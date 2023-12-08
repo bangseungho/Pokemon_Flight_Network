@@ -82,18 +82,24 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			break;
 		case _T('Q'):
 		{
+			if (mPlayer->ReduceMP(30, Skill::Identity) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::IDENTITY };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
 		}
 		case _T('W'):
 		{
+			if (mPlayer->ReduceMP(15, Skill::Sector) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::SECTOR };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
 		}
 		case _T('E'):
 		{
+			if (mPlayer->ReduceMP(10, Skill::Circle) == false)
+				break;
 			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::CIRCLE };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
@@ -223,7 +229,7 @@ GUIManager::GUIManager(const RECT& rectWindow)
 	gagueGUI_border = new GUIImage();
 	gagueGUI_hp = new GUIImage();
 	gagueGUI_mp = new GUIImage();
-	
+
 	icon_Q = new GUIImage();
 	icon_W = new GUIImage();
 	icon_E = new GUIImage();
@@ -395,7 +401,7 @@ void GUIManager::Move(const HWND& hWnd)
 			soundManager->PlayEffectSound(EffectSound::Win);
 			sceneManager->StartLoading(hWnd);
 
-			BattleData sendData{ MY_INDEX, mPlayer->GetPosCenter(), mPlayer->GetRectBody(), isIconStop, mPlayer->IsDeath()};
+			BattleData sendData{ MY_INDEX, mPlayer->GetPosCenter(), mPlayer->GetRectBody(), isIconStop, mPlayer->IsDeath() };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 		return;
@@ -408,7 +414,7 @@ void GUIManager::Move(const HWND& hWnd)
 		rectPokemonIcon.top += corrValue;
 		rectPokemonIcon.bottom += corrValue;
 		isIconStop = true;
-	
+
 		if (crntPhase >= 2)
 		{
 			boss->Create();
@@ -419,7 +425,7 @@ RECT GUIManager::GetRectDisplay() const
 {
 	RECT rectDisplay = *rectWindow;
 	rectDisplay.bottom = rectMain.top;
-	return rectDisplay;	
+	return rectDisplay;
 }
 
 void GUIManager::DisplayHurtFrame(Type type)

@@ -120,12 +120,14 @@ void SceneManager::LoadScene(const HWND& hWnd)
 	case Scene::PhaseManager:
 		phase.Init();
 		break;
-	case Scene::Battle: 
+	case Scene::Battle:
 		battle.Init();
 
 		// ¸ðµç ¸â¹ö ·»´õ¸µ
-		for (const auto& member : GET_MEMBER_MAP)
+		for (const auto& member : GET_MEMBER_MAP) {
 			mMemberMap[member.first] = new Player(member.second.mSceneData.AirPokemon, member.second.mSceneData.LandPokemon);
+			mMemberMap[member.first]->SetPlayerId(member.first);
+		}
 
 		// ³ªÀÇ ÀÎµ¦½º°¡ ¹Ù·Î mPlayer
 		mPlayer = mMemberMap[MY_INDEX];
@@ -183,7 +185,7 @@ void SceneManager::Move()
 {
 	GET_SINGLE(GameTimer)->Move();
 
-	switch (crntScene){
+	switch (crntScene) {
 	case Scene::Intro:
 		intro.Move(DELTA_TIME);
 		break;

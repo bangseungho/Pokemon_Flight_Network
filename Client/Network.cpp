@@ -113,7 +113,7 @@ void Network::ClientReceiver()
 					break;
 				}
 
-				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", " 
+				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", "
 					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
 			}
 #endif 
@@ -251,7 +251,7 @@ void Network::ClientReceiver()
 void Network::Init(string ipAddr)
 {
 	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) 
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		ErrorQuit("init()");
 
 	ZeroMemory(&mServerAddr, sizeof(SOCKADDR_IN));
@@ -298,7 +298,7 @@ void Network::Connect()
 	cout << "PORT: " << ntohs(localAddr.sin_port) << ", ";
 	cout << "CLIENT_NUMBER: " << static_cast<uint32>(mClientIndex) << ") ]" << Endl;
 #endif 
-	
+
 	// 자신의 클라이언트 인덱스를 수신 받았다면 다시 모든 클라이언트에게 자신의 인덱스를 송신한다.
 	Network::SendDataAndType(IntroData{ mClientIndex });
 
