@@ -224,6 +224,17 @@ void ProcessClient(ThreadSocket sock)
 			}
 		}
 #pragma endregion
+#pragma region Bullet
+		else if (dataType == DataType::BULLET_DATA) {
+			auto& data = sPlayerMap[threadId].mBulletData;
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+
+			Data::RecvData<NetworkBulletData>(clientSock, data);
+
+			for (const auto& player : sPlayerMap)
+				Data::SendDataAndType<NetworkBulletData>(player.second.mSock, data);
+			}
+#pragma endregion
 	}
 
 	sPlayerMap.erase(threadId);

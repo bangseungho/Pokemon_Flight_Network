@@ -81,14 +81,23 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			gui->SkipField();
 			break;
 		case _T('Q'):
-			mPlayer->ActiveSkill(Skill::Identity);
+		{
+			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::IDENTITY };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
+		}
 		case _T('W'):
-			mPlayer->ActiveSkill(Skill::Sector);
+		{
+			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::SECTOR };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
+		}
 		case _T('E'):
-			mPlayer->ActiveSkill(Skill::Circle);
+		{
+			NetworkBulletData sendData{ MY_INDEX, NetworkBulletData::Status::CIRCLE };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
 			break;
+		}
 		}
 
 		bool isMove = false;

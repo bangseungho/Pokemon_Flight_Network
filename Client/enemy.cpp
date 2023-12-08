@@ -705,7 +705,7 @@ void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitTyp
 				// 죽은 적 객체의 정보를 송신
 				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
-				Sleep(10);
+				//Sleep(10);
 			}
 		}
 	}
