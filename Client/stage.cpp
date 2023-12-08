@@ -337,34 +337,36 @@ void Stage::Update(float elapsedTime)
 			// Å¸°Ù ÀÌµ¿
 			else if (GetAsyncKeyState(VK_UP) & 0x8000 && target->_rectDraw.top > rectWindow.top)
 			{
+
 				inputKey = VK_UP;
 
-				if (!_select_pokemon) {
-					mRectTarget.top -= 200 * elapsedTime;
-					mRectTarget.bottom -= 200 * elapsedTime;
-				}
+				
+				mRectTarget.top -= 200 * elapsedTime;
+				mRectTarget.bottom -= 200 * elapsedTime;
+				
 			}
 			// Å¸°Ù ÀÌµ¿
 			else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
 			{
 				inputKey = VK_DOWN;
 
-				if (!_select_pokemon) {
-					mRectTarget.top += 200 * elapsedTime;
-					mRectTarget.bottom += 200 * elapsedTime;
-				}
+				
+				mRectTarget.top += 200 * elapsedTime;
+				mRectTarget.bottom += 200 * elapsedTime;
+				
 			}
 			else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 			{
 				inputKey = VK_RETURN;
 			}
-
-			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget,_rectImage };
-			GET_SINGLE(Network)->SendDataAndType(sendData);
+			if (inputKey != 0) {
+				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget,rectWindow };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+			}
 		}
-		else if (recvData.InputKey != 0) {
+		else{
 			target->_rectDraw = recvData.RectDraw;
-			_rectImage = recvData.RectImage;
+			rectWindow = recvData.RectImage;
 
 			_dialogflag = false;
 		}

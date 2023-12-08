@@ -278,112 +278,107 @@ void Stage::Update(float elapsedTime)
 	auto rectWindow = sceneManager->GetRectWindow();
 
 	int inputKey = 0;
+	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
+
+
 	if (!_select_pokemon) {
-		target->_select = false;
 
-		// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
-		for (int i = 0; i < STAGE_NUM; i++)
-		{
-			if (IntersectRect2(rectStage[i], target->_rectDraw))
+		if (MY_INDEX == MP_INDEX) {
+			target->_select = false;
+
+			// 타겟이 맵 오브젝트 위에 올라가 있을 경우 선택 flag를  true로 설정
+			for (int i = 0; i < STAGE_NUM; i++)
 			{
-				target->_select = true;
-				target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
-				break;
+				if (IntersectRect2(rectStage[i], target->_rectDraw))
+				{
+					target->_select = true;
+					target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
+					break;
+				}
+				target->_select_index = StageElement::Null;
 			}
-			target->_select_index = StageElement::Null;
-		}
 
-		// 타겟 이동
-		if (GetAsyncKeyState('A') & 0x8000 && target->_rectDraw.left > rectWindow.left)
-		{
-			inputKey = 'A';
-
-			if (moveX > 0)
+			// 타겟 이동
+			if (GetAsyncKeyState('A') & 0x8000 && target->_rectDraw.left > rectWindow.left)
 			{
-				moveX -= MAPSCROLL_SPEED;
+				inputKey = VK_LEFT;
+
+				if (moveX > 0)
+				{
+					moveX -= MAPSCROLL_SPEED;
 
 
-			}
-			else {
-				if (!_select_pokemon) {
-					mRectTarget.left -= 200 * elapsedTime;
-					mRectTarget.right -= 200 * elapsedTime;
+				}
+				else {
+					if (!_select_pokemon) {
+						mRectTarget.left -= 200 * elapsedTime;
+						mRectTarget.right -= 200 * elapsedTime;
+					}
 				}
 			}
-		}
 
-		// 타겟 이동
-		else if (GetAsyncKeyState('D') & 0x8000 && target->_rectDraw.right < rectWindow.right)
-		{
-			inputKey = 'D';
-
-			if (moveX < 450)
+			// 타겟 이동
+			else if (GetAsyncKeyState('D') & 0x8000 && target->_rectDraw.right < rectWindow.right)
 			{
-				moveX += MAPSCROLL_SPEED;
+				inputKey = VK_RIGHT;
 
-			}
-			else {
-				if (!_select_pokemon) {
-					mRectTarget.left += 200 * elapsedTime;
-					mRectTarget.right += 200 * elapsedTime;
+				if (moveX < 450)
+				{
+					moveX += MAPSCROLL_SPEED;
+
+				}
+				else {
+					if (!_select_pokemon) {
+						mRectTarget.left += 200 * elapsedTime;
+						mRectTarget.right += 200 * elapsedTime;
+					}
 				}
 			}
-		}
-		// 타겟 이동
-		else if (GetAsyncKeyState('W') & 0x8000 && target->_rectDraw.top > rectWindow.top)
-		{
-			inputKey = 'W';
+			// 타겟 이동
+			else if (GetAsyncKeyState('W') & 0x8000 && target->_rectDraw.top > rectWindow.top)
+			{
 
-			if (!_select_pokemon) {
+				inputKey = VK_UP;
+
+
 				mRectTarget.top -= 200 * elapsedTime;
 				mRectTarget.bottom -= 200 * elapsedTime;
-			}
-		}
-		// 타겟 이동
-		else if (GetAsyncKeyState('S') & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
-		{
-			inputKey = 'S';
 
-			if (!_select_pokemon) {
+			}
+			// 타겟 이동
+			else if (GetAsyncKeyState('S') & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
+			{
+				inputKey = VK_DOWN;
+
+
 				mRectTarget.top += 200 * elapsedTime;
 				mRectTarget.bottom += 200 * elapsedTime;
+
+			}
+			else if (GetAsyncKeyState(VK_INSERT) & 0x0001)
+			{
+				inputKey = VK_RETURN;
+			}
+			if (inputKey != 0) {
+				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget,rectWindow };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}
-		else if (GetAsyncKeyState(VK_INSERT) & 0x0001)
-		{
-			inputKey = VK_INSERT;
+		else {
+			target->_rectDraw = recvData.RectDraw;
+			rectWindow = recvData.RectImage;
+
+			_dialogflag = false;
 		}
+
+
 	}
 
-	if (inputKey != 0) {
-		if (MY_INDEX == MP_INDEX) {
-			StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, mRectTarget };
-			GET_SINGLE(Network)->SendDataAndType(sendData);
-		}
-	}
 
-	auto& recvData = MEMBER_MAP(MP_INDEX).mStageData;
-	if (recvData.InputKey != 0) {
-		if ((recvData.InputKey == 'D' || recvData.InputKey == VK_RIGHT) && moveX < 450)
-		{
-			moveX += MAPSCROLL_SPEED;
-
-		}
-		else if ((recvData.InputKey == 'A' || recvData.InputKey == VK_LEFT) && moveX > 0)
-		{
-			moveX -= MAPSCROLL_SPEED;
-
-		}
-
-		target->_rectDraw = recvData.RectDraw;
-
-
-		_dialogflag = false;
-	}
 
 	fingerController(elapsedTime);
 
-	if ((recvData.InputKey == VK_INSERT || recvData.InputKey == VK_RETURN)&& _ready_Air_pokemon && _ready_Land_pokemon)
+	if (recvData.InputKey == VK_INSERT && _ready_Air_pokemon && _ready_Land_pokemon)
 	{
 		if (recvData.CanGoNextScene == true) {
 			moveX = 300;
@@ -392,7 +387,7 @@ void Stage::Update(float elapsedTime)
 	}
 
 	// 유효한 스테이지에 타겟이 충돌하였을 때 엔터 키를 누르면 다음 씬으로 이동한다.
-	if ((recvData.InputKey == VK_INSERT || recvData.InputKey == VK_RETURN) && target->_select == true)
+	if (recvData.InputKey == VK_INSERT && target->_select == true)
 	{
 		_enter_select = true;
 
@@ -485,7 +480,7 @@ void Stage::fingerController(float elpasedTime)
 
 	if (_select_pokemon && sceneManager->IsLoading() == false)
 	{
-		if (GetAsyncKeyState(VK_INSERT) & 0x0001 && _enter_select)
+		if (GetAsyncKeyState(VK_RETURN) & 0x0001 && _enter_select)
 		{
 			if (!_ready_Air_pokemon)
 			{
@@ -549,23 +544,23 @@ void Stage::fingerController(float elpasedTime)
 			}
 			else if (_ready_Air_pokemon && _ready_Land_pokemon)
 			{
-				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_INSERT, target->_rectDraw, true, false, target->_select_index };
+				StageData sendData = { MY_INDEX, gameData.ClearRecord, VK_RETURN, target->_rectDraw, _rectImage,true, false, target->_select_index };
 				GET_SINGLE(Network)->SendDataAndType<StageData>(sendData);
 			}
 		}
 
 		if (!_ready_Air_pokemon)
 		{
-			if (GetAsyncKeyState('A') & 0x0001 && mFingerCount > 0)
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 0)
 				mFingerCount -= 1;
-			if (GetAsyncKeyState('D') & 0x0001 && mFingerCount < 2)
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 2)
 				mFingerCount += 1;
 		}
 		else if (!_ready_Land_pokemon)
 		{
-			if (GetAsyncKeyState('A') & 0x0001 && mFingerCount > 3)
+			if (GetAsyncKeyState(VK_LEFT) & 0x0001 && mFingerCount > 3)
 				mFingerCount -= 1;
-			if (GetAsyncKeyState('D') & 0x0001 && mFingerCount < 5)
+			if (GetAsyncKeyState(VK_RIGHT) & 0x0001 && mFingerCount < 5)
 				mFingerCount += 1;
 		}
 		if (GetAsyncKeyState(VK_BACK) & 0x8000)

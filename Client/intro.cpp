@@ -231,26 +231,26 @@ void Intro::Init()
 		const RECT rectWindow = sceneManager->GetRectDisplay();
 
 		std::shared_ptr<Cloud> cloud1 = make_shared<Cloud>();
-		cloud1->SetMove(Vector2{ 40, 0 });
+		cloud1->SetMove(Vector2{ 400, 0});
 		cloud1->SetRectWindow(rectWindow);
 		cloud1->Init(Vector2{ FIRSTCLOUD_X, FIRSTCLOUD_Y }, L"images\\intro\\Instruction_Cloud1.bmp");
 		mClouds.emplace_back(cloud1);
 
 		std::shared_ptr<Cloud> cloud2 = make_shared<Cloud>();
 		cloud2->Init(Vector2{ SECONDCLOUD_X, SECONDCLOUD_Y }, L"images\\intro\\Instruction_Cloud2.bmp");
-		cloud2->SetMove(Vector2{ 20, 0 });
+		cloud2->SetMove(Vector2{ 200, 0 });
 		cloud2->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud2);
 
 		std::shared_ptr<Cloud> cloud3 = make_shared<Cloud>();
 		cloud3->Init(Vector2{ THIRDCLOUD_X, THIRDCLOUD_Y }, L"images\\intro\\Instruction_Cloud3.bmp");
-		cloud3->SetMove(Vector2{ 10, 0 });
+		cloud3->SetMove(Vector2{ 100, 0 });
 		cloud3->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud3);
 
 		std::shared_ptr<Cloud> cloud4 = make_shared<Cloud>();
 		cloud4->Init(Vector2{ FOURTHCLOUD_X, FOURTHCLOUD_Y }, L"images\\intro\\Instruction_Cloud4.bmp");
-		cloud4->SetMove(Vector2{ 40, 0 });
+		cloud4->SetMove(Vector2{ 400, 0 });
 		cloud4->SetRectWindow(rectWindow);
 		mClouds.emplace_back(cloud4);
 	}
@@ -275,6 +275,7 @@ void Intro::Update(float elapsedTime)
 void Intro::Paint(HDC hdc)
 {
 	mBackground->Paint(hdc);
+	//mClouds[0]->Paint(hdc);
 	for (auto& cloud : mClouds)
 		cloud->Paint(hdc);
 	mLogo->Paint(hdc);

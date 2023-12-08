@@ -37,7 +37,7 @@ public:
 	}
 	inline float GetBodyWidth() const
 	{
-		return rectBody.right - rectBody.left;
+		return rectBody.right - rectBody.left; 
 	}
 	inline float GetBodyHeight() const
 	{
