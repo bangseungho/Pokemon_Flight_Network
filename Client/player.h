@@ -58,13 +58,12 @@ private:
 		playerData.crntShotDelay = playerData.shotDelay;
 	}
 public:
-	Player(Type type, Type subType);
+	Player(Type type, Type subType, uint8 id);
 	~Player();
 	void Init();
 	void Paint(HDC hdc);
 	void PaintSkill(HDC hdc);
 
-	void SetPlayerId(uint8 id) { playerData.id = id; }
 	void SetDirection(Dir dir);
 	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
 	void Move(const HWND& hWnd, int timerID) override;

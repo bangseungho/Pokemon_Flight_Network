@@ -72,51 +72,6 @@ void Network::ClientReceiver()
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mSceneData = move(recvData);
-
-#ifdef _DEBUG
-			std::lock_guard<std::mutex> lock(mMemberMapMutex);
-			for (const auto& member : mRecvMemberMap) {
-				if (mClientIndex == member.second.mSceneData.PlayerIndex)
-					continue;
-
-				string airPokemonStr;
-				switch (member.second.mSceneData.AirPokemon)
-				{
-				case Type::Empty:
-					airPokemonStr = "EMPTY";
-					break;
-				case Type::Fire:
-					airPokemonStr = "MOLTRES";
-					break;
-				case Type::Elec:
-					airPokemonStr = "THUNDER";
-					break;
-				case Type::Water:
-					airPokemonStr = "ARTICUNO";
-					break;
-				}
-
-				string landPokemonStr;
-				switch (member.second.mSceneData.LandPokemon)
-				{
-				case Type::Empty:
-					landPokemonStr = "EMPTY";
-					break;
-				case Type::Fire:
-					landPokemonStr = "CHARMANDER";
-					break;
-				case Type::Elec:
-					landPokemonStr = "PIKACHU";
-					break;
-				case Type::Water:
-					landPokemonStr = "SQUIRTLE";
-					break;
-				}
-
-				cout << "[" << (uint32)member.first << "번 플레이어] - (Scene: " << (uint32)member.second.mSceneData.Scene << ", " 
-					<< "AIR: " << airPokemonStr << ", LAND: " << landPokemonStr << ")" << endl;
-			}
-#endif 
 		}
 #pragma endregion
 #pragma region Intro
@@ -129,13 +84,6 @@ void Network::ClientReceiver()
 
 			// 새로운 멤버 생성
 			mRecvMemberMap[recvData.PlayerIndex].mIntroData = move(recvData);
-
-#ifdef _DEBUG
-			cout << endl << "[	" << inet_ntoa(mServerAddr.sin_addr) << " 서버 플레이어 목록	]" << endl;
-			for (const auto& member : mRecvMemberMap) {
-				cout << "[	    " << static_cast<uint32>(recvData.PlayerIndex) << "번 플레이어 접속중		]" << Endl;
-			}
-#endif 
 		}
 #pragma endregion
 #pragma region Town
