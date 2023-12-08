@@ -42,7 +42,7 @@ void MyGameObject::Init(const Vector2& pos, const wchar_t* imgfile)
 	mPos = pos;
 	mRectImage = { 0, 0, (LONG)mSize.x, (LONG)mSize.y };
 }
-void MyGameObject::Update(float elapsedTime)
+void MyGameObject::Move(float elapsedTime)
 {
 }
 void MyGameObject::Paint(HDC hdc)
@@ -56,7 +56,7 @@ void MyGameObject::Paint(HDC hdc)
 }
 
 // ============================================================= Cloud
-void Cloud::Update(float elapsedTime)
+void Cloud::Move(float elapsedTime)
 {
 	mPos.x += mMove.x * elapsedTime;
 	mPos.y += mMove.y * elapsedTime;
@@ -72,7 +72,7 @@ void Logo::Init()
 	mPokemonStrPos = { 40.f, 94.f };
 	mFlightStrPos = { 94.f, 172.f };
 }
-void Logo::Update(float elapsedTime)
+void Logo::Move(float elapsedTime)
 {
 	static float direction = 1.f;
 	float moveSpeed = direction * 10.f * elapsedTime;
@@ -178,7 +178,7 @@ void Menu::Paint(HDC hdc)
 	SelectObject(hdc, oldFont);
 	DeleteObject(hFont);
 }
-void Menu::Update(float elapsedTime)
+void Menu::Move(float elapsedTime)
 {
 	mTwinkleCnt += elapsedTime * 3.f;
 
@@ -261,16 +261,16 @@ void Intro::Init()
 	soundManager->StopBGMSound();
 	soundManager->PlayBGMSound(BGMSound::Intro, 1.0f, true);
 }
-void Intro::Update(float elapsedTime)
+void Intro::Move(float elapsedTime)
 {
 	const RECT rectWindow = sceneManager->GetRectDisplay();
 
-	mClouds[0]->Update(elapsedTime);
-	mClouds[1]->Update(elapsedTime);
-	mClouds[2]->Update(elapsedTime);
-	mClouds[3]->Update(elapsedTime);
-	mLogo->Update(elapsedTime);
-	mMenu->Update(elapsedTime);
+	mClouds[0]->Move(elapsedTime);
+	mClouds[1]->Move(elapsedTime);
+	mClouds[2]->Move(elapsedTime);
+	mClouds[3]->Move(elapsedTime);
+	mLogo->Move(elapsedTime);
+	mMenu->Move(elapsedTime);
 
 	InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }

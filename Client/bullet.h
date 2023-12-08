@@ -27,7 +27,7 @@ protected:
 		~Bullet() {};
 
 		void Paint(const HDC& hdc, const ObjectImage& bulletImage);
-		bool Update();
+		bool Move();
 
 		POINT GetPos() const;
 		inline bool IsCollide(const RECT& rect) const
@@ -72,18 +72,18 @@ public:
 	void CreateBullet(const POINT& center, const BulletData& data, const Vector2& unitVector, bool isRotateImg = false, bool isSkillBullet = false);
 	void DestroyCollideBullet(const RECT& rect);
 
-	virtual void Update() abstract;
+	virtual void Move() abstract;
 };
 
 class PlayerBullet : public BulletController {
 public:
 	PlayerBullet(const ObjectImage& bulletImage) : BulletController(bulletImage) {};
-	void Update() override;
+	void Move() override;
 };
 class EnemyBullet : public BulletController {
 public:
 	EnemyBullet(const ObjectImage& bulletImage) : BulletController(bulletImage) {};
-	void Update() override;
+	void Move() override;
 	POINT GetBulletSize() const
 	{
 		return bulletImage.GetDrawSize();

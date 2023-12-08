@@ -96,7 +96,7 @@ public:
 	virtual void Init(const FRECT& draw, const wchar_t* imgfile = nullptr);
 	virtual void Init(const Vector2& pos, const Vector2& size, const RECT& rectImage = RECT{}, const wchar_t* imgfile = nullptr);
 	virtual void Init(const Vector2& pos, const wchar_t* imgfile = nullptr);
-	virtual void Update(float elapsedTime);
+	virtual void Move(float elapsedTime);
 	virtual void Paint(HDC hdc);
 
 public:

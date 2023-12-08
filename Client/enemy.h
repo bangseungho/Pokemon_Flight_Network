@@ -21,6 +21,7 @@ typedef struct EnemyData {
 	int frameNum_Atk = 0;
 	int frameNum_AtkMax = 0;
 	int frameNum_AtkRev = 0;
+	uint32 id = 0;
 }EnemyData;
 
 class Enemy abstract : public GameObject, public IAnimatable, public IMovable {
@@ -28,7 +29,7 @@ protected:
 	EnemyData data; // 적 데이터로 생성자에서 초기화
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
-	NetworkEnemyData mRecvData;
+	//NetworkEnemyData mRecvData;
 
 	void Paint(const HDC& hdc, int spriteRow);
 	Dir GetDir() const;
@@ -43,14 +44,15 @@ protected:
 		return (data.crntAttackDelay <= 0);
 	}
 public:
-	Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data);
+	Enemy(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint32 id);
 	virtual void Paint(const HDC& hdc) abstract;
-	virtual void Update() override;
-	void SetSpriteRow(int spriteRow);
+	virtual void Move() override;
+	//virtual void Update() override;
+	//void SetSpriteRow(int spriteRow);
 
 	virtual void CheckAttackDelay() abstract;
-	void SetRecvData(NetworkEnemyData&& recvData) { mRecvData = recvData; }
-	NetworkEnemyData GetRecvData() { return mRecvData; }
+	//void SetRecvData(NetworkEnemyData&& recvData) { mRecvData = recvData; }
+	//NetworkEnemyData GetRecvData() { return mRecvData; }
 
 	int GetSpriteRow();
 	void Animate();
@@ -60,7 +62,10 @@ public:
 	{
 		return data.type;
 	}
-
+	inline uint32 GetId() const
+	{
+		return data.id;
+	}
 	inline void SetAction(Action action)
 	{
 		switch (action)
@@ -83,10 +88,11 @@ private:
 	bool CheckCollidePlayer();
 	bool CheckRecvCollidePlayer();
 public:
-	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data) : Enemy(image, pos, data) {};
+	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint8 targetIndex, uint32 id) : Enemy(image, pos, data, id) { mTargetIndex = targetIndex; }
 	void Paint(const HDC& hdc) override;
-	void Update() override;
+	void Move() override;
 	void CheckAttackDelay() override;
+	uint8 mTargetIndex = 0;
 };
 
 class Range : public Enemy {
@@ -96,9 +102,9 @@ private:
 	void SetPosDest();
 	void Fire();
 public:
-	Range(ObjectImage& image, const Vector2& pos, const EnemyData& data) : Enemy(image, pos, data) {};
+	Range(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint32 id) : Enemy(image, pos, data, id) {};
 	void Paint(const HDC& hdc) override;
-	void Update() override;
+	void Move() override;
 	void CheckAttackDelay() override;
 };
 
@@ -121,19 +127,17 @@ private:
 	ObjectImage imgMelee;
 	ObjectImage imgRange;
 
-	void Pop(size_t& index);
 public:
 	EnemyController();
 	~EnemyController();
+	void Pop(int32 index);
 	void CreateCheckMelee();
 	void CreateCheckRange();
-	void CreateRecvMelee(Vector2 pos);
-	void CreateRecvRange(Vector2 pos);
+	void CreateRecvMelee(NetworkEnemyData& recvData);
+	void CreateRecvRange(NetworkEnemyData& recvData);
 	void Paint(HDC hdc);
-	void Update();
-	void SetRecvData(NetworkEnemyData&& recvData);
+	void Move();
 	void Animate();
-	void CheckHit(uint32 id); // Temp
 	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 

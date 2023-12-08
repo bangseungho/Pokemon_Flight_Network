@@ -13,7 +13,7 @@
 #define RECT_WINDOW_HEIGHT	711
 
 #define ELAPSE_BATTLE_INVALIDATE 10
-#define ELAPSE_BATTLE_CREATE_BULLET 10
+#define ELAPSE_BATTLE_CREATE_BULLET 5
 #define ELAPSE_BATTLE_ANIMATION 50
 #define ELAPSE_BATTLE_ANIMATION_BOSS 100
 #define ELAPSE_BATTLE_MOVE_PLAYER 10
@@ -491,8 +491,8 @@ struct NetworkBulletData
 		CREATE,
 	};
 
-	uint8 PlayerIndex	= 0;
-	Status Status		= Status::NONE;
+	uint8 PlayerIndex = 0;
+	Status Status = Status::NONE;
 };
 
 struct NetworkEnemyData
@@ -501,23 +501,13 @@ struct NetworkEnemyData
 		NONE,
 		MELEE,
 		RANGE,
-	};
-
-	enum class Status : uint8 {
-		NONE,
-		CREATE,
-		MOVE,
-		ATTACK,
 		DEATH,
 	};
 
 	AttackType	AttackType = AttackType::NONE;
-	Status		Status = Status::NONE;
-	uint32		ID = 0;
-	Vector2		Pos = { 0.f, 0.f };
-	int			SpriteRow = 0;
-	bool		IsCollide = false;
-	uint8		TargetIndex = 0;
+	Vector2		StartPos = { 0.f, 0.f };
+	uint32		TargetIndex = 0;
+	uint32		Id = 0;
 };
 
 struct SceneData
@@ -536,29 +526,29 @@ struct EndProcessing
 };
 
 // 소켓 함수 오류 출력 후 종료
-static void ErrorQuit(const char *msg)
+static void ErrorQuit(const char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(char *)&lpMsgBuf, 0, NULL);
-	MessageBoxA(NULL, (const char *)lpMsgBuf, msg, MB_ICONERROR);
+		(char*)&lpMsgBuf, 0, NULL);
+	MessageBoxA(NULL, (const char*)lpMsgBuf, msg, MB_ICONERROR);
 	LocalFree(lpMsgBuf);
 	exit(1);
 }
 
 // 소켓 함수 오류 출력
-static void ErrorDisplay(const char *msg)
+static void ErrorDisplay(const char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(char *)&lpMsgBuf, 0, NULL);
-	printf("[%s] %s\n", msg, (char *)lpMsgBuf);
+		(char*)&lpMsgBuf, 0, NULL);
+	printf("[%s] %s\n", msg, (char*)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
 
@@ -570,8 +560,8 @@ static void ErrorDisplay(int errcode)
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, errcode,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(char *)&lpMsgBuf, 0, NULL);
-	printf("[오류] %s\n", (char *)lpMsgBuf);
+		(char*)&lpMsgBuf, 0, NULL);
+	printf("[오류] %s\n", (char*)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
 
@@ -611,7 +601,7 @@ public:
 		else if (std::is_same_v<T, PhaseData>)
 			return DataType::PHASE_DATA;
 		else if (std::is_same_v<T, BattleData>)
-			return DataType::BATTLE_DATA;		
+			return DataType::BATTLE_DATA;
 		else if (std::is_same_v<T, NetworkBulletData>)
 			return DataType::BULLET_DATA;
 		else if (std::is_same_v<T, NetworkEnemyData>)
@@ -686,14 +676,14 @@ public:
 	~NetworkPlayerData() {}
 
 public:
-	SOCKET		mSock;
-	uint8		mThreadId;
-
-	SceneData		mSceneData;
-	IntroData		mIntroData;
-	TownData		mTownData;
-	StageData		mStageData;
-	PhaseData		mPhaseData;
-	BattleData		mBattleData;
-	EndProcessing	mEndProcessing;
+	SOCKET				mSock;
+	uint8				mThreadId;
+	SceneData			mSceneData;
+	IntroData			mIntroData;
+	TownData			mTownData;
+	StageData			mStageData;
+	PhaseData			mPhaseData;
+	BattleData			mBattleData;
+	NetworkEnemyData	mKillData;
+	EndProcessing		mEndProcessing;
 };

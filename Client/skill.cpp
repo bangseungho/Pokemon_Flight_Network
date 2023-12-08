@@ -493,9 +493,9 @@ bool BossSkillManager::Effect::Animate()
 		
 	}
 
-	return Update();
+	return Move();
 }
-bool BossSkillManager::Effect::Update()
+bool BossSkillManager::Effect::Move()
 {
 	if (unitVector_direction == Vector2::Zero())
 	{

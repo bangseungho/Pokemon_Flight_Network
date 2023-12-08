@@ -36,7 +36,7 @@ void T_Battle_Invalidate()
 	//mPlayer->CheckShot(); // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 	//ㅇ enemies->CreateRecvMelee(); // 배틀 타이머당 생성되는 근거리 적 생성 함수
 	//ㅇ enemies->CreateCheckRange(); // 배틀 타이머당 생성되는 원거리 적 생성 함수
-	//ㅇ enemies->CheckAttackDelay(); // 적이 공격을 하고 나서 딜레이를 주는 함수
+	enemies->CheckAttackDelay(); // 적이 공격을 하고 나서 딜레이를 주는 함수
 	boss->CheckActDelay(); // 보스의 움직임에 딜레이를 주는 함수
 	boss->CheckAttackDelay(); // 보스의 공격에 딜레이를 주는 함수
 
@@ -45,8 +45,8 @@ void T_Battle_Invalidate()
 
 	//mPlayer->MoveBullets(); // 플레이어 탄막 이동 함수
 	enemies->MoveBullets(); // 적 탄막 이동 함수
-	enemies->Update(); // 적 이동 및 충돌 검사 함수
-	boss->Update(); // 보스 이동 및 충돌 검사 함수
+	enemies->Move();
+	boss->Move(); // 보스 이동 및 충돌 검사 함수
 }
 
 void T_Battle_Animate()
@@ -65,7 +65,7 @@ void T_Battle_AnimateBoss()
 
 void T_Battle_MovePlayer()
 {
-	mPlayer->Update(sceneManager->GetHwnd(), 0); // 실제 플레이어의 이동을 수행하는 함수
+	mPlayer->Move(sceneManager->GetHwnd(), 0); // 실제 플레이어의 이동을 수행하는 함수
 }
 
 void T_Battle_Effect()
@@ -74,7 +74,7 @@ void T_Battle_Effect()
 }
 void T_Battle_GUI()
 {
-	gui->Update(sceneManager->GetHwnd()); // GUI 업데이트 함수
+	gui->Move(sceneManager->GetHwnd()); // GUI 업데이트 함수
 }
 
 void T_Battle_MapMove()

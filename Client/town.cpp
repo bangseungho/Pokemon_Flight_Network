@@ -318,7 +318,7 @@ Vector2 abs(const Vector2& point)
 	return ret;
 }
 
-void Town::Update(float elapedTime)
+void Town::Move(float elapedTime)
 {
 	AnimateNPC(elapedTime);
 

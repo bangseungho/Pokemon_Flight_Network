@@ -71,7 +71,7 @@ public:
 	void Init();
 	void SelectPokemonInit();
 	void Paint(HDC hdc, const RECT& rectWindow);
-	void Update(float elapsedTime);
+	void Move(float elapsedTime);
 	void fingerController(float elpasedTime);
 	inline constexpr StageElement GetStage()
 	{

@@ -294,7 +294,7 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 }
 
 // 실제 플레이어의 이동을 수행한다.
-void Player::Update(const HWND& hWnd, int timerID)
+void Player::Move(const HWND& hWnd, int timerID)
 {
 	// 파트너 이동 관련 코드
 	auto& members = sceneManager->GetMemberMap();
@@ -583,8 +583,8 @@ void Player::ActiveSkill(Skill skill)
 // 플레이어의 총알 업데이트
 void Player::MoveBullets()
 {
-	bullets->Update();
-	subBullets->Update();
+	bullets->Move();
+	subBullets->Move();
 }
 
 // 스킬 사용시 어떤 스킬을 사용했는지 변수 설정

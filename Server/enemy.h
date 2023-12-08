@@ -88,6 +88,7 @@ public:
 class EnemyController {
 private:
 	std::vector<Enemy*> enemies;
+	uint32 mAccId = 0;
 
 	//EnemyBullet* bullets = nullptr;
 

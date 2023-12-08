@@ -31,7 +31,7 @@ void Battle::Init()
 	soundManager->PlayEffectSound(EffectSound::Shot, 0.5f, true);
 }
 
-void Battle::Update(float elapsedStime)
+void Battle::Move(float elapsedStime)
 {
 	static float invalidateAccTime = 0.f;
 	static float animationAccTime = 0.f;

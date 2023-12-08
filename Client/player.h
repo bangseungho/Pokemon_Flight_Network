@@ -64,7 +64,7 @@ public:
 
 	void SetDirection(Dir dir);
 	void SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc) override;
-	void Update(const HWND& hWnd, int timerID) override;
+	void Move(const HWND& hWnd, int timerID) override;
 	void Stop(Dir dir) override;
 	void CheckCollideWindow(Vector2& pos) const;
 

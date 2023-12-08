@@ -63,7 +63,7 @@ private:
 public:
 	GUIManager(const RECT& rectWindow);
 	void Paint(const HDC& hdc);
-	void Update(const HWND& hWnd);
+	void Move(const HWND& hWnd);
 	RECT GetRectDisplay() const;
 	void DisplayHurtFrame(Type type);
 	
