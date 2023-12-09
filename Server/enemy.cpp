@@ -16,12 +16,10 @@
 //extern GUIManager* gui;
 //extern PhaseManager phase;
 extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
-uint32 Enemy::sId = 0;
 
 // 적 생성자 타입을 받아서 업데이트한다.
 Enemy::Enemy(const Vector2& pos, const EnemyData& data) : GameObject(pos, data.bodySize)
 {
-	id = sId++;
 	StartMove();
 	this->data = data;
 }

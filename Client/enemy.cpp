@@ -91,8 +91,17 @@ Dir Enemy::GetDir() const
 void Melee::SetPosDest()
 {
 	if (IsMove() == false)
-	{
 		return;
+
+	// 해당 타겟이 죽은 경우 다른 타겟으로 변경
+	if (sceneManager->GetMemberMap()[mTargetIndex]->IsDeath()) {
+		for (auto& member : sceneManager->GetMemberMap()) {
+			if (member.second->IsDeath() == false) {
+				mTargetIndex = member.first;
+				break;
+			}
+		}
+		return; // 모두 죽었다면 움직이지 않는다.
 	}
 
 	const Vector2 posCenter = GetPosCenter();
@@ -170,7 +179,7 @@ void Melee::Move()
 	}
 	else if ((collisionIndex = CheckCollidePlayer()) != -1)
 	{
-		mPlayer->Hit(data.damage, GetType(), POINT{-1,}, collisionIndex);
+		mPlayer->Hit(data.damage, GetType(), POINT{ -1, }, collisionIndex);
 		effects->CreateHitEffect(MEMBER_MAP(collisionIndex).mBattleData.PosCenter, GetType());
 		return;
 	}
@@ -318,7 +327,7 @@ void Melee::CheckAttackDelay()
 }
 void Range::CheckAttackDelay()
 {
-	if (IsMove() == false)	
+	if (IsMove() == false)
 	{
 		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
 		if (IsClearAttackDelay() == true)
@@ -368,14 +377,7 @@ void EnemyController::Pop(int32 index)
 	effects->CreateExplosionEffect(enemies.at(index)->GetPosCenter(), enemies.at(index)->GetType());
 	soundManager->PlayEffectSound(EffectSound::Explosion);
 
-	//// 2023-12-07 추가 상태 변경
-	//NetworkEnemyData recvData = enemies.at(index)->GetRecvData();
-	//recvData.Status = NetworkEnemyData::Status::MOVE;
-	//recvData.ID = (uint32)index;
-
 	enemies.at(index--) = enemies.back();
-	//enemies[index--]->SetRecvData(move(recvData));
-
 	enemies.pop_back();
 }
 
@@ -540,7 +542,7 @@ EnemyController::EnemyController()
 		break;
 	}
 
-	if (phase.GetPhase() > 0) 
+	if (phase.GetPhase() > 0)
 	{
 		++createAmount_Melee; // 배틀 타이머당 생성되는 근거리 적 몬스터의 개수
 		++createAmount_Range; // 배틀 타이머당 생성되는 원거리 적 몬스터의 개수
@@ -643,6 +645,7 @@ void EnemyController::CreateRecvRange(NetworkEnemyData& recvData)
 // 적 객체들을 업데이트하고 렌더링 하는 함수들
 void EnemyController::Paint(HDC hdc)
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	for (Enemy* enemy : enemies)
 	{
 		if (enemy != nullptr) {
@@ -653,6 +656,7 @@ void EnemyController::Paint(HDC hdc)
 }
 void EnemyController::Move()
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Move();
@@ -660,6 +664,7 @@ void EnemyController::Move()
 }
 void EnemyController::Animate()
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Animate();
@@ -669,7 +674,8 @@ void EnemyController::Animate()
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 {
-	for (uint32 i = 0;i<enemies.size();++i)
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
+	for (uint32 i = 0; i < enemies.size(); ++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
 		{
@@ -692,6 +698,7 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 // 플레이어 스킬과 적의 충돌 함수이다. 이펙트 위치를 랜덤으로 지정하여 죽었을 경우 자료구조에서 제거한다.
 void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitType)
 {
+	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
 	for (uint32 i = 0; i < enemies.size(); ++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)

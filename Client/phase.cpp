@@ -228,9 +228,9 @@ void PhaseManager::ClearPhase()
 	}
 
 	gameData.ClearRecord = phaseWater + phaseFire + phaseElec + phaseDark;
-#ifdef _DEBUG
-	std::cout << static_cast<uint32>(gameData.ClearRecord) << std::endl;
-#endif 
+//#ifdef _DEBUG
+//	std::cout << static_cast<uint32>(gameData.ClearRecord) << std::endl;
+//#endif 
 }
 
 int PhaseManager::GetPhase()

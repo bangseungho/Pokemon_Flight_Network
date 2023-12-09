@@ -102,6 +102,9 @@ void EffectManager::Animate()
 // 이펙트를 애니메이션하고 렌더링하는 함수들
 void EffectManager::Effect::Paint(HDC hdc) const
 {
+	if (frame < -9999)
+		return;
+	
 	const RECT rectImage = ISprite::GetRectImage(*effectImage, frame);
 	effectImage->Paint(hdc, pos, &rectImage);
 }

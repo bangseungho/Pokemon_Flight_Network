@@ -8,12 +8,14 @@
 #include "scene.h"
 #include "sound.h"
 #include "battle.h"
+#include "enemy.h"
 #include "Network.h"
 
 extern GUIManager* gui;
 extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
+extern EnemyController* enemies;
 
 extern Battle battle;
 
@@ -197,6 +199,9 @@ void Player::Death()
 	soundManager->StopEffectSound();
 	soundManager->PlayEffectSound(EffectSound::Loss);
 	soundManager->StopBGMSound();
+
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
+	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
 // [IControllable의 가상함수] 플레이어 데이터의 속도에 따라서 이동해야할 위치를 설정(바로 이동하지 않는다.)
@@ -239,7 +244,7 @@ void Player::SetPosDest()
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
 	
-	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd() };
+	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -310,10 +315,14 @@ void Player::Move(const HWND& hWnd, int timerID)
 		if (member.first == MY_INDEX)
 			continue;
 
-		if (members.find(member.first) != members.end())
+		if (members.find(member.first) != members.end()) {
 			members[member.first]->SetPos(member.second.mBattleData.PosCenter);
+			members[member.first]->SetDeath(member.second.mBattleData.IsDeath);
+		}
 	}
 
+	if (playerData.isDeath == true)
+		return;
 
 	if (playerData.isCanGo == false)
 		return;
@@ -426,7 +435,7 @@ void Player::Animate(const HWND& hWnd)
 		if (--deathFrame == 0)
 		{
 			// 씬 매니저를 통해 다음 씬으로 이동(현재 씬이 배틀이므로 페이즈로 넘어간다.)
-			sceneManager->StartLoading(hWnd);
+			//sceneManager->StartLoading(hWnd);
 		}
 		return;
 	}

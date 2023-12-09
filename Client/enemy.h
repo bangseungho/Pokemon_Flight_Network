@@ -126,6 +126,7 @@ private:
 
 	ObjectImage imgMelee;
 	ObjectImage imgRange;
+	mutex mMutex;
 
 public:
 	EnemyController();

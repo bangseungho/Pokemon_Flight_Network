@@ -40,6 +40,7 @@ extern Town town;
 extern Stage stage;
 extern PhaseManager phase;
 extern Battle battle;
+extern atomic<bool> isEndBattle;
 
 extern CImage glowing_black;
 
@@ -82,8 +83,8 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 	case Scene::PhaseManager:
 		break;
 	case Scene::Battle: // 배틀 씬에서는 타이머 삭제뿐만 아니라 생성된 모든 객체들을 제거한다.
-		for (auto& member : mMemberMap)
-			delete member.second;
+		//for (auto& member : mMemberMap)
+		//	delete member.second;
 
 		mMemberMap.clear();
 		delete enemies;
@@ -99,6 +100,8 @@ void SceneManager::DeleteScene(const HWND& hWnd)
 		soundManager->StopEffectSound();
 		soundManager->StopSkillSound();
 		soundManager->StopBossSound();
+
+		isEndBattle.store(true);
 		break;
 	}
 }

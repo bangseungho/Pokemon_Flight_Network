@@ -143,6 +143,10 @@ public:
 	{
 		return playerData.isDeath;
 	}
+	inline void SetDeath(bool death)
+	{
+		playerData.isDeath = death;
+	}
 
 	inline void Heal()
 	{
