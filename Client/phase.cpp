@@ -65,18 +65,18 @@ void PhaseManager::Move(float elapsedTime)
 	if (GetAsyncKeyState(VK_RETURN) & 0x8000)
 	{
 		if (MY_INDEX == MP_INDEX) {
-			PhaseData sendData = { MY_INDEX, VK_RETURN };
-			GET_SINGLE(Network)->SendDataAndType<PhaseData>(sendData);
+			NetworkGameData sendData = { false, MP_INDEX, VK_RETURN };
+			GET_SINGLE(Network)->SendDataAndType<NetworkGameData>(sendData);
 		}
 	}
 
-	auto& recvData = MEMBER_MAP(MP_INDEX).mPhaseData;
-	if (recvData.InputKey == VK_RETURN) {
-		sceneManager->StartLoading(sceneManager->GetHwnd());
-		Sleep(10); // Release 모드에서 배틀이 끝난 후 자동으로 배틀이 또 다시 시작되는 버그 발견. sleep으로 해결
-	}
+	//auto& recvData = MEMBER_MAP(MP_INDEX).mPhaseData;
+	//if (recvData.InputKey == VK_RETURN) {
+	//	sceneManager->StartLoading(sceneManager->GetHwnd());
+	//	Sleep(10); // Release 모드에서 배틀이 끝난 후 자동으로 배틀이 또 다시 시작되는 버그 발견. sleep으로 해결
+	//}
 
-	recvData.InputKey = 0;
+	//recvData.InputKey = 0;
 }
 
 // 페이즈 클리어 횟수에 따라서 페이즈에 표시해야 할 이미지들 렌더링
@@ -245,8 +245,9 @@ int PhaseManager::GetPhase()
 		return phaseElec;
 	case StageElement::Dark:
 		return phaseDark;
-	default:
-		assert(0);
+	case StageElement::Town:
+		return 0;
+	case StageElement::Null:
 		return 0;
 	}
 }

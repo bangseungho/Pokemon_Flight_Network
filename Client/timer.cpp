@@ -107,11 +107,13 @@ void T_Loading(float elapsedTime)
 
 			if (scene == Scene::Intro)// 전의 게임 플로우 값이 메인화면이라면 다음 게임 플로우는 타운
 			{
-				//sceneManager->MoveScene(hWnd, Scene::Town);
-				sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
+				sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Town);
+				//sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
 			}
 			else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 			{
+				town._nextFlow = Scene::Stage;
+				town.mAdjValue = Vector2{ 0, 0 };
 				town.mPlayer->_Pos.x = rectWindow.right / 2;
 				town.mPlayer->_Pos.y = rectWindow.bottom / 2;
 				town.mPlayer->_cam = { town.mPlayer->_Pos.x - town.GetCamSizeX(), (float)rectWindow.top, town.mPlayer->_Pos.x + town.GetCamSizeX(), (float)rectWindow.bottom };
@@ -166,11 +168,11 @@ void T_Loadingbar(float elapsedTime)
 	if (sceneManager->IsLoading() == false)
 		return;
 
-	//static float accTime = 0.f;
-	//accTime += elapsedTime;
+	static float accTime = 0.f;
+	accTime += elapsedTime;
 
-	//if (accTime >= 0.45f) {
+	if (accTime >= 0.45f) {
 		loading.Load(sceneManager->GetHwnd());
-		//accTime = 0.f;
-	//}
+		accTime = 0.f;
+	}
 }

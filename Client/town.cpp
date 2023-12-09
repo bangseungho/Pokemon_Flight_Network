@@ -325,18 +325,6 @@ void Town::Move(float elapedTime)
 	if (sceneManager->IsLoading() == true)
 		return;
 
-	bool allReady = all_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& a) {
-		return a.second.mTownData.IsReady == 1;
-		});
-
-	if (allReady) {
-		Sleep(10);
-		sceneManager->StartLoading(sceneManager->GetHwnd());
-		_nextFlow = Scene::Stage;
-		mAdjValue = Vector2{ 0, 0 };
-	}
-
-
 	const RECT rectWindow = sceneManager->GetRectWindow();
 
 	// 문 도착시 게임 종료
@@ -379,6 +367,9 @@ void Town::Move(float elapedTime)
 		mPlayer->mIsReady = true;
 		mPlayer->_Pos.x -= 1;
 		mPlayer->aboutMapPos.x -= 1;
+
+		NetworkGameData sendData = { false, MP_INDEX, VK_SPACE };
+		GET_SINGLE(Network)->SendDataAndType<NetworkGameData>(sendData);
 	}
 	else if (mPlayer->_Pos.x - 20 <= rectWindow.left)
 	{

@@ -23,7 +23,7 @@ Network::~Network()
 {
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
-	
+
 	closesocket(mClientSock);
 	WSACleanup();
 
@@ -55,9 +55,9 @@ void Network::ClientReceiver()
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap.erase(findIt);
 
-//#ifdef _DEBUG
-//			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "번 플레이어 게임 종료]" << endl;
-//#endif 
+			//#ifdef _DEBUG
+			//			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "번 플레이어 게임 종료]" << endl;
+			//#endif 
 		}
 #pragma endregion
 #pragma region SceneData
@@ -67,9 +67,6 @@ void Network::ClientReceiver()
 
 			// 패킷 수신
 			Data::RecvData<SceneData>(mClientSock, recvData);
-
-			// 메인 플레이어 인덱스
-			mMainPlayerIndex = recvData.MainPlayerIndex;
 
 			// 멤버 맵에 해당 키 값이 있는 경우만 멤버 맵에 데이터 이동
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
@@ -124,11 +121,6 @@ void Network::ClientReceiver()
 
 			// 패킷 수신
 			Data::RecvData<PhaseData>(mClientSock, recvData);
-
-			// 멤버의 패킷이라면 맴버 맵에 넣어줌
-			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
 		}
 #pragma endregion
 #pragma region Battle
@@ -206,6 +198,7 @@ void Network::ClientReceiver()
 			NetworkGameData recvData;
 			// 패킷 수신
 			Data::RecvData<NetworkGameData>(mClientSock, recvData);
+			mMainPlayerIndex = recvData.MainPlayerIndex;
 
 			if (recvData.IsEndBattleProcess == true) {
 				sceneManager->StartLoading(sceneManager->GetHwnd());
@@ -213,6 +206,30 @@ void Network::ClientReceiver()
 				for (auto& member : mRecvMemberMap) {
 					member.second.mBattleData.Clear();
 				}
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::PhaseManager) {
+				if (recvData.InputKey == VK_BACK)
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
+				else if (recvData.InputKey == VK_RETURN)
+					sceneManager->StartLoading(sceneManager->GetHwnd());
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::Battle) {
+				if (recvData.InputKey == VK_BACK)
+					gui->SkipField();
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::Town) {
+				if (recvData.InputKey == VK_SPACE) {
+					bool allReady = all_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& a) {
+						return a.second.mTownData.IsReady == 1;
+						});
+
+					if (allReady == true)
+						sceneManager->StartLoading(sceneManager->GetHwnd());
+				}
+				continue;
 			}
 		}
 #pragma endregion
@@ -222,7 +239,7 @@ void Network::ClientReceiver()
 void Network::Init(string ipAddr)
 {
 	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) 
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		ErrorQuit("init()");
 
 	ZeroMemory(&mServerAddr, sizeof(SOCKADDR_IN));
@@ -269,7 +286,7 @@ void Network::Connect()
 	cout << "PORT: " << ntohs(localAddr.sin_port) << ", ";
 	cout << "CLIENT_NUMBER: " << static_cast<uint32>(mClientIndex) << ") ]" << Endl;
 #endif 
-	
+
 	// 자신의 클라이언트 인덱스를 수신 받았다면 다시 모든 클라이언트에게 자신의 인덱스를 송신한다.
 	Network::SendDataAndType(IntroData{ mClientIndex });
 

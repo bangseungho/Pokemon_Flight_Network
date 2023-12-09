@@ -48,11 +48,19 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 	{
 		if (sceneManager->IsLoading() == false && wParam == VK_BACK)
 		{
-			sceneManager->MoveScene(hWnd, Scene::Stage);
+			if (MY_INDEX == MP_INDEX) {
+				NetworkGameData sendData = { false, MP_INDEX, VK_BACK };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+			}
 		}
 		else if (wParam == VK_ADD)
 		{
 			phase.ClearPhase();
+
+			SceneData sendData{ MY_INDEX, MP_INDEX, (uint8)sceneManager->GetScene(), gameData.ClearRecord, stage.GetAirPokemon(), stage.GetLandPokemon(), phase.GetPhase()};
+			GET_SINGLE(Network)->SendDataAndType(sendData);
+
+			InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 		}
 	}
 	else if (sceneManager->GetScene() == Scene::Battle)
@@ -78,7 +86,10 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 			boss->KillBoss();
 			break;
 		case VK_BACK:
-			gui->SkipField();
+			if (MY_INDEX == MP_INDEX) {
+				NetworkGameData sendData{ false, MP_INDEX, VK_BACK };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+			}
 			break;
 		case _T('Q'):
 		{
@@ -383,14 +394,14 @@ void GUIManager::Move(const HWND& hWnd)
 	hurtGUI_Elec.ReduceAlpha();
 	hurtGUI_Dark.ReduceAlpha();
 
-	int crntPhase = phase.GetPhase();
+	int crntPhase = MEMBER_MAP(MP_INDEX).mSceneData.Phase;
 	if (mPlayer->IsDeath() == true)
 	{
 		return;
 	}
 	else if (isIconStop == true)
 	{
-		if (crntPhase < 2 && isClearPhase == false && enemies->IsEmenyClear() == true)
+		if (/*crntPhase < 2 && */isClearPhase == false && enemies->IsEmenyClear() == true) // 임시적으로 보스 생성을 막아둠
 		{
 			isClearPhase = true;
 
@@ -401,7 +412,7 @@ void GUIManager::Move(const HWND& hWnd)
 			soundManager->PlayEffectSound(EffectSound::Win);
 			sceneManager->StartLoading(hWnd);
 
-			NetworkGameData sendData{ true };
+			NetworkGameData sendData{ true, MP_INDEX, 0 };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 		return;
@@ -415,10 +426,10 @@ void GUIManager::Move(const HWND& hWnd)
 		rectPokemonIcon.bottom += corrValue;
 		isIconStop = true;
 	
-		if (crntPhase >= 2)
-		{
-			boss->Create();
-		}
+		//if (crntPhase >= 2) // 임시적으로 막아둠 보스 생성은 나중에 구현
+		//{
+		//	boss->Create();
+		//}
 	}
 }
 RECT GUIManager::GetRectDisplay() const

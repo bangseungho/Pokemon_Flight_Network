@@ -488,6 +488,7 @@ struct BattleData
 
 	void Clear()
 	{
+		// PlayerIndex = 0; 플레이어 인덱스까지 초기화하면 안됨
 		PosCenter = { 250.f, 500.f };
 		RectBody = { 0.f, };
 		IsFieldEnd = false;
@@ -533,6 +534,8 @@ struct NetworkEnemyData
 struct NetworkGameData
 {
 	bool	IsEndBattleProcess = false;
+	uint8	MainPlayerIndex = 0;
+	int		InputKey = 0;
 };
 
 struct SceneData
@@ -543,6 +546,7 @@ struct SceneData
 	int		Record = 0;
 	Type	AirPokemon = Type::Empty;
 	Type	LandPokemon = Type::Empty;
+	uint8	Phase = 0;
 };
 
 struct EndProcessing

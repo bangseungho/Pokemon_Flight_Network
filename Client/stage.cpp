@@ -290,7 +290,8 @@ void Stage::Move(float elapsedTime)
 				target->_select_index = static_cast<StageElement>(i); // 타겟이 놓여있는 위치에 따라 인덱스를 바꿈 ex) 표적이 Dark면 index 값은 3
 				break;
 			}
-			target->_select_index = StageElement::Null;
+			else 
+				target->_select_index = StageElement::Null;
 		}
 
 		if (IsWindowActive(sceneManager->GetHwnd())) {

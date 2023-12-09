@@ -28,7 +28,6 @@ private:
 	CImage _npc4; // npc4
 	RECT _npc4Rect;
 
-	Vector2 mAdjValue; // 플레이어의 카메라가 맵 끝에 도달했을 경우 다른 오브젝트들을 반대로 계산하기 위한 값
 
 	HWND mHwnd;
 	
@@ -54,6 +53,7 @@ public:
 	bool _allHide = false;
 	bool mActive = true;
 
+	Vector2 mAdjValue; // 플레이어의 카메라가 맵 끝에 도달했을 경우 다른 오브젝트들을 반대로 계산하기 위한 값
 	Scene _nextFlow = Scene::Town;
 	Player* mPlayer;
 	FRECT _rectImage = { 0, };
