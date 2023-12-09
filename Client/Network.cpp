@@ -198,6 +198,20 @@ void Network::ClientReceiver()
 				break;
 			}
 		}
+		else if (dataType == DataType::GAME_DATA) {
+			// 패킷을 수신할 임시 객체
+			NetworkGameData recvData;
+			// 패킷 수신
+			Data::RecvData<NetworkGameData>(mClientSock, recvData);
+
+			if (recvData.IsEndBattleProcess == true) {
+				sceneManager->StartLoading(sceneManager->GetHwnd());
+
+				for (auto& member : mRecvMemberMap) {
+					member.second.mBattleData.Clear();
+				}
+			}
+		}
 #pragma endregion
 	}
 }

@@ -33,7 +33,7 @@ extern Town town;
 extern Stage stage;
 extern PhaseManager phase;
 
-// Å° ´Ù¿î ÀÎÇ² ÇÔ¼ö
+// Å° ï¿½Ù¿ï¿½ ï¿½ï¿½Ç² ï¿½Ô¼ï¿½
 void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 {
 	if (sceneManager->GetScene() == Scene::Town || sceneManager->GetScene() == Scene::Stage)
@@ -146,7 +146,7 @@ void CheckKeyDown(const HWND& hWnd, const WPARAM& wParam)
 	//InvalidateRect(sceneManager->GetHwnd(), NULL, false);
 }
 
-// Å° ¾÷ ÀÎÇ² ÇÔ¼ö
+// Å° ï¿½ï¿½ ï¿½ï¿½Ç² ï¿½Ô¼ï¿½
 void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 {
 	if (sceneManager->GetScene() == Scene::Town)
@@ -195,7 +195,7 @@ void CheckKeyUp(const HWND& hWnd, const WPARAM& wParam)
 	}
 }
 
-// GUI »ı¼ºÀÚ
+// GUI ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 GUIManager::GUIManager(const RECT& rectWindow)
 {
 	const int crntPhase = phase.GetPhase();
@@ -401,7 +401,7 @@ void GUIManager::Move(const HWND& hWnd)
 			soundManager->PlayEffectSound(EffectSound::Win);
 			sceneManager->StartLoading(hWnd);
 
-			BattleData sendData{ MY_INDEX, mPlayer->GetPosCenter(), mPlayer->GetRectBody(), isIconStop, mPlayer->IsDeath() };
+			NetworkGameData sendData{ true };
 			GET_SINGLE(Network)->SendDataAndType(sendData);
 		}
 		return;

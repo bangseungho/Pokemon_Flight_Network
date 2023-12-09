@@ -158,7 +158,7 @@ void Player::Shot()
 // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
 void Player::CheckShot()
 {
-	if (playerData.isDeath == true)
+	if (mSendData->mBattleData.IsDeath == true)
 		return;
 
 	if (mSendData->mBattleData.IsFieldEnd == true && mSendData->mBattleData.IsEnemyClear == true)
@@ -182,7 +182,7 @@ void Player::CreateSubBullet(const POINT& center, BulletData& data, Vector2 unit
 // 플레이어가 살아 있다면 스킬 재생
 void Player::ActiveSkill(Skill skill)
 {
-	if (playerData.isDeath == true)
+	if (mSendData->mBattleData.IsDeath == true)
 	{
 		return;
 	}

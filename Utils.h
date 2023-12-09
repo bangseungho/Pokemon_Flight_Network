@@ -92,6 +92,7 @@ enum class DataType : int
 	BATTLE_DATA,
 	BULLET_DATA,
 	ENEMY_OBJECT_DATA,
+	GAME_DATA,
 	SCENE_DATA,
 	END_PROCESSING,
 };
@@ -484,6 +485,16 @@ struct BattleData
 	bool		IsFieldEnd = false;
 	bool		IsDeath = false;
 	bool		IsEnemyClear = false;
+
+	void Clear()
+	{
+		PlayerIndex = 0;
+		PosCenter = { 250.f, 500.f };
+		RectBody = { 0.f, };
+		IsFieldEnd = false;
+		IsDeath = false;
+		IsEnemyClear = false;
+	}
 };
 
 struct NetworkBulletData
@@ -514,6 +525,12 @@ struct NetworkEnemyData
 	uint32		TargetIndex = 0;
 	uint32		Id = 0;
 };
+
+struct NetworkGameData
+{
+	bool	IsEndBattleProcess = false;
+};
+
 
 struct SceneData
 {
@@ -611,6 +628,8 @@ public:
 			return DataType::BULLET_DATA;
 		else if (std::is_same_v<T, NetworkEnemyData>)
 			return DataType::ENEMY_OBJECT_DATA;
+		else if (std::is_same_v<T, NetworkGameData>)
+			return DataType::GAME_DATA;
 		else if (std::is_same_v<T, SceneData>)
 			return DataType::SCENE_DATA;
 		else if (std::is_convertible_v<T, EndProcessing>)
@@ -691,5 +710,6 @@ public:
 	BattleData			mBattleData;
 	NetworkEnemyData	mKillData;
 	NetworkBulletData	mBulletData;
+	NetworkGameData		mGameData;
 	EndProcessing		mEndProcessing;
 };

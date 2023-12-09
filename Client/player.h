@@ -76,7 +76,7 @@ public:
 	void Shot(NetworkBulletData& recvData);
 	void BulletPop(size_t& bulletIndex);
 	void CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet = false);
-	void Hit(float damage, Type hitType, POINT effectPoint = { -1, }, uint8 memberIndex = 0);
+	void Hit(float damage, Type hitType, uint8 memberIndex = 0, POINT effectPoint = { -1, });
 
 	void ActiveSkill(Skill skill);
 	void MoveBullets();

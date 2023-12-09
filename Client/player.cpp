@@ -200,7 +200,7 @@ void Player::Death()
 	soundManager->PlayEffectSound(EffectSound::Loss);
 	soundManager->StopBGMSound();
 
-	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear() };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -434,8 +434,10 @@ void Player::Animate(const HWND& hWnd)
 	{
 		if (--deathFrame == 0)
 		{
-			// �� �Ŵ����� ���� ���� ������ �̵�(���� ���� ��Ʋ�̹Ƿ� ������� �Ѿ��.)
-			//sceneManager->StartLoading(hWnd);
+			if (MY_INDEX == playerData.id) {
+				NetworkGameData sendData{ true };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+			}
 		}
 		return;
 	}
@@ -539,7 +541,7 @@ void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector
 }
 
 // �÷��̾� �ǰ� �Լ��� ����Ʈ�� �����Ǿ�� �Ѵٸ� ����Ʈ �Ŵ����� �ڷᱸ���� �ش� ����Ʈ�� �߰��Ѵ�.
-void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberIndex)
+void Player::Hit(float damage, Type hitType, uint8 memberIndex, POINT effectPoint)
 {
 	if (playerData.isDeath == true)
 	{
