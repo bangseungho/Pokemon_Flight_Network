@@ -536,6 +536,8 @@ void EnemyController::CreateCheckMelee()
 
 		float minLength = numeric_limits<float>::infinity();
 		uint8 targetIndex = 0;
+
+		// 가장 가까운 적을 타겟으로 설정
 		for (auto& player : sPlayerMap) {
 			float length = Vector2::GetNorm(pos - player.second.mBattleData.PosCenter);
 			if (minLength >= length) {
@@ -545,9 +547,8 @@ void EnemyController::CreateCheckMelee()
 		}
 
 		NetworkEnemyData sendData{ NetworkEnemyData::AttackType::MELEE, pos, targetIndex, mAccId++ };
-		for (const auto& player : sPlayerMap) {
+		for (const auto& player : sPlayerMap)
 			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
-		}
 	}
 
 #ifdef _DEBUG 
@@ -583,16 +584,15 @@ void EnemyController::CreateCheckRange()
 
 	for (int i = 0; i < createAmount_Range; ++i)
 	{
+		Vector2 pos{ (rand() % (WINDOWSIZE_X - 100)) + 50, -(rand() % 100) };
 		rangeData.maxYPos = (rand() % 100) + 50;
-		const float xPos = (rand() % (WINDOWSIZE_X - 100)) + 50;
-		const float yPos = -(rand() % 100);
 
-		Range enemy = Range({ xPos, yPos }, rangeData);
+		Range enemy = Range({ pos }, rangeData);
 		//enemies.emplace_back(enemy);
 
-		for (const auto& player : sPlayerMap) {
-			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, enemy.GetSendData());
-		}
+		NetworkEnemyData sendData{ NetworkEnemyData::AttackType::RANGE, pos, 0, mAccId++, rangeData.maxYPos };
+		for (const auto& player : sPlayerMap)
+			Data::SendDataAndType<NetworkEnemyData>(player.second.mSock, sendData);
 	}
 
 #ifdef _DEBUG 

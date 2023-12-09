@@ -157,6 +157,11 @@ void Range::Move()
 	SetPos(posDest);
 }
 
+void Range::Attack()
+{
+	Fire();
+}
+
 // 최종적으로 위치를 이동
 void Enemy::Move()
 {
@@ -186,6 +191,12 @@ void Melee::Move()
 
 	SetPosDest();
 	SetPos(posDest);
+}
+
+void Melee::Attack()
+{
+	StopMove();
+	IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
 }
 
 // 적의 방향에따라서 스프라이트 이미지 인덱스를 구한다.
@@ -279,8 +290,8 @@ int8 Melee::CheckCollidePlayer()
 	for (auto& member : sceneManager->GetMemberMap()) {
 		if (member.second->IsCollide(rectBody))
 		{
-			StopMove();
-			IAnimatable::SetAction(Action::Attack, data.frameNum_Atk);
+			NetworkBulletData sendData{ mIndex, NetworkBulletData::Status::E_CREATE };
+			GET_SINGLE(Network)->SendDataAndType(sendData);
 			ResetAttackDelay();
 
 			return member.first;
@@ -332,8 +343,13 @@ void Range::CheckAttackDelay()
 		data.crntAttackDelay -= ELAPSE_BATTLE_INVALIDATE;
 		if (IsClearAttackDelay() == true)
 		{
-			Fire();
-			ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
+			if (MY_INDEX == MP_INDEX) {
+				// 바로 fire하지 않고 신호만 서버에 주고 모든 클라이언트로 보낸 다음 받았을 때 fire한다.
+				NetworkBulletData sendData{ mIndex, NetworkBulletData::Status::E_CREATE };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+
+				ResetAttackDelay(); // 근거리 적은 딜레이가 끝났다면 발사 시작
+			}
 		}
 	}
 }
@@ -640,6 +656,7 @@ void EnemyController::CreateRecvMelee(NetworkEnemyData& recvData)
 void EnemyController::CreateRecvRange(NetworkEnemyData& recvData)
 {
 	std::lock_guard<std::mutex> lock(mMutex);
+	rangeData.maxYPos = recvData.MaxYPos;
 	Range* enemy = new Range(imgRange, recvData.StartPos, rangeData, recvData.Id);
 	enemies.emplace_back(enemy);
 }
@@ -671,6 +688,12 @@ void EnemyController::Animate()
 	{
 		enemy->Animate();
 	}
+}
+
+void EnemyController::AttackBasedOnIndex(size_t index)
+{
+	if (enemies.at(index) != nullptr)
+		enemies.at(index)->Attack();
 }
 
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.

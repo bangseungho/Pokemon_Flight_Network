@@ -488,7 +488,6 @@ struct BattleData
 
 	void Clear()
 	{
-		PlayerIndex = 0;
 		PosCenter = { 250.f, 500.f };
 		RectBody = { 0.f, };
 		IsFieldEnd = false;
@@ -505,6 +504,8 @@ struct NetworkBulletData
 		IDENTITY,
 		SECTOR,
 		CIRCLE,
+		
+		E_CREATE,
 	};
 
 	uint8 PlayerIndex = 0;
@@ -524,13 +525,15 @@ struct NetworkEnemyData
 	Vector2		StartPos = { 0.f, 0.f };
 	uint32		TargetIndex = 0;
 	uint32		Id = 0;
+
+	// 원거리 적의 max y포지션
+	uint32		MaxYPos = 0;
 };
 
 struct NetworkGameData
 {
 	bool	IsEndBattleProcess = false;
 };
-
 
 struct SceneData
 {
@@ -698,6 +701,17 @@ public:
 	NetworkPlayerData() {}
 	NetworkPlayerData(SOCKET& sock, uint8 threadId) { mSock = sock, mThreadId = threadId; }
 	~NetworkPlayerData() {}
+
+public:
+	// 모든 플레이어 인덱스를 데이터가 갖고 있도록 설정하는 함수
+	void SetPlayerIndex(uint8 index)
+	{
+		mSceneData.PlayerIndex = index;
+		mIntroData.PlayerIndex = index;
+		mTownData.PlayerIndex = index;
+		mPhaseData.PlayerIndex = index;
+		mBattleData.PlayerIndex = index;
+	}
 
 public:
 	SOCKET				mSock;

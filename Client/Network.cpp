@@ -194,6 +194,9 @@ void Network::ClientReceiver()
 			case NetworkBulletData::Status::CIRCLE:
 				sceneManager->GetMemberMap()[recvData.PlayerIndex]->ActiveSkill(Skill::Circle);
 				break;
+			case NetworkBulletData::Status::E_CREATE:
+				enemies->AttackBasedOnIndex(recvData.PlayerIndex);
+				break;
 			default:
 				break;
 			}
