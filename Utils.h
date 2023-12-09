@@ -459,6 +459,7 @@ struct StageData
 	StageElement Stage = StageElement::Null;
 };
 
+
 struct PhaseData
 {
 	uint8	PlayerIndex = 0;

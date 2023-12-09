@@ -346,20 +346,34 @@ void Stage::Update(float elapsedTime)
 
 				inputKey = VK_UP;
 
+<<<<<<< Updated upstream
 				
 				mRectTarget.top -= 200 * elapsedTime;
 				mRectTarget.bottom -= 200 * elapsedTime;
 				
+=======
+
+				mRectTarget.top -= 200 * elapsedTime;
+				mRectTarget.bottom -= 200 * elapsedTime;
+
+>>>>>>> Stashed changes
 			}
 			// Å¸°Ù ÀÌµ¿
 			else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
 			{
 				inputKey = VK_DOWN;
 
+<<<<<<< Updated upstream
 				
 				mRectTarget.top += 200 * elapsedTime;
 				mRectTarget.bottom += 200 * elapsedTime;
 				
+=======
+
+				mRectTarget.top += 200 * elapsedTime;
+				mRectTarget.bottom += 200 * elapsedTime;
+
+>>>>>>> Stashed changes
 			}
 			else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 			{
@@ -370,14 +384,22 @@ void Stage::Update(float elapsedTime)
 				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}
+<<<<<<< Updated upstream
 		
+=======
+
+>>>>>>> Stashed changes
 		target->_select = recvData.mTargetSelect;
 		target->_rectDraw = recvData.RectDraw;
 		moveX = recvData.mMoveX;
 		_rectImage = recvData.RectImage;
 
 		_dialogflag = false;
+<<<<<<< Updated upstream
 		
+=======
+
+>>>>>>> Stashed changes
 
 
 	}
