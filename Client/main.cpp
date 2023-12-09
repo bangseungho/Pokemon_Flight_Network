@@ -69,7 +69,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	hWnd = CreateWindow(lpszClass,
 		lpszWindowName,
 		WS_OVERLAPPED,
-		1000,
+		1500,
 		300,
 		WINDOWSIZE_X,
 		WINDOWSIZE_Y,

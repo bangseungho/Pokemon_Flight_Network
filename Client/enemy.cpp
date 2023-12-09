@@ -179,7 +179,7 @@ void Melee::Move()
 	}
 	else if ((collisionIndex = CheckCollidePlayer()) != -1)
 	{
-		mPlayer->Hit(data.damage, GetType(), POINT{ -1, }, collisionIndex);
+		sceneManager->GetMemberMap()[collisionIndex]->Hit(data.damage, GetType(), collisionIndex);
 		effects->CreateHitEffect(MEMBER_MAP(collisionIndex).mBattleData.PosCenter, GetType());
 		return;
 	}
@@ -631,6 +631,7 @@ void EnemyController::CreateCheckRange()
 // 수신받은 근거리 적 생성
 void EnemyController::CreateRecvMelee(NetworkEnemyData& recvData)
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	Melee* enemy = new Melee(imgMelee, recvData.StartPos, meleeData, recvData.TargetIndex, recvData.Id);
 	enemies.emplace_back(enemy);
 }
@@ -638,6 +639,7 @@ void EnemyController::CreateRecvMelee(NetworkEnemyData& recvData)
 // 수신받은 원거리 적 생성
 void EnemyController::CreateRecvRange(NetworkEnemyData& recvData)
 {
+	std::lock_guard<std::mutex> lock(mMutex);
 	Range* enemy = new Range(imgRange, recvData.StartPos, rangeData, recvData.Id);
 	enemies.emplace_back(enemy);
 }

@@ -200,7 +200,7 @@ void Player::Death()
 	soundManager->PlayEffectSound(EffectSound::Loss);
 	soundManager->StopBGMSound();
 
-	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear() };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
@@ -434,8 +434,10 @@ void Player::Animate(const HWND& hWnd)
 	{
 		if (--deathFrame == 0)
 		{
-			// 씬 매니저를 통해 다음 씬으로 이동(현재 씬이 배틀이므로 페이즈로 넘어간다.)
-			//sceneManager->StartLoading(hWnd);
+			if (MY_INDEX == playerData.id) {
+				NetworkGameData sendData{ true };
+				GET_SINGLE(Network)->SendDataAndType(sendData);
+			}
 		}
 		return;
 	}
@@ -539,7 +541,7 @@ void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector
 }
 
 // 플레이어 피격 함수로 이펙트는 생성되어야 한다면 이펙트 매니저의 자료구조에 해당 이펙트를 추가한다.
-void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberIndex)
+void Player::Hit(float damage, Type hitType, uint8 memberIndex, POINT effectPoint)
 {
 	if (playerData.isDeath == true)
 	{

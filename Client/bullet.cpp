@@ -254,7 +254,7 @@ void EnemyBullet::Move()
 		{
 			if (member.second->IsCollide(bullets.at(i)->GetRect()) == true)
 			{
-				member.second->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), bullets.at(i)->GetPos(), member.first);
+				member.second->Hit(bullets.at(i)->GetDamage(), bullets.at(i)->GetType(), member.first, bullets.at(i)->GetPos());
 				BulletController::Pop(i);
 			}
 			else if (bullets.at(i)->Move() == false)

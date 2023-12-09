@@ -11,6 +11,8 @@
 unordered_map<uint8, NetworkPlayerData> sPlayerMap;
 vector<uint32> sAccEnemyId;
 mutex sPlayersMutex;
+atomic<bool> sIsEndBattle = false;
+atomic<bool> sIsEndField = false;
 HANDLE hAllPlayerBattleSceneEvent;
 
 CRITICAL_SECTION cs;
@@ -196,9 +198,8 @@ void ProcessClient(ThreadSocket sock)
 			auto& data = sPlayerMap[threadId].mBattleData;
 			Data::RecvData<BattleData>(clientSock, data);
 
-			for (const auto& player : sPlayerMap) {
+			for (const auto& player : sPlayerMap)
 				Data::SendDataAndType<BattleData>(player.second.mSock, data);
-			}
 		}
 #pragma endregion
 #pragma region Enemy
@@ -227,7 +228,24 @@ void ProcessClient(ThreadSocket sock)
 
 			for (const auto& player : sPlayerMap)
 				Data::SendDataAndType<NetworkBulletData>(player.second.mSock, data);
+		}
+#pragma endregion
+#pragma region GameData
+		else if (dataType == DataType::GAME_DATA) {
+			std::lock_guard<std::mutex> lock(sPlayersMutex);
+			auto& data = sPlayerMap[threadId].mGameData;
+			Data::RecvData<NetworkGameData>(clientSock, data);
+
+			bool allEndBattle = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
+				return a.second.mGameData.IsEndBattleProcess == true;
+				});
+
+			if (allEndBattle == true) {
+				sIsEndBattle.store(true);
+				for (const auto& player : sPlayerMap)
+					Data::SendDataAndType<NetworkGameData>(player.second.mSock, NetworkGameData{ true });
 			}
+}
 #pragma endregion
 	}
 
@@ -252,11 +270,20 @@ void ProcessBattle()
 		Battle battle;
 		battle.Init();
 		sAccEnemyId.clear();
-		sAccEnemyId.reserve(200);
+		sAccEnemyId.reserve(500);
 		while (true) {
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
 			GET_SINGLE(Timer)->Update();
 			battle.Update(DELTA_TIME);
+
+			if (sIsEndBattle.load() == true) {
+				sIsEndBattle.store(false);
+				for (auto& player : sPlayerMap) {
+					player.second.mBattleData.Clear();
+					player.second.mGameData.IsEndBattleProcess = false;
+				}
+				break;
+			}
 		}
 	}
 }
