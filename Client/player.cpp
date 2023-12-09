@@ -244,7 +244,7 @@ void Player::SetPosDest()
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
 	
-	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear() };
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 

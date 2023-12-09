@@ -29,6 +29,7 @@ protected:
 	EnemyData data; // 적 데이터로 생성자에서 초기화
 	Vector2 posDest = { 0, }; // 포지션 위치 벡터
 	Vector2 unitVector = { 0, }; // 플레이어의 방향 벡터
+	size_t mIndex = 0;
 	//NetworkEnemyData mRecvData;
 
 	void Paint(const HDC& hdc, int spriteRow);
@@ -54,9 +55,13 @@ public:
 	//void SetRecvData(NetworkEnemyData&& recvData) { mRecvData = recvData; }
 	//NetworkEnemyData GetRecvData() { return mRecvData; }
 
+	virtual void Attack() abstract;
 	int GetSpriteRow();
 	void Animate();
 	bool Hit(float damage);
+
+	inline void SetIndex(size_t index) { mIndex = index; };
+	inline size_t GetIndex() { return mIndex; };
 
 	inline Type GetType() const
 	{
@@ -91,6 +96,7 @@ public:
 	Melee(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint8 targetIndex, uint32 id) : Enemy(image, pos, data, id) { mTargetIndex = targetIndex; }
 	void Paint(const HDC& hdc) override;
 	void Move() override;
+	void Attack() override;
 	void CheckAttackDelay() override;
 	uint8 mTargetIndex = 0;
 };
@@ -105,6 +111,7 @@ public:
 	Range(ObjectImage& image, const Vector2& pos, const EnemyData& data, uint32 id) : Enemy(image, pos, data, id) {};
 	void Paint(const HDC& hdc) override;
 	void Move() override;
+	void Attack() override;
 	void CheckAttackDelay() override;
 };
 
@@ -139,6 +146,7 @@ public:
 	void Paint(HDC hdc);
 	void Move();
 	void Animate();
+	void AttackBasedOnIndex(size_t index);
 	bool CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint);
 	void CheckHitAll(const RECT& rectSrc, float damage, Type hitType);
 
@@ -153,9 +161,11 @@ public:
 	}
 	inline void CheckAttackDelay()
 	{
+		size_t enemyIndex{};
 		for (Enemy* enemy : enemies)
 		{
 			enemy->CheckAttackDelay();
+			enemy->SetIndex(enemyIndex++);
 		}
 	}
 };

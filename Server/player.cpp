@@ -149,6 +149,7 @@ void Player::Death()
 // 탄막 발사 함수
 void Player::Shot()
 {
+	// 플레이어가 탄막을 발사했다면 자신이 발사했다는 인덱스를 모든 플레이어에게 송신해야 한다.
 	for (const auto& player : sPlayerMap) {
 		NetworkBulletData sendData{ mSendData->mBattleData.PlayerIndex, NetworkBulletData::Status::CREATE };
 		Data::SendDataAndType<NetworkBulletData>(player.second.mSock, sendData);

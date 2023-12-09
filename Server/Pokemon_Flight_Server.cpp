@@ -78,11 +78,13 @@ void ProcessClient(ThreadSocket sock)
 				Data::SendDataAndType<SceneData>(player.second.mSock, sPlayerMap[threadId].mSceneData);
 				Data::SendDataAndType<TownData>(player.second.mSock, sPlayerMap[threadId].mTownData);
 				Data::SendDataAndType<StageData>(player.second.mSock, sPlayerMap[threadId].mStageData);
+				Data::SendDataAndType<BattleData>(player.second.mSock, sPlayerMap[threadId].mBattleData);
 
 				// 자신에게 모든 플레이어 데이터 송신
 				Data::SendDataAndType<SceneData>(clientSock, player.second.mSceneData);
 				Data::SendDataAndType<TownData>(clientSock, player.second.mTownData);
 				Data::SendDataAndType<StageData>(clientSock, player.second.mStageData);
+				Data::SendDataAndType<BattleData>(clientSock, player.second.mBattleData);
 			}
 
 			// 모든 플레이어들이 배틀 화면에 있을 경우에만 배틀 프로세스를 진행한다.
@@ -128,7 +130,9 @@ void ProcessClient(ThreadSocket sock)
 			Data::RecvData<IntroData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			for (const auto& player : sPlayerMap) {
+			for (auto& player : sPlayerMap) {
+				player.second.SetPlayerIndex(player.first);
+
 				// 현재 클라이언트의 인트로 정보를 모든 클라이언트로 송신한다.
 				Data::SendDataAndType<IntroData>(player.second.mSock, data);
 
@@ -223,11 +227,20 @@ void ProcessClient(ThreadSocket sock)
 #pragma region Bullet
 		else if (dataType == DataType::BULLET_DATA) {
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-			auto& data = sPlayerMap[threadId].mBulletData;
-			Data::RecvData<NetworkBulletData>(clientSock, data);
 
-			for (const auto& player : sPlayerMap)
-				Data::SendDataAndType<NetworkBulletData>(player.second.mSock, data);
+			NetworkBulletData recvData;
+			Data::RecvData<NetworkBulletData>(clientSock, recvData);
+
+			if (recvData.Status == NetworkBulletData::Status::E_CREATE) {
+				for (const auto& player : sPlayerMap)
+					Data::SendDataAndType<NetworkBulletData>(player.second.mSock, recvData);
+			}
+			else {
+				auto& data = sPlayerMap[threadId].mBulletData;
+				data = move(recvData);
+				for (const auto& player : sPlayerMap)
+					Data::SendDataAndType<NetworkBulletData>(player.second.mSock, data);
+			}
 		}
 #pragma endregion
 #pragma region GameData

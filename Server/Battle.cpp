@@ -47,7 +47,7 @@ void Battle::Invalidata()
 	}
 
 	mEnemyController->CreateCheckMelee();
-	//mEnemyController->CreateCheckRange();
+	mEnemyController->CreateCheckRange();
 	//mEnemyController->CheckAttackDelay();
 
 	//for (auto& player : mPlayerVec)
