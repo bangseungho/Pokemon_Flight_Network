@@ -64,7 +64,7 @@ void Stage::Init()
 	rectStage[static_cast<int>(StageElement::Dark)] = { -230, 100, 30, 250 };
 	rectStage[4] = { 150, 200, 250, 260 };
 
-	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_select,target->_rectDraw, false };
+	StageData stageData = { MY_INDEX, static_cast<uint32>(gameData.ClearRecord), 0, target->_select,target->_rectDraw,300, false };
 	GET_SINGLE(Network)->SendDataAndType(stageData);
 
 	soundManager->StopBGMSound();
@@ -80,9 +80,10 @@ void Stage::Init()
 	for (auto& member : GET_MEMBER_MAP) {
 		member.second.mStageData.IsReady = false;
 	}
-
+	
 	airPokemon = Type::Empty;
 	landPokemon = Type::Empty;
+
 }
 
 // 선택 초기화
@@ -346,34 +347,22 @@ void Stage::Update(float elapsedTime)
 
 				inputKey = VK_UP;
 
-<<<<<<< Updated upstream
-				
-				mRectTarget.top -= 200 * elapsedTime;
-				mRectTarget.bottom -= 200 * elapsedTime;
-				
-=======
 
 				mRectTarget.top -= 200 * elapsedTime;
 				mRectTarget.bottom -= 200 * elapsedTime;
 
->>>>>>> Stashed changes
+
 			}
 			// 타겟 이동
 			else if (GetAsyncKeyState(VK_DOWN) & 0x8000 && target->_rectDraw.bottom < rectWindow.bottom)
 			{
 				inputKey = VK_DOWN;
 
-<<<<<<< Updated upstream
-				
-				mRectTarget.top += 200 * elapsedTime;
-				mRectTarget.bottom += 200 * elapsedTime;
-				
-=======
 
 				mRectTarget.top += 200 * elapsedTime;
 				mRectTarget.bottom += 200 * elapsedTime;
 
->>>>>>> Stashed changes
+
 			}
 			else if (GetAsyncKeyState(VK_RETURN) & 0x0001)
 			{
@@ -382,24 +371,19 @@ void Stage::Update(float elapsedTime)
 			if (inputKey != 0) {
 				StageData sendData{ MY_INDEX, gameData.ClearRecord, inputKey, target->_select, mRectTarget, moveX, _rectImage };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
+				printf("%lf", moveX);
 			}
 		}
-<<<<<<< Updated upstream
-		
-=======
 
->>>>>>> Stashed changes
 		target->_select = recvData.mTargetSelect;
 		target->_rectDraw = recvData.RectDraw;
 		moveX = recvData.mMoveX;
 		_rectImage = recvData.RectImage;
 
-		_dialogflag = false;
-<<<<<<< Updated upstream
-		
-=======
-
->>>>>>> Stashed changes
+		if (recvData.InputKey != 0) {
+			target->_rectDraw = recvData.RectDraw;
+			_dialogflag = false;
+		}
 
 
 	}
