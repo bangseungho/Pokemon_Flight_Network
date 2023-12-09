@@ -59,7 +59,6 @@ public:
 	uint32 GetID() const { return id; }
 
 public:
-	static uint32 sId;
 	NetworkPlayerData* mTarget;
 };
 

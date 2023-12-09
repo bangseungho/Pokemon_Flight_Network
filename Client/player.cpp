@@ -8,16 +8,18 @@
 #include "scene.h"
 #include "sound.h"
 #include "battle.h"
+#include "enemy.h"
 #include "Network.h"
 
 extern GUIManager* gui;
 extern EffectManager* effects;
 extern SceneManager* sceneManager;
 extern SoundManager* soundManager;
+extern EnemyController* enemies;
 
 extern Battle battle;
 
-// ÇÃ·¹ÀÌ¾îÀÇ Å¸ÀÔ¿¡ µû¶ó¼­ ÇÃ·¹ÀÌ¾î µ¥ÀÌÅÍ¸¦ ¼³Á¤ÇÏ°í ÀÌ¹ÌÁöµµ ·ÎµåÇÑ´Ù. Åº¸·°ú ¼­ºê Åº¸·µµ »ý¼ºÇÑ´Ù.
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ñ´ï¿½. Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 Player::Player(Type type, Type subType, uint8 id)
 {
 	constexpr int damagePerSec = (1000 / ELAPSE_BATTLE_ANIMATION);
@@ -127,20 +129,20 @@ Player::~Player()
 	delete skillManager;
 }
 
-// ½ºÅ³ ¸Å´ÏÀú »ý¼º
+// ï¿½ï¿½Å³ ï¿½Å´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 void Player::Init()
 {
 	skillManager = new SkillManager(this);
 }
 
-// ÇÃ·¹ÀÌ¾î ·»´õ¸µ
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void Player::Paint(HDC hdc)
 {
-	// Åº¸· ·»´õ¸µ
+	// Åºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bullets->Paint(hdc);
 	subBullets->Paint(hdc);
 
-	// Á×Àº »óÅÂ¶ó¸é Áï½Ã ¸®ÅÏ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (playerData.isDeath == true)
 	{
 		return;
@@ -176,7 +178,7 @@ void Player::Paint(HDC hdc)
 	img_subPokemon.Paint(rectDest, hdc);
 }
 
-// ½ºÅ³ ¸Å´ÏÀú¸¦ ÅëÇØ¼­ ½ºÅ³ ·»´õ¸µ
+// ï¿½ï¿½Å³ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void Player::PaintSkill(HDC hdc)
 {
 	if (playerData.isDeath == true)
@@ -187,7 +189,7 @@ void Player::PaintSkill(HDC hdc)
 	skillManager->Paint(hdc);
 }
 
-// ÇÃ·¹ÀÌ¾î°¡ Á×¾úÀ» °æ¿ì Àú ¸Ö¸® º¸³»°í »ç¿îµå Ã³¸®
+// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½×¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 void Player::Death()
 {
 	GameObject::SetPos({ WINDOWSIZE_X / 2, 10000 });
@@ -197,9 +199,12 @@ void Player::Death()
 	soundManager->StopEffectSound();
 	soundManager->PlayEffectSound(EffectSound::Loss);
 	soundManager->StopBGMSound();
+
+	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
+	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
-// [IControllableÀÇ °¡»óÇÔ¼ö] ÇÃ·¹ÀÌ¾î µ¥ÀÌÅÍÀÇ ¼Óµµ¿¡ µû¶ó¼­ ÀÌµ¿ÇØ¾ßÇÒ À§Ä¡¸¦ ¼³Á¤(¹Ù·Î ÀÌµ¿ÇÏÁö ¾Ê´Â´Ù.)
+// [IControllableï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½] ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ù·ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.)
 void Player::SetPosDest()
 {
 	const int movementAmount = playerData.speed * 2;
@@ -238,12 +243,12 @@ void Player::SetPosDest()
 	}
 
 	posDest = Vector2::GetDest(GetPosCenter(), vectorMove);
-
-	BattleData sendData{ MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd() };
+	
+	BattleData sendData{MY_INDEX, GetPosCenter(), GetRectBody(), gui->IsFieldEnd(), IsDeath(), enemies->IsEmenyClear()};
 	GET_SINGLE(Network)->SendDataAndType(sendData);
 }
 
-// ÀÎÀÚ¿¡ µû¶ó¼­ ÇÃ·¹ÀÌ¾îÀÇ ¹æÇâÀ» ¼³Á¤ÇÑ´Ù.
+// ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 void Player::SetDirection(Dir inputDir)
 {
 	if (direction == inputDir || direction == Dir::Empty)
@@ -276,7 +281,7 @@ void Player::SetDirection(Dir inputDir)
 	StopMove();
 }
 
-// [IControllableÀÇ °¡»óÇÔ¼ö] ÇÃ·¹ÀÌ¾î°¡ Á×Áö ¾Ê¾Ò°í alpha °ªÀÌ 0ÀÌ¶ó¸é ÇÃ·¹ÀÌ¾î¸¦ ¾÷µ¥ÀÌÆ®ÇÑ´Ù.
+// [IControllableï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½] ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò°ï¿½ alpha ï¿½ï¿½ï¿½ï¿½ 0ï¿½Ì¶ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ñ´ï¿½.
 void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC& timerProc)
 {
 	if (playerData.isDeath == true)
@@ -301,36 +306,40 @@ void Player::SetMove(const HWND& hWnd, int timerID, int elpase, const TIMERPROC&
 	StartMove();
 }
 
-// ½ÇÁ¦ ÇÃ·¹ÀÌ¾îÀÇ ÀÌµ¿À» ¼öÇàÇÑ´Ù.
+// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 void Player::Move(const HWND& hWnd, int timerID)
 {
-	// ÆÄÆ®³Ê ÀÌµ¿ °ü·Ã ÄÚµå
+	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½
 	auto& members = sceneManager->GetMemberMap();
 	for (const auto& member : GET_MEMBER_MAP) {
 		if (member.first == MY_INDEX)
 			continue;
 
-		if (members.find(member.first) != members.end())
+		if (members.find(member.first) != members.end()) {
 			members[member.first]->SetPos(member.second.mBattleData.PosCenter);
+			members[member.first]->SetDeath(member.second.mBattleData.IsDeath);
+		}
 	}
 
+	if (playerData.isDeath == true)
+		return;
 
 	if (playerData.isCanGo == false)
 		return;
 
 	Vector2 posCenter = GetPosCenter();
 
-	// ¼±Çü º¸°£À» ÅëÇØ ºÎµå·´°Ô ´ÙÀ½ ÀÌµ¿ÇÒ À§Ä¡ÀÇ ÁÂÇ¥¸¦ ¾ò´Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµå·´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
 	Vector2 posNext = Vector2::Lerp(posCenter, posDest, alpha);
 
-	// À©µµ¿ì È­¸éÀ» ´ÙÀ½ ÀÌµ¿ÇÒ À§Ä¡ÀÇ ÁÂÇ¥°¡ ³Ñ´ÂÁö °Ë»çÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ñ´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 	CheckCollideWindow(posNext);
 
-	// ³ÑÁö ¾Ê¾Ò´Ù¸é ´ÙÀ½ ÁÂÇ¥·Î ÇÃ·¹ÀÌ¾îÀÇ Áß½É ÁÂÇ¥¸¦ ÀÌµ¿ÇÑ´Ù
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½ß½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ñ´ï¿½
 	SetPos(posNext);
 	posCenter = GetPosCenter();
 
-	// º¤ÅÍÀÇ »¬¼À °è»êÀ» ÅëÇØ¼­ ÇöÀç ¾î´À ¹æÇâÀ¸·Î °¡´ÂÁö¸¦ ±¸ÇÒ ¼ö ÀÖ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½.
 	vectorMove = posDest - posCenter;
 
 	alpha += 0.1f;
@@ -384,11 +393,11 @@ void Player::Stop(Dir inputDir)
 		break;
 	}
 
-	// directionÀÌ inputDir°ú °°Àº °æ¿ì¿¡¸¸ Dir::Empty¸¦ ³Ö¾îÁØ´Ù.
+	// directionï¿½ï¿½ inputDirï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ Dir::Emptyï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½.
 	direction = direction - inputDir;
 }
 
-// ÇÃ·¹ÀÌ¾î°¡ À©µµ¿ì¸¦ ³Ñ¾î°¬´ÂÁö °Ë»çÇÑ´Ù.
+// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ì¸¦ ï¿½Ñ¾î°¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
 void Player::CheckCollideWindow(Vector2& pos) const
 {
 	const RECT rectDisplay = sceneManager->GetRectDisplay();
@@ -412,21 +421,21 @@ void Player::CheckCollideWindow(Vector2& pos) const
 		corrValue.y = rectDisplay.bottom - rectBody.bottom;
 	}
 
-	// ³Ñ¾î°¬´Ù¸é ´ÙÀ½ ÀÌµ¿ÇÒ À§Ä¡ ÁÂÇ¥¿¡ ³ª°£ ¸¸Å­ +¸¦ ÇÏ¿© ´Ù½Ã µ¹¾Æ°¡°Ô ¸¸µç´Ù.
+	// ï¿½Ñ¾î°¬ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ +ï¿½ï¿½ ï¿½Ï¿ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 	pos.x += corrValue.x;
 	pos.y += corrValue.y;
 }
 
-// ÇÃ·¹ÀÌ¾îÀÇ ¾Ö´Ï¸ÞÀÌ¼Ç ÇÔ¼öÀÌ´Ù.
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Ô¼ï¿½ï¿½Ì´ï¿½.
 void Player::Animate(const HWND& hWnd)
 {
-	// ÇÃ·¹ÀÌ¾î°¡ Á×¾ú´Ù¸é
+	// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½×¾ï¿½ï¿½Ù¸ï¿½
 	if (playerData.isDeath == true)
 	{
 		if (--deathFrame == 0)
 		{
-			// ¾À ¸Å´ÏÀú¸¦ ÅëÇØ ´ÙÀ½ ¾ÀÀ¸·Î ÀÌµ¿(ÇöÀç ¾ÀÀÌ ¹èÆ²ÀÌ¹Ç·Î ÆäÀÌÁî·Î ³Ñ¾î°£´Ù.)
-			sceneManager->StartLoading(hWnd);
+			// ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ²ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾î°£ï¿½ï¿½.)
+			//sceneManager->StartLoading(hWnd);
 		}
 		return;
 	}
@@ -439,7 +448,7 @@ void Player::Animate(const HWND& hWnd)
 		++frame;
 	}
 
-	// ÇöÀç ¾×¼Ç °ªÀ» ¹Þ¾Æ¿Í¼­ ¾Ö´Ï¸ÞÀÌ¼Ç ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½×¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿Í¼ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Ñ´ï¿½.
 	switch (GetAction())
 	{
 	case Action::Idle:
@@ -459,11 +468,11 @@ void Player::Animate(const HWND& hWnd)
 		break;
 	}
 
-	// ½ºÅ³ ¸Å´ÏÀúµµ ¾Ö´Ï¸ÞÀÌ¼ÇÇÑ´Ù.
+	// ï¿½ï¿½Å³ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½Ñ´ï¿½.
 	skillManager->Animate();
 }
 
-// 2023/12/08 : ³×Æ®¿öÅ© Åº¸· ¹ß»ç ÇÔ¼ö 
+// 2023/12/08 : ï¿½ï¿½Æ®ï¿½ï¿½Å© Åºï¿½ï¿½ ï¿½ß»ï¿½ ï¿½Ô¼ï¿½ 
 void Player::Shot(NetworkBulletData& recvData)
 {
 	//BulletData bulletData;
@@ -476,14 +485,14 @@ void Player::Shot(NetworkBulletData& recvData)
 
 void Player::Shot()
 {
-	// Åº¸·ÀÇ µ¥¹ÌÁö´Â ÇÃ·¹ÀÌ¾îÀÇ µ¥ÀÌÅÍ¿¡ µû¶ó¼­ ´Þ¶óÁø´Ù.
+	// Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¶ï¿½ï¿½ï¿½ï¿½ï¿½.
 	const RECT rectBody = GetRectBody();
 	BulletData bulletData;
 	bulletData.bulletType = playerData.type;
 	bulletData.damage = playerData.damage;
 	bulletData.speed = playerData.bulletSpeed;
 
-	// ¸ÞÀÎ Æ÷ÄÏ¸óÀÇ Åº¸·À» »ý¼ºÇÏ¿© BulletController¿¡ Ãß°¡ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ BulletControllerï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½.
 	POINT bulletPos = { 0, };
 	bulletPos.y = rectBody.top;
 	bulletPos.x = rectBody.left - 10;
@@ -491,13 +500,13 @@ void Player::Shot()
 	bulletPos.x = rectBody.right + 10;
 	bullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
-	// ¼­ºê Æ÷ÄÏ¸óÀÇ Åº¸·À» »ý¼ºÇÏ¿© BulletController¿¡ Ãß°¡ÇÑ´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ BulletControllerï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½.
 	bulletData.bulletType = playerData.subType;
 	bulletData.damage = playerData.subDamage;
 	bulletPos.x = rectBody.left + ((rectBody.right - rectBody.left) / 2);
 	subBullets->CreateBullet(bulletPos, bulletData, Dir::Up);
 
-	// ½ºÅ³µµ »ç¿ë½Ã ½ºÅ³ ¸Å´ÏÀú¸¦ ÀÌ¿ëÇØ¼­ ½ºÅ³ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	skillManager->UseSkill();
 }
 
@@ -506,7 +515,7 @@ void Player::BulletPop(size_t& bulletIndex)
 	bullets->Pop(bulletIndex);
 }
 
-// ÇÃ·¹ÀÌ¾îÀÇ ±âº» °ø°Ý¿¡ ÄðÅ¸ÀÓÀ» ÁÖ´Â ÇÔ¼öÀÌ´Ù
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½Ý¿ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½ï¿½Ì´ï¿½
 void Player::CheckShot()
 {
 	if (playerData.isDeath == true)
@@ -514,7 +523,7 @@ void Player::CheckShot()
 		return;
 	}
 
-	// Å¸ÀÌ¸Ó¸¦ ÅëÇØ¼­ crntShotDelay °ªÀ» ÁÙÀÌ¸ç ¸¸¾à 0º¸´Ù ÀÛ¾ÆÁö¸é ±× ¶§ Åº¸·À» ¹ß»çÇÏµµ·Ï ÇÏ°í ´Ù½Ã ¸®¼ÂÇÑ´Ù.
+	// Å¸ï¿½Ì¸Ó¸ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ crntShotDelay ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	playerData.crntShotDelay -= ELAPSE_BATTLE_INVALIDATE;
 	//if (IsClearShotDelay() == true)
 	//{
@@ -523,44 +532,44 @@ void Player::CheckShot()
 //}
 }
 
-// ¼­ºê Æ÷ÄÏ¸óÀÇ Åº¸· »ý¼º ÇÔ¼ö
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ Åºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 void Player::CreateSubBullet(const POINT& center, const BulletData& data, Vector2 unitVector, bool isRotateImg, bool isSkillBullet)
 {
 	subBullets->CreateBullet(center, data, unitVector, isRotateImg, isSkillBullet);
 }
 
-// ÇÃ·¹ÀÌ¾î ÇÇ°Ý ÇÔ¼ö·Î ÀÌÆåÆ®´Â »ý¼ºµÇ¾î¾ß ÇÑ´Ù¸é ÀÌÆåÆ® ¸Å´ÏÀúÀÇ ÀÚ·á±¸Á¶¿¡ ÇØ´ç ÀÌÆåÆ®¸¦ Ãß°¡ÇÑ´Ù.
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½Ç°ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½Ñ´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·á±¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½.
 void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberIndex)
 {
 	if (playerData.isDeath == true)
 	{
 		return;
 	}
-	else if (effectPoint.x == -1) // ¸¸¾à ÃÑ¾ËÀ» ¸ÂÀº ºÎºÐÀÌ -1ÀÌ¶ó¸é ·£´ýÇÑ °÷¿¡¼­ ÀÌÆåÆ® »ý¼º
+	else if (effectPoint.x == -1) // ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ -1ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 	{
 		effectPoint = GetPosCenter();
 		GetRandEffectPoint(effectPoint);
 	}
-	effects->CreateHitEffect(effectPoint, hitType); // ÇÇ°Ý È¿°ú¸¦ ÀÌÆåÆ® ¸Å´ÏÀú¿¡ Ãß°¡ÇÑ´Ù.
+	effects->CreateHitEffect(effectPoint, hitType); // ï¿½Ç°ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½.
 
 	if (MY_INDEX == memberIndex) {
-		gui->DisplayHurtFrame(hitType); // ÇÇ°Ý½Ã È­¸é¿¡ »ý¼ºµÇ´Â ÇÁ·¹ÀÓ
-		battle.ShakeMap(); // ¸Ê Èçµé±â
+		gui->DisplayHurtFrame(hitType); // ï¿½Ç°Ý½ï¿½ È­ï¿½é¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		battle.ShakeMap(); // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		if (playerData.isInvincible == true)
 		{
 			return;
 		}
 
-		damage = CalculateDamage(damage, playerData.type, hitType); // µ¥¹ÌÁö °è»ê
-		if ((playerData.hp -= damage) <= 0) // °è»êµÈ µ¥¹ÌÁö¸¦ ÅëÇØ¼­ ÇÃ·¹ÀÌ¾î hp °¨¼Ò½Ã 0º¸´Ù ÀÛ´Ù¸é Æø¹ß È¿°ú ÀÌÆåÆ® ¸Å´ÏÀú¿¡ Ãß°¡ÇÏ°í ÇÃ·¹ÀÌ¾î »ç¸Á ÇÔ¼ö È£Ãâ
+		damage = CalculateDamage(damage, playerData.type, hitType); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		if ((playerData.hp -= damage) <= 0) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ hp ï¿½ï¿½ï¿½Ò½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Û´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï°ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ È£ï¿½ï¿½
 		{
 			effects->CreateExplosionEffect(GetPosCenter(), playerData.type);
 			Player::Death();
 		}
 	}
 
-	switch (hitType) // ¸ÂÀº Åº¸·ÀÇ ¼Ó¼º¿¡ µû¶ó »ç¿îµå Àç»ý
+	switch (hitType) // ï¿½ï¿½ï¿½ï¿½ Åºï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	{
 	case Type::Elec:
 		soundManager->PlayHitSound(HitSound::Elec);
@@ -577,7 +586,7 @@ void Player::Hit(float damage, Type hitType, POINT effectPoint, uint8 memberInde
 	}
 }
 
-// ÇÃ·¹ÀÌ¾î°¡ »ì¾Æ ÀÖ´Ù¸é ½ºÅ³ Àç»ý
+// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½
 void Player::ActiveSkill(Skill skill)
 {
 	if (playerData.isDeath == true)
@@ -588,14 +597,14 @@ void Player::ActiveSkill(Skill skill)
 	skillManager->ActiveSkill(skill);
 }
 
-// ÇÃ·¹ÀÌ¾îÀÇ ÃÑ¾Ë ¾÷µ¥ÀÌÆ®
+// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 void Player::MoveBullets()
 {
 	bullets->Move();
 	subBullets->Move();
 }
 
-// ½ºÅ³ »ç¿ë½Ã ¾î¶² ½ºÅ³À» »ç¿ëÇß´ÂÁö º¯¼ö ¼³Á¤
+// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½î¶² ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 bool Player::IsUsingSkill() const
 {
 	return skillManager->IsUsingSkill();
@@ -608,11 +617,11 @@ bool Player::IsIdentity() const
 
 bool Player::ReduceMP(float amount, Skill skill)
 {
-	if (skill == Skill::Identity && skillManager->IsIdentity() == true) // ÇöÀç ±Ã±Ø±â »ç¿ëÁßÀÌ¸é ¸®ÅÏ(¿¬¼ÓÀ¸·Î »ç¿ë ¸øÇÏµµ·Ï)
+	if (skill == Skill::Identity && skillManager->IsIdentity() == true) // ï¿½ï¿½ï¿½ï¿½ ï¿½Ã±Ø±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½)
 	{
 		return false;
 	}
-	else if (skill != Skill::Identity && IsUsingSkill() == true) // ÇöÀç W, E ½ºÅ³ Áß ÇÏ³ª¸¦ »ç¿ëÁßÀÌ¸é ¸®ÅÏ(¿¬¼ÓÀ¸·Î »ç¿ë ¸øÇÏµµ·Ï)
+	else if (skill != Skill::Identity && IsUsingSkill() == true) // ï¿½ï¿½ï¿½ï¿½ W, E ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½)
 	{
 		return false;
 	}

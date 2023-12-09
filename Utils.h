@@ -46,6 +46,7 @@
 #include <cassert>
 #include <array>
 #include <memory>
+#include <atomic>
 
 #pragma comment(lib, "ws2_32") 
 using namespace std;
@@ -482,6 +483,7 @@ struct BattleData
 	FRECT		RectBody = { 0.f, };
 	bool		IsFieldEnd = false;
 	bool		IsDeath = false;
+	bool		IsEnemyClear = false;
 };
 
 struct NetworkBulletData

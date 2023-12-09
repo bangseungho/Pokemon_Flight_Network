@@ -54,9 +54,10 @@ void ProcessClient(ThreadSocket sock)
 #pragma region SceneData
 		else if (dataType == DataType::SCENE_DATA) {
 			// 전역 플레이어 배열에서 클라이언트 threadId를 통해 자신의 플레이어에 접근
-			auto& data = sPlayerMap[threadId].mSceneData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
+			auto& data = sPlayerMap[threadId].mSceneData;
 			Data::RecvData<SceneData>(clientSock, data);
+
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			// 모든 클라이언트들에게 자신의 정보를 담은 패킷 송신
@@ -120,9 +121,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Intro
 		else if (dataType == DataType::INTRO_DATA) {
-			auto& data = sPlayerMap[threadId].mIntroData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mIntroData;
 			Data::RecvData<IntroData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
@@ -140,9 +140,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Town
 		else if (dataType == DataType::TOWN_DATA) {
-			auto& data = sPlayerMap[threadId].mTownData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mTownData;
 			Data::RecvData<TownData>(clientSock, data);
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
@@ -154,9 +153,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Stage
 		else if (dataType == DataType::STAGE_DATA) {
-			auto& data = sPlayerMap[threadId].mStageData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mStageData;
 			Data::RecvData<StageData>(clientSock, data);
 
 			// 메인 플레이어일 경우에만 스테이지 데이터를 다른 플레이어에게 송신
@@ -179,9 +177,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Phase
 		else if (dataType == DataType::PHASE_DATA) {
-			auto& data = sPlayerMap[threadId].mPhaseData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mPhaseData;
 			Data::RecvData<PhaseData>(clientSock, data);
 
 			for (const auto& player : sPlayerMap) {
@@ -195,9 +192,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Battle
 		else if (dataType == DataType::BATTLE_DATA) {
-			auto& data = sPlayerMap[threadId].mBattleData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mBattleData;
 			Data::RecvData<BattleData>(clientSock, data);
 
 			for (const auto& player : sPlayerMap) {
@@ -207,9 +203,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Enemy
 		else if (dataType == DataType::ENEMY_OBJECT_DATA) {
-			auto& data = sPlayerMap[threadId];
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-			
+			auto& data = sPlayerMap[threadId];
 			Data::RecvData<NetworkEnemyData>(clientSock, data.mKillData);
 		
 			// 이미 등록된 적 ID라면 등록하지 않고 송신도 하지 않는다.
@@ -226,9 +221,8 @@ void ProcessClient(ThreadSocket sock)
 #pragma endregion
 #pragma region Bullet
 		else if (dataType == DataType::BULLET_DATA) {
-			auto& data = sPlayerMap[threadId].mBulletData;
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-
+			auto& data = sPlayerMap[threadId].mBulletData;
 			Data::RecvData<NetworkBulletData>(clientSock, data);
 
 			for (const auto& player : sPlayerMap)

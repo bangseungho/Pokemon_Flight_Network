@@ -36,8 +36,9 @@ GUIManager* gui = nullptr;
 Boss* boss = nullptr;
 SceneManager* sceneManager = nullptr;
 SoundManager* soundManager = nullptr;
+atomic<bool> isEndBattle = false;
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow){
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) {
 	srand((unsigned int)time(NULL));
 
 	HWND hWnd;
@@ -114,7 +115,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_ERASEBKGND:
 		return FALSE;
-	break;
+		break;
 	case WM_KEYDOWN:
 		CheckKeyDown(hWnd, wParam);
 		break;

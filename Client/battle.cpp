@@ -7,6 +7,8 @@
 #include "Network.h"
 
 extern SoundManager* soundManager;
+extern atomic<bool> isEndBattle;
+
 
 // 배틀 화면에 필요한 이미지 모두 로드
 Battle::Battle()
@@ -29,6 +31,8 @@ void Battle::Init()
 	soundManager->StopBGMSound();
 	soundManager->PlayBGMSound(BGMSound::Battle, 1.0f, true);
 	soundManager->PlayEffectSound(EffectSound::Shot, 0.5f, true);
+
+	isEndBattle.store(false);
 }
 
 void Battle::Move(float elapsedStime)

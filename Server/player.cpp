@@ -123,6 +123,12 @@ void Player::Init()
 
 void Player::Update()
 {
+	if (mSendData->mBattleData.IsDeath)
+	{
+		playerData.isDeath = true;
+		return;
+	}
+
 	SetPos(mSendData->mBattleData.PosCenter);
 }
 
@@ -153,9 +159,10 @@ void Player::Shot()
 void Player::CheckShot()
 {
 	if (playerData.isDeath == true)
-	{
 		return;
-	}
+
+	if (mSendData->mBattleData.IsFieldEnd == true && mSendData->mBattleData.IsEnemyClear == true)
+		return;
 
 	// 타이머를 통해서 crntShotDelay 값을 줄이며 만약 0보다 작아지면 그 때 탄막을 발사하도록 하고 다시 리셋한다.
 	playerData.crntShotDelay -= ELAPSE_BATTLE_CREATE_BULLET;

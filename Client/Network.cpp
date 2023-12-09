@@ -3,10 +3,13 @@
 #include "scene.h"
 #include "enemy.h"
 #include "player.h"
+#include "interface.h"
 
 DECLARE_SINGLE(Network);
 extern SceneManager* sceneManager;
 extern EnemyController* enemies;
+extern GUIManager* gui;
+extern atomic<bool> isEndBattle;
 
 Network::Network()
 {
@@ -20,7 +23,7 @@ Network::~Network()
 {
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
-
+	
 	closesocket(mClientSock);
 	WSACleanup();
 
@@ -52,9 +55,9 @@ void Network::ClientReceiver()
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap.erase(findIt);
 
-#ifdef _DEBUG
-			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "�� �÷��̾� ���� ����]" << endl;
-#endif 
+//#ifdef _DEBUG
+//			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "�� �÷��̾� ���� ����]" << endl;
+//#endif 
 		}
 #pragma endregion
 #pragma region SceneData
@@ -141,7 +144,7 @@ void Network::ClientReceiver()
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap[recvData.PlayerIndex].mBattleData = move(recvData);
 
-			cout << mRecvMemberMap[MY_INDEX].mBattleData.PosCenter.x << endl;
+			//cout << mRecvMemberMap[MY_INDEX].mBattleData.PosCenter.x << endl;
 		}
 #pragma endregion
 #pragma region Enemy
@@ -173,6 +176,9 @@ void Network::ClientReceiver()
 			NetworkBulletData recvData;
 			// ��Ŷ ����
 			Data::RecvData<NetworkBulletData>(mClientSock, recvData);
+
+			if (isEndBattle.load() == true)
+				continue;
 
 			switch (recvData.Status)
 			{
