@@ -367,6 +367,7 @@ void Town::Move(float elapedTime)
 		mPlayer->mIsReady = true;
 		mPlayer->_Pos.x -= 1;
 		mPlayer->aboutMapPos.x -= 1;
+		_nextFlow = Scene::Stage;
 
 		NetworkGameData sendData = { false, MP_INDEX, VK_SPACE };
 		GET_SINGLE(Network)->SendDataAndType<NetworkGameData>(sendData);

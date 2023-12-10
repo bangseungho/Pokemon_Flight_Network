@@ -112,7 +112,6 @@ void T_Loading(float elapsedTime)
 			}
 			else if (scene == Scene::Town) // 전의 게임 플로우 값이 타운이라면 다음 게임 플로우는 스테이지
 			{
-				town._nextFlow = Scene::Stage;
 				town.mAdjValue = Vector2{ 0, 0 };
 				town.mPlayer->_Pos.x = rectWindow.right / 2;
 				town.mPlayer->_Pos.y = rectWindow.bottom / 2;
