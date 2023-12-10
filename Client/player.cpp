@@ -435,7 +435,7 @@ void Player::Animate(const HWND& hWnd)
 		if (--deathFrame == 0)
 		{
 			if (MY_INDEX == playerData.id) {
-				NetworkGameData sendData{ true };
+				NetworkGameData sendData{ true, MP_INDEX, 0 };
 				GET_SINGLE(Network)->SendDataAndType(sendData);
 			}
 		}

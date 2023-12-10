@@ -14,6 +14,7 @@ mutex sPlayersMutex;
 atomic<bool> sIsEndBattle = false;
 atomic<bool> sIsEndField = false;
 HANDLE hAllPlayerBattleSceneEvent;
+uint8 mainPlayerIndex = 0;
 
 CRITICAL_SECTION cs;
 
@@ -30,8 +31,6 @@ void ProcessClient(ThreadSocket sock)
 	// 클라이언트와 연결이 되었다면 클라이언트에게 자신의 인덱스를 송신
 	if (!Data::SendData(clientSock, threadId))
 		return;
-
-	int mainPlayerIndex = 0;
 
 	// 클라이언트 정보 가져오기
 	SOCKADDR_IN clientaddr;
@@ -63,13 +62,13 @@ void ProcessClient(ThreadSocket sock)
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
 			// 모든 클라이언트들에게 자신의 정보를 담은 패킷 송신
-			uint8 minRecord = 99;
-			for (auto& player : sPlayerMap) {
-				if (minRecord > player.second.mSceneData.Record) {
-					minRecord = player.second.mSceneData.Record;
-					mainPlayerIndex = player.second.mThreadId;
-				}
-			}
+			//uint8 minRecord = 99;
+			//for (auto& player : sPlayerMap) {
+			//	if (minRecord > player.second.mSceneData.Record) {
+			//		minRecord = player.second.mSceneData.Record;
+			//		mainPlayerIndex = player.second.mThreadId;
+			//	}
+			//}
 
 			for (auto& player : sPlayerMap) {
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
@@ -184,16 +183,12 @@ void ProcessClient(ThreadSocket sock)
 #pragma region Phase
 		else if (dataType == DataType::PHASE_DATA) {
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
-			auto& data = sPlayerMap[threadId].mPhaseData;
-			Data::RecvData<PhaseData>(clientSock, data);
 
-			for (const auto& player : sPlayerMap) {
-				Data::SendDataAndType<PhaseData>(player.second.mSock, sPlayerMap[mainPlayerIndex].mPhaseData);
-			}
+			PhaseData recvData;
+			Data::RecvData<PhaseData>(clientSock, recvData);
 
-			for (auto& player : sPlayerMap) {
-				player.second.mPhaseData.InputKey = 0;
-			}
+			for (const auto& player : sPlayerMap)
+				Data::SendDataAndType<PhaseData>(player.second.mSock, recvData);
 		}
 #pragma endregion
 #pragma region Battle
@@ -246,17 +241,47 @@ void ProcessClient(ThreadSocket sock)
 #pragma region GameData
 		else if (dataType == DataType::GAME_DATA) {
 			std::lock_guard<std::mutex> lock(sPlayersMutex);
+			NetworkGameData recvData;
+			Data::RecvData<NetworkGameData>(clientSock, recvData);
 			auto& data = sPlayerMap[threadId].mGameData;
-			Data::RecvData<NetworkGameData>(clientSock, data);
+			data.IsEndBattleProcess = recvData.IsEndBattleProcess;
+			data.MainPlayerIndex = recvData.MainPlayerIndex;
 
+			// 메인 플레이어 설정
+			uint8 minRecord = 99;
+			for (auto& player : sPlayerMap) {
+				if (minRecord > player.second.mSceneData.Record) {
+					minRecord = player.second.mSceneData.Record;
+					mainPlayerIndex = player.second.mThreadId;
+				}
+			}
+
+			// 메인 플레이어를 설정해서 씬 데이터 다시 설정
+			for (auto& player : sPlayerMap) {
+				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
+			}
+
+			// 페이즈와 인터페이스 키 재송신 함수
+			if (recvData.InputKey != 0) {
+				for (const auto& player : sPlayerMap)
+					Data::SendDataAndType<NetworkGameData>(player.second.mSock, NetworkGameData{ false, (uint8)mainPlayerIndex, recvData.InputKey });
+				continue;
+			}
+
+			// 모든 플레이어의 배틀 씬이 끝났는지 확인
 			bool allEndBattle = all_of(sPlayerMap.begin(), sPlayerMap.end(), [](const auto& a) {
 				return a.second.mGameData.IsEndBattleProcess == true;
 				});
 
+			// 모든 플레이어가 배틀 씬이 끝났다면 메인 플레이어 인덱스를 넘겨준다.
 			if (allEndBattle == true) {
 				sIsEndBattle.store(true);
-				for (const auto& player : sPlayerMap)
-					Data::SendDataAndType<NetworkGameData>(player.second.mSock, NetworkGameData{ true });
+
+				for (auto& player : sPlayerMap)
+					Data::SendDataAndType<NetworkGameData>(player.second.mSock, NetworkGameData{ true, (uint8)mainPlayerIndex, 0 });
+
+				for (auto& player : sPlayerMap)
+					player.second.mGameData.IsEndBattleProcess = false;
 			}
 }
 #pragma endregion
@@ -293,7 +318,6 @@ void ProcessBattle()
 				sIsEndBattle.store(false);
 				for (auto& player : sPlayerMap) {
 					player.second.mBattleData.Clear();
-					player.second.mGameData.IsEndBattleProcess = false;
 				}
 				break;
 			}

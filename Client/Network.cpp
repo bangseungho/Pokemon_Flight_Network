@@ -23,7 +23,7 @@ Network::~Network()
 {
 	if (mRecvClientThread.joinable())
 		mRecvClientThread.join();
-	
+
 	closesocket(mClientSock);
 	WSACleanup();
 
@@ -55,9 +55,9 @@ void Network::ClientReceiver()
 			if (findIt != mRecvMemberMap.end())
 				mRecvMemberMap.erase(findIt);
 
-//#ifdef _DEBUG
-//			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½]" << endl;
-//#endif 
+			//#ifdef _DEBUG
+			//			cout << "[" << static_cast<uint32>(recvData.PlayerIndex) << "ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½]" << endl;
+			//#endif 
 		}
 #pragma endregion
 #pragma region SceneData
@@ -67,9 +67,6 @@ void Network::ClientReceiver()
 
 			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<SceneData>(mClientSock, recvData);
-
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-			mMainPlayerIndex = recvData.MainPlayerIndex;
 
 			// ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½Ø´ï¿½ Å° ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
 			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
@@ -124,11 +121,6 @@ void Network::ClientReceiver()
 
 			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<PhaseData>(mClientSock, recvData);
-
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½Ì¶ï¿½ï¿½ ï¿½É¹ï¿½ ï¿½Ê¿ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½
-			auto findIt = mRecvMemberMap.find(recvData.PlayerIndex);
-			if (findIt != mRecvMemberMap.end())
-				mRecvMemberMap[recvData.PlayerIndex].mPhaseData = move(recvData);
 		}
 #pragma endregion
 #pragma region Battle
@@ -202,10 +194,11 @@ void Network::ClientReceiver()
 			}
 		}
 		else if (dataType == DataType::GAME_DATA) {
-			// ÆÐÅ¶À» ¼ö½ÅÇÒ ÀÓ½Ã °´Ã¼
+			// ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ã¼
 			NetworkGameData recvData;
-			// ÆÐÅ¶ ¼ö½Å
+			// ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½
 			Data::RecvData<NetworkGameData>(mClientSock, recvData);
+			mMainPlayerIndex = recvData.MainPlayerIndex;
 
 			if (recvData.IsEndBattleProcess == true) {
 				sceneManager->StartLoading(sceneManager->GetHwnd());
@@ -213,6 +206,30 @@ void Network::ClientReceiver()
 				for (auto& member : mRecvMemberMap) {
 					member.second.mBattleData.Clear();
 				}
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::PhaseManager) {
+				if (recvData.InputKey == VK_BACK)
+					sceneManager->MoveScene(sceneManager->GetHwnd(), Scene::Stage);
+				else if (recvData.InputKey == VK_RETURN)
+					sceneManager->StartLoading(sceneManager->GetHwnd());
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::Battle) {
+				if (recvData.InputKey == VK_BACK)
+					gui->SkipField();
+				continue;
+			}
+			else if (sceneManager->GetScene() == Scene::Town) {
+				if (recvData.InputKey == VK_SPACE) {
+					bool allReady = all_of(GET_MEMBER_MAP.begin(), GET_MEMBER_MAP.end(), [](const auto& a) {
+						return a.second.mTownData.IsReady == 1;
+						});
+
+					if (allReady == true)
+						sceneManager->StartLoading(sceneManager->GetHwnd());
+				}
+				continue;
 			}
 		}
 #pragma endregion

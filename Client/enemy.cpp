@@ -699,7 +699,7 @@ void EnemyController::AttackBasedOnIndex(size_t index)
 // 플레이어 탄막과 적의 충돌 함수이다. 이펙트 위치를 탄막의 위치로 지정하여 죽었을 경우 자료구조에서 제거한다.
 bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, const POINT& effectPoint)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
+	std::lock_guard<std::mutex> lock(mMutex);
 	for (uint32 i = 0; i < enemies.size(); ++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
@@ -723,7 +723,7 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 // 플레이어 스킬과 적의 충돌 함수이다. 이펙트 위치를 랜덤으로 지정하여 죽었을 경우 자료구조에서 제거한다.
 void EnemyController::CheckHitAll(const RECT& rectSrc, float damage, Type hitType)
 {
-	std::lock_guard<std::mutex> lock(GET_SINGLE(Network)->GetEnemyMapMutex());
+	std::lock_guard<std::mutex> lock(mMutex);
 	for (uint32 i = 0; i < enemies.size(); ++i)
 	{
 		if (enemies.at(i)->IsCollide(rectSrc) == true)
