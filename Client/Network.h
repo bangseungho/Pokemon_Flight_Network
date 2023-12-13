@@ -27,11 +27,7 @@ public:
 	uint8 GetMainPlayerIndex() const { return mMainPlayerIndex; }
 	bool IsConnected() const { return mConnected; }
 	SOCKET& GetSocket() { return mClientSock; }
-	//mutex& GetMemberMapMutex() { return mMemberMapMutex; }
-	mutex& GetEnemyMapMutex() { return mEnemyMapMutex; }
-	//mutex& GetBulletMutex() { return mBulletMutex; }
 	unordered_map<uint8, NetworkPlayerData>& GetMemberMap() { return mRecvMemberMap; }
-	unordered_map<uint8, NetworkEnemyData>& GetEnemyMap() { return mRecvEnemyMap; }
 
 private:
 	bool				mConnected;
@@ -40,12 +36,8 @@ private:
 	thread				mRecvClientThread;
 	SOCKET				mClientSock;
 	SOCKADDR_IN			mServerAddr;
-	//mutex				mMemberMapMutex;
-	mutex				mEnemyMapMutex;
-	//mutex				mBulletMutex;
 
 	unordered_map<uint8, NetworkPlayerData> mRecvMemberMap;
-	unordered_map<uint8, NetworkEnemyData> mRecvEnemyMap;
 };
 
 #define GET_MEMBER_MAP GET_SINGLE(Network)->GetMemberMap()
