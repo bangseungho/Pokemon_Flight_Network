@@ -12,11 +12,8 @@ unordered_map<uint8, NetworkPlayerData> sPlayerMap;
 vector<uint32> sAccEnemyId;
 mutex sPlayersMutex;
 atomic<bool> sIsEndBattle = false;
-atomic<bool> sIsEndField = false;
 HANDLE hAllPlayerBattleSceneEvent;
 uint8 mainPlayerIndex = 0;
-
-CRITICAL_SECTION cs;
 
 void ProcessClient(ThreadSocket sock)
 {
@@ -61,15 +58,6 @@ void ProcessClient(ThreadSocket sock)
 
 			data.PlayerIndex = static_cast<uint8>(threadId);
 
-			// 모든 클라이언트들에게 자신의 정보를 담은 패킷 송신
-			//uint8 minRecord = 99;
-			//for (auto& player : sPlayerMap) {
-			//	if (minRecord > player.second.mSceneData.Record) {
-			//		minRecord = player.second.mSceneData.Record;
-			//		mainPlayerIndex = player.second.mThreadId;
-			//	}
-			//}
-
 			for (auto& player : sPlayerMap) {
 				player.second.mSceneData.MainPlayerIndex = mainPlayerIndex;
 
@@ -92,34 +80,6 @@ void ProcessClient(ThreadSocket sock)
 
 			if (isAllPlayerBattleScene)
 				SetEvent(hAllPlayerBattleSceneEvent);
-
-#ifdef _DEBUG
-			string sceneStr;
-			switch (data.Scene)
-			{
-			case 0:
-				sceneStr = "INTRO";
-				break;
-			case 1:
-				sceneStr = "TOWN";
-				break;
-			case 2:
-				sceneStr = "STAGE";
-				break;
-			case 3:
-				sceneStr = "PHASE";
-				break;
-			case 4:
-				sceneStr = "BATTLE";
-				break;
-			default:
-				sceneStr = "NONE";
-				break;
-			}
-			cout << "CLIENT_NUMBER: " << static_cast<uint32>(threadId) 
-				 << ", SCENE: " << sceneStr << endl;
-#endif 
-
 		}
 #pragma endregion
 #pragma region Intro
@@ -334,7 +294,6 @@ int main(int argc, char* argv[])
 	GET_SINGLE(Timer)->Init();
 	GET_SINGLE(Timer)->Start();
 	hAllPlayerBattleSceneEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	InitializeCriticalSection(&cs);
 #pragma endregion
 
 #pragma region Socket
@@ -364,7 +323,7 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
-	thread logicThread{ ProcessBattle };
+	thread battleThread{ ProcessBattle };
 	vector<thread> clientThread;
 	uint8 sPlayerCount{};
 
@@ -387,8 +346,7 @@ int main(int argc, char* argv[])
 #pragma endregion
 #pragma region Close
 	for (auto& clientThread : clientThread) clientThread.join();
-	logicThread.join();
-	DeleteCriticalSection(&cs);
+	battleThread.join();
 	closesocket(listen_sock);
 	WSACleanup();
 #pragma endregion

@@ -133,28 +133,18 @@
   <ItemGroup>
     <ClCompile Include="..\Utils.cpp" />
     <ClCompile Include="Battle.cpp" />
-    <ClCompile Include="boss.cpp" />
-    <ClCompile Include="bullet.cpp" />
-    <ClCompile Include="effect.cpp" />
     <ClCompile Include="enemy.cpp" />
-    <ClCompile Include="image.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="Pokemon_Flight_Server.cpp" />
-    <ClCompile Include="skill.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Utils.h" />
     <ClInclude Include="Battle.h" />
-    <ClInclude Include="boss.h" />
-    <ClInclude Include="bullet.h" />
-    <ClInclude Include="effect.h" />
     <ClInclude Include="enemy.h" />
-    <ClInclude Include="image.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="player.h" />
-    <ClInclude Include="skill.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

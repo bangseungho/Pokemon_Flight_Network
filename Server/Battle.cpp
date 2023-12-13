@@ -1,9 +1,7 @@
 #include "..\Utils.h"
 #include "Battle.h"
-#include "bullet.h"
 #include "enemy.h"
 #include "player.h"
-#include "effect.h"
 
 extern unordered_map<uint8, NetworkPlayerData> sPlayerMap;
 
@@ -17,14 +15,10 @@ Battle::~Battle()
 
 void Battle::Init()
 {
-	mEnemyController = make_shared<EnemyController>();
-
 	for (auto& player : sPlayerMap)
-		mPlayerVec.emplace_back(make_shared<Player>(&player.second, mEnemyController));
+		mPlayerVec.emplace_back(make_shared<Player>(&player.second));
 
-	for (auto& player : mPlayerVec)
-		player->SetBulletsPlayer();
-
+	mEnemyController = make_shared<EnemyController>();
 	Sleep(10);
 }
 
@@ -48,10 +42,4 @@ void Battle::Invalidata()
 
 	mEnemyController->CreateCheckMelee();
 	mEnemyController->CreateCheckRange();
-	//mEnemyController->CheckAttackDelay();
-
-	//for (auto& player : mPlayerVec)
-	//	player->MoveBullets();
-
-	//mEnemyController->Update();
 }
