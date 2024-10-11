@@ -74,6 +74,8 @@ void Player::Shot()
 }
 
 // 플레이어의 기본 공격에 쿨타임을 주는 함수이다
+
+
 void Player::CheckShot()
 {
 	if (mSendData->mBattleData.IsDeath == true)

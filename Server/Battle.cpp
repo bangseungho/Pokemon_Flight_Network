@@ -28,18 +28,14 @@ void Battle::Update(float elapsedTime)
 	accTime += elapsedTime;
 
 	if (accTime >= 0.0167f) {
-		Invalidata();
+
+		for (auto& player : mPlayerVec) {
+			player->Update();
+			player->CheckShot();
+		}
+
+		mEnemyController->CreateCheckMelee();
+		mEnemyController->CreateCheckRange();
 		accTime = 0.f;
 	}
-}
-
-void Battle::Invalidata()
-{
-	for (auto& player : mPlayerVec) {
-		player->Update();
-		player->CheckShot();
-	}
-
-	mEnemyController->CreateCheckMelee();
-	mEnemyController->CreateCheckRange();
 }

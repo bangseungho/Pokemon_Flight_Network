@@ -2,6 +2,7 @@
 
 class Player;
 class EnemyController;
+
 class Battle
 {
 public:
@@ -11,9 +12,6 @@ public:
 public:
 	void Init();
 	void Update(float elapsedTime);
-
-private:
-	void Invalidata();
 
 private:
 	vector<shared_ptr<Player>>	mPlayerVec;

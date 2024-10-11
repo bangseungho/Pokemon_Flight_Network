@@ -708,10 +708,12 @@ bool EnemyController::CheckHit(const RECT& rectSrc, float damage, Type hitType, 
 			const float calDamage = CalculateDamage(damage, enemies.at(i)->GetType(), hitType);
 			if (enemies.at(i)->Hit(damage) == true)
 			{
-				// 죽은 적 객체의 정보를 송신
-				NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
-				GET_SINGLE(Network)->SendDataAndType(sendData);
-				Sleep(10); // 적 제거 패킷 송신을 빠르게 보내면 적 삭제 과정에서 오류가 생성됨 따라서 Sleep으로 어느 정도 느리게 만들어줌
+				if (MY_INDEX == MP_INDEX) {
+					// 죽은 적 객체의 정보를 송신
+					NetworkEnemyData sendData{ NetworkEnemyData::AttackType::DEATH, Vector2{}, i, enemies.at(i)->GetId() };
+					GET_SINGLE(Network)->SendDataAndType(sendData);
+					Sleep(10); // 적 제거 패킷 송신을 빠르게 보내면 적 삭제 과정에서 오류가 생성됨 따라서 Sleep으로 어느 정도 느리게 만들어줌
+				}
 			}
 			return true;
 		}
